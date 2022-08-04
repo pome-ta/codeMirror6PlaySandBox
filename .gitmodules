@@ -1,6 +1,0 @@
-[submodule "pystaObjcPrint"]
-	path = pystaObjcPrint
-	url = https://github.com/pome-ta/pystaObjcPrint
-[submodule "pythonista-webview"]
-	path = pythonista-webview
-	url = https://github.com/pome-ta/pythonista-webview/
