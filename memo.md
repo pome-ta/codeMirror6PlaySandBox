@@ -1,6 +1,5 @@
 # 📝 2022/08/04
 
-
 ## 😅
 
 - 入力できない？
@@ -16,14 +15,14 @@
   - `Compartment`
 - 空白検知
 - シンタックスハイライト
+- theme
+  - まだ呼び出せてない
 - 仕様の理解
 
 ## 想定
 
 大体fix したら、rollup して突っ込む
 
-
 ## lsp
 
 [marc2332/lsp-codemirror: LSP integration for CodeMirror](https://github.com/marc2332/lsp-codemirror)
-
