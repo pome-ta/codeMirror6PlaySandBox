@@ -23829,6 +23829,11 @@ function create_shader(type, text) {
 
 new EditorView({
   doc: codeSample,
-  extensions: [basicSetup, EditorView.lineWrapping, javascript(), oneDark],
+  extensions: [
+    basicSetup,
+    EditorView.lineWrapping,  // 改行
+    javascript(),
+    oneDark  // theme
+  ],
   parent: document.body,
 });
