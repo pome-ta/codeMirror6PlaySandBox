@@ -2,5 +2,11 @@
   "version": "0.0.0",
   "devDependencies": {
     "express": "latest"
+  },
+  "dependencies": {
+    "@codemirror/lang-javascript": "^6.0.2",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "codemirror": "^6.0.1",
+    "rollup": "^2.77.2"
   }
 }
