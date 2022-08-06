@@ -1,8 +1,10 @@
 import { EditorView} from 'codemirror';
 import { basicSetup, minimalSetup } from 'codemirror';
 
-import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap } from '@codemirror/view';
-
+import { lineNumbers, highlightActiveLineGutter, dropCursor, highlightActiveLine, keymap } from '@codemirror/view';
+import { indentOnInput, bracketMatching } from '@codemirror/language';
+import { highlightSelectionMatches } from '@codemirror/search';
+import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
 
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -87,6 +89,18 @@ const editor = new EditorView({
     minimalSetup,
     /* diff basicSetup */
     lineNumbers(),
+    highlightActiveLineGutter(),
+    highlightActiveLine(),
+    dropCursor(),
+    indentOnInput(),
+    bracketMatching(),
+    highlightSelectionMatches(),
+    closeBrackets(),
+    autocompletion(),
+    keymap.of([
+      ...closeBracketsKeymap,
+      ...completionKeymap,
+    ]),
     /* --- basicSetup */
     
     EditorView.lineWrapping, // 改行
