@@ -18,6 +18,7 @@
   "dependencies": {
     "@codemirror/lang-javascript": "latest",
     "@codemirror/theme-one-dark": "latest",
+    "@replit/codemirror-indentation-markers": "^6.0.0",
     "codemirror": "latest"
   }
 }

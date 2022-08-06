@@ -1,6 +1,7 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { indentationMarkers } from '@replit/codemirror-indentation-markers';
 
 const codeSample = `function initShader() {
   gl = cxtCanvas.getContext('webgl2');
@@ -83,6 +84,7 @@ const editor = new EditorView({
     javascript(),
     oneDark, // theme
     myTheme, // custom
+    indentationMarkers(),
   ],
   parent: document.body,
 });

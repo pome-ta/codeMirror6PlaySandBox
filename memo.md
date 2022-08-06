@@ -6,7 +6,7 @@
 - fontSize
 - 空白
 - インデント
-
+  - [replit/codemirror-indentation-markers: A CodeMirror extension that renders indentation markers](https://github.com/replit/codemirror-indentation-markers)
 
 ## 🤔
 
@@ -15,6 +15,7 @@
 - インデントレベルがわかりつらい
 - undo, redo を気軽に呼び出し
 - glsl 用のやつ作る？
+- npm で追加したら、毎回codesandbox 側で一括インストール必要？
 
 # 📝 2022/08/04
 
