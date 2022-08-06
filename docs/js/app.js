@@ -65,7 +65,7 @@ function create_shader(type, text) {
 }
 `;
 
-let view = new EditorView({
+new EditorView({
   doc: codeSample,
   extensions: [
     basicSetup,
@@ -75,3 +75,5 @@ let view = new EditorView({
   ],
   parent: document.body,
 });
+
+
