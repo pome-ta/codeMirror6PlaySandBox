@@ -21690,12 +21690,9 @@ new EditorView({
     highlightSelectionMatches(),
     closeBrackets(),
     autocompletion(),
-    keymap.of([
-      ...closeBracketsKeymap,
-      ...completionKeymap,
-    ]),
+    keymap.of([...closeBracketsKeymap, ...completionKeymap]),
     /* --- basicSetup */
-    
+
     EditorView.lineWrapping, // 改行
     javascript(),
     oneDark, // theme
