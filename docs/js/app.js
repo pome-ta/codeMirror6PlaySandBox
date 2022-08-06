@@ -65,15 +65,24 @@ function create_shader(type, text) {
 }
 `;
 
-new EditorView({
+const myTheme = EditorView.baseTheme({
+  '&.cm-editor': {
+    fontSize: '0.64rem',
+  },
+  '.cm-scroller': {
+    fontFamily:
+      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+  },
+});
+
+const editor = new EditorView({
   doc: codeSample,
   extensions: [
     basicSetup,
-    EditorView.lineWrapping,  // 改行
+    EditorView.lineWrapping, // 改行
     javascript(),
-    oneDark  // theme
+    oneDark, // theme
+    myTheme, // custom
   ],
   parent: document.body,
 });
-
-
