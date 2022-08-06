@@ -1,4 +1,9 @@
-import { EditorView, basicSetup } from 'codemirror';
+import { EditorView} from 'codemirror';
+import { basicSetup, minimalSetup } from 'codemirror';
+
+import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap } from '@codemirror/view';
+
+
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { indentationMarkers } from '@replit/codemirror-indentation-markers';
@@ -79,7 +84,11 @@ const myTheme = EditorView.baseTheme({
 const editor = new EditorView({
   doc: codeSample,
   extensions: [
-    basicSetup,
+    minimalSetup,
+    /* diff basicSetup */
+    lineNumbers(),
+    /* --- basicSetup */
+    
     EditorView.lineWrapping, // 改行
     javascript(),
     oneDark, // theme

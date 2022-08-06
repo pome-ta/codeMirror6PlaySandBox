@@ -1,6 +1,10 @@
 # 📝 2022/08/06
 
 
+## `minimalSetup` と、`basicSetup`
+
+差分で、欲しいものを入れていく
+
 ## todo
 
 - fontSize
