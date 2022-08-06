@@ -6622,6 +6622,7 @@ class DocView extends ContentView {
         this.updateDeco();
         this.updateInner([new ChangedRange(0, 0, 0, view.state.doc.length)], 0);
     }
+    get root() { return this.view.root; }
     get editorView() { return this.view; }
     get length() { return this.view.state.doc.length; }
     // Update the document view to a given state. scrollIntoView can be
@@ -6744,7 +6745,7 @@ class DocView extends ContentView {
                     this.dom.blur();
                     this.dom.focus({ preventScroll: true });
                 }
-                let rawSel = getSelection(this.view.root);
+                let rawSel = getSelection(this.root);
                 if (!rawSel) ;
                 else if (main.empty) {
                     // Work around https://bugzilla.mozilla.org/show_bug.cgi?id=1612076
@@ -6787,7 +6788,7 @@ class DocView extends ContentView {
         if (this.compositionDeco.size)
             return;
         let cursor = this.view.state.selection.main;
-        let sel = getSelection(this.view.root);
+        let sel = getSelection(this.root);
         if (!sel || !cursor.empty || !cursor.assoc || !sel.modify)
             return;
         let line = LineView.find(this, cursor.head);
@@ -6804,7 +6805,7 @@ class DocView extends ContentView {
         sel.modify("move", cursor.assoc < 0 ? "forward" : "backward", "lineboundary");
     }
     mayControlSelection() {
-        let active = this.view.root.activeElement;
+        let active = this.root.activeElement;
         return active == this.dom ||
             hasSelection(this.dom, this.view.observer.selectionRange) && !(active && this.dom.contains(active));
     }
@@ -7157,7 +7158,7 @@ function upBot(rect, bottom) {
     return bottom > rect.bottom ? { top: rect.top, left: rect.left, right: rect.right, bottom } : rect;
 }
 function domPosAtCoords(parent, x, y) {
-    let closest, closestRect, closestX, closestY, closestOverlap = false;
+    let closest, closestRect, closestX, closestY;
     let above, below, aboveRect, belowRect;
     for (let child = parent.firstChild; child; child = child.nextSibling) {
         let rects = clientRectsFor(child);
@@ -7173,7 +7174,6 @@ function domPosAtCoords(parent, x, y) {
                 closestRect = rect;
                 closestX = dx;
                 closestY = dy;
-                closestOverlap = !dx || (dx > 0 ? i < rects.length - 1 : i > 0);
             }
             if (dx == 0) {
                 if (y > rect.bottom && (!aboveRect || aboveRect.bottom < rect.bottom)) {
@@ -7206,7 +7206,7 @@ function domPosAtCoords(parent, x, y) {
     let clipX = Math.max(closestRect.left, Math.min(closestRect.right, x));
     if (closest.nodeType == 3)
         return domPosInText(closest, clipX, y);
-    if (closestOverlap && closest.contentEditable != "false")
+    if (!closestX && closest.contentEditable == "true")
         return domPosAtCoords(closest, clipX, y);
     let offset = Array.prototype.indexOf.call(parent.childNodes, closest) +
         (x >= (closestRect.left + closestRect.right) / 2 ? 1 : 0);
@@ -7303,8 +7303,7 @@ function posAtCoords(view, { x, y }, precise, bias = -1) {
             let range = doc.caretRangeFromPoint(x, y);
             if (range) {
                 ({ startContainer: node, startOffset: offset } = range);
-                if (!view.contentDOM.contains(node) ||
-                    browser.safari && isSuspiciousSafariCaretResult(node, offset, x) ||
+                if (browser.safari && isSuspiciousSafariCaretResult(node, offset, x) ||
                     browser.chrome && isSuspiciousChromeCaretResult(node, offset, x))
                     node = undefined;
             }
@@ -9517,7 +9516,6 @@ const baseTheme$1$3 = /*@__PURE__*/buildTheme("." + baseThemeID, {
     ".cm-widgetBuffer": {
         verticalAlign: "text-top",
         height: "1em",
-        width: 0,
         display: "inline"
     },
     ".cm-placeholder": {
@@ -9627,9 +9625,7 @@ class DOMObserver {
                 this.flushSoon();
             };
         this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.onResize = this.onResize.bind(this);
-        this.onPrint = this.onPrint.bind(this);
-        this.onScroll = this.onScroll.bind(this);
+        window.addEventListener("resize", this.onResize = this.onResize.bind(this));
         if (typeof ResizeObserver == "function") {
             this.resize = new ResizeObserver(() => {
                 if (this.view.docView.lastUpdate < Date.now() - 75)
@@ -9637,9 +9633,9 @@ class DOMObserver {
             });
             this.resize.observe(view.scrollDOM);
         }
-        this.win = view.dom.ownerDocument.defaultView;
-        this.addWindowListeners(this.win);
+        window.addEventListener("beforeprint", this.onPrint = this.onPrint.bind(this));
         this.start();
+        window.addEventListener("scroll", this.onScroll = this.onScroll.bind(this));
         if (typeof IntersectionObserver == "function") {
             this.intersection = new IntersectionObserver(entries => {
                 if (this.parentCheck < 0)
@@ -9658,6 +9654,7 @@ class DOMObserver {
         }
         this.listenForScroll();
         this.readSelectionRange();
+        this.dom.ownerDocument.addEventListener("selectionchange", this.onSelectionChange);
     }
     onScroll(e) {
         if (this.intersecting)
@@ -9872,7 +9869,6 @@ class DOMObserver {
         let newSel = this.selectionChanged && hasSelection(this.dom, this.selectionRange);
         if (from < 0 && !newSel)
             return;
-        this.view.inputState.lastFocusTime = 0;
         this.selectionChanged = false;
         let startState = this.view.state;
         let handled = this.onChange(from, to, typeOver);
@@ -9901,25 +9897,6 @@ class DOMObserver {
             return null;
         }
     }
-    setWindow(win) {
-        if (win != this.win) {
-            this.removeWindowListeners(this.win);
-            this.win = win;
-            this.addWindowListeners(this.win);
-        }
-    }
-    addWindowListeners(win) {
-        win.addEventListener("resize", this.onResize);
-        win.addEventListener("beforeprint", this.onPrint);
-        win.addEventListener("scroll", this.onScroll);
-        win.document.addEventListener("selectionchange", this.onSelectionChange);
-    }
-    removeWindowListeners(win) {
-        win.removeEventListener("scroll", this.onScroll);
-        win.removeEventListener("resize", this.onResize);
-        win.removeEventListener("beforeprint", this.onPrint);
-        win.document.removeEventListener("selectionchange", this.onSelectionChange);
-    }
     destroy() {
         var _a, _b, _c;
         this.stop();
@@ -9928,7 +9905,10 @@ class DOMObserver {
         (_c = this.resize) === null || _c === void 0 ? void 0 : _c.disconnect();
         for (let dom of this.scrollTargets)
             dom.removeEventListener("scroll", this.onScroll);
-        this.removeWindowListeners(this.win);
+        window.removeEventListener("scroll", this.onScroll);
+        window.removeEventListener("resize", this.onResize);
+        window.removeEventListener("beforeprint", this.onPrint);
+        this.dom.ownerDocument.removeEventListener("selectionchange", this.onSelectionChange);
         clearTimeout(this.parentCheck);
         clearTimeout(this.resizeTimeout);
     }
@@ -10236,7 +10216,7 @@ class EditorView {
         this.dom.appendChild(this.scrollDOM);
         this._dispatch = config.dispatch || ((tr) => this.update([tr]));
         this.dispatch = this.dispatch.bind(this);
-        this._root = (config.root || getRoot(config.parent) || document);
+        this.root = (config.root || getRoot(config.parent) || document);
         this.viewState = new ViewState(config.state || EditorState.create(config));
         this.plugins = this.state.facet(viewPlugin).map(spec => new PluginInstance(spec));
         for (let plugin of this.plugins)
@@ -10297,10 +10277,6 @@ class EditorView {
     composition there.
     */
     get compositionStarted() { return this.inputState.composing >= 0; }
-    /**
-    The document or shadow root that the view lives in.
-    */
-    get root() { return this._root; }
     dispatch(...input) {
         this._dispatch(input.length == 1 && input[0] instanceof Transaction ? input[0]
             : this.state.update(...input));
@@ -10636,7 +10612,7 @@ class EditorView {
     /**
     Find the text line or block widget at the given vertical
     position (which is interpreted as relative to the [top of the
-    document](https://codemirror.net/6/docs/ref/#view.EditorView.documentTop)).
+    document](https://codemirror.net/6/docs/ref/#view.EditorView.documentTop)
     */
     elementAtHeight(height) {
         this.readMeasured();
@@ -10645,8 +10621,7 @@ class EditorView {
     /**
     Find the line block (see
     [`lineBlockAt`](https://codemirror.net/6/docs/ref/#view.EditorView.lineBlockAt) at the given
-    height, again interpreted relative to the [top of the
-    document](https://codemirror.net/6/docs/ref/#view.EditorView.documentTop).
+    height.
     */
     lineBlockAtHeight(height) {
         this.readMeasured();
@@ -10851,17 +10826,6 @@ class EditorView {
             focusPreventScroll(this.contentDOM);
             this.docView.updateSelection();
         });
-    }
-    /**
-    Update the [root](https://codemirror.net/6/docs/ref/##view.EditorViewConfig.root) in which the editor lives. This is only
-    necessary when moving the editor's existing DOM to a new window or shadow root.
-    */
-    setRoot(root) {
-        if (this._root != root) {
-            this._root = root;
-            this.observer.setWindow((root.nodeType == 9 ? root : root.ownerDocument).defaultView);
-            this.mountStyles();
-        }
     }
     /**
     Clean up this editor view, removing its element from the
