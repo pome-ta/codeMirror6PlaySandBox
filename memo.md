@@ -18,6 +18,10 @@
 - 空白
 - インデント
   - [replit/codemirror-indentation-markers: A CodeMirror extension that renders indentation markers](https://github.com/replit/codemirror-indentation-markers)
+- `EditorState.create`
+  - 使うなら、`doc` とかもこっち
+
+
 
 ## 🤔
 
@@ -27,7 +31,7 @@
 - undo, redo を気軽に呼び出し
 - glsl 用のやつ作る？
 - npm で追加したら、毎回codesandbox 側で一括インストール必要？
-
+- `tabSize` が謎すぎる
 # 📝 2022/08/04
 
 ## 😅
