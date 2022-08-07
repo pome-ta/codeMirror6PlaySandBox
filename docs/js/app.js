@@ -21,16 +21,13 @@ import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { indentationMarkers } from '@replit/codemirror-indentation-markers';
 
-
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
-editorDiv.style.backgroundColor = 'turquoise';
+// editorDiv.style.backgroundColor = 'turquoise';
+// editorDiv.style.backgroundColor = '#232323';
 editorDiv.style.width = '100%';
-
 //editorDiv.style.height = '100%';
 document.body.appendChild(editorDiv);
-
-
 
 const codeSample = `function initShader() {
   gl = cxtCanvas.getContext('webgl2');
