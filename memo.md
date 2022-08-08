@@ -1,3 +1,14 @@
+📝 2022/08/08
+
+## todo
+
+- whitespace とindent
+  - 2つ並んでたら、置き換えとかできるかな？
+- undo redo アクション
+  - [run a code with click event - discuss.CodeMirror](https://discuss.codemirror.net/t/run-a-code-with-click-event/4820)
+  - これでいける？
+
+
 # 📝 2022/08/07
 
 ## 🤔
