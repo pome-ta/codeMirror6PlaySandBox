@@ -22,13 +22,13 @@ import {
 
 import { undo, redo, indentWithTab } from '@codemirror/commands';
 
-
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { indentationMarkers } from '@replit/codemirror-indentation-markers';
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
+editorDiv.style.background = 'lightslategray';
 editorDiv.style.width = '100%';
 //editorDiv.style.height = '100%';
 document.body.appendChild(editorDiv);
@@ -67,7 +67,6 @@ const myTheme = EditorView.baseTheme({
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
   },
 });
-
 
 const u00b7 = '·'; // ラテン語中点
 const u2018 = '∘'; // RING OPERATOR
@@ -113,9 +112,6 @@ const state = EditorState.create({
     whitespaceShow,
   ],
 });
-
-
-
 
 const editor = new EditorView({
   state,

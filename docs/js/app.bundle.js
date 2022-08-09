@@ -21414,6 +21414,7 @@ const oneDark = [oneDarkTheme, /*@__PURE__*/syntaxHighlighting(oneDarkHighlightS
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
+editorDiv.style.background = 'lightslategray';
 editorDiv.style.width = '100%';
 //editorDiv.style.height = '100%';
 document.body.appendChild(editorDiv);
@@ -21490,9 +21491,6 @@ const state = EditorState.create({
     whitespaceShow,
   ],
 });
-
-
-
 
 new EditorView({
   state,
