@@ -23,8 +23,10 @@ import {
 import { undo, redo, indentWithTab } from '@codemirror/commands';
 
 import { javascript } from '@codemirror/lang-javascript';
-import { oneDark } from '@codemirror/theme-one-dark';
+//import { oneDark } from '@codemirror/theme-one-dark';
 import { indentationMarkers } from '@replit/codemirror-indentation-markers';
+
+import { oneDark } from './theme-my-oneDark.js';
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
@@ -63,7 +65,7 @@ const background = '#282c3400';
 const myTheme = EditorView.theme({
   '&.cm-editor': {
     fontSize: '0.8rem',
-    backgroundColor: background,
+    //backgroundColor: background,
     //backgroundColor: 'rgb(255, 255, 255, 0.0)',
   },
   '.cm-scroller': {
