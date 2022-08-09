@@ -21501,7 +21501,7 @@ void main(void) {
 }
 `;
 //const myTheme = EditorView.baseTheme({
-const myTheme = EditorView.theme({
+EditorView.theme({
   '&.cm-editor': {
     fontSize: '0.8rem',
     //backgroundColor: background,
@@ -21545,7 +21545,7 @@ const state = EditorState.create({
     EditorView.lineWrapping, // 改行
     javascript(),
     oneDark, // theme
-    myTheme, // custom
+    //myTheme, // custom
     // indentationMarkers(),
     whitespaceShow,
   ],

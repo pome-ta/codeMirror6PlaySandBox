@@ -113,7 +113,7 @@ const state = EditorState.create({
     EditorView.lineWrapping, // 改行
     javascript(),
     oneDark, // theme
-    myTheme, // custom
+    //myTheme, // custom
     // indentationMarkers(),
     whitespaceShow,
   ],
