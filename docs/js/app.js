@@ -58,9 +58,13 @@ void main(void) {
 }
 `;
 
-const myTheme = EditorView.baseTheme({
+const background = '#282c3400';
+//const myTheme = EditorView.baseTheme({
+const myTheme = EditorView.theme({
   '&.cm-editor': {
     fontSize: '0.8rem',
+    backgroundColor: background,
+    //backgroundColor: 'rgb(255, 255, 255, 0.0)',
   },
   '.cm-scroller': {
     fontFamily:

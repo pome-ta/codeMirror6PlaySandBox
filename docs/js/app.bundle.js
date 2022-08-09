@@ -21305,14 +21305,14 @@ const autoCloseTags = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, t
 
 // Using https://github.com/one-dark/vscode-one-dark-theme/ as reference for the colors
 const chalky = "#e5c07b", coral = "#e06c75", cyan = "#56b6c2", invalid = "#ffffff", ivory = "#abb2bf", stone = "#7d8799", // Brightened compared to original to increase contrast
-malibu = "#61afef", sage = "#98c379", whiskey = "#d19a66", violet = "#c678dd", darkBackground = "#21252b", highlightBackground = "#2c313a", background = "#282c34", tooltipBackground = "#353a42", selection = "#3E4451", cursor = "#528bff";
+malibu = "#61afef", sage = "#98c379", whiskey = "#d19a66", violet = "#c678dd", darkBackground = "#21252b", highlightBackground = "#2c313a", background$1 = "#282c34", tooltipBackground = "#353a42", selection = "#3E4451", cursor = "#528bff";
 /**
 The editor theme styles for One Dark.
 */
 const oneDarkTheme = /*@__PURE__*/EditorView.theme({
     "&": {
         color: ivory,
-        backgroundColor: background
+        backgroundColor: background$1
     },
     ".cm-content": {
         caretColor: cursor
@@ -21336,7 +21336,7 @@ const oneDarkTheme = /*@__PURE__*/EditorView.theme({
         outline: "1px solid #515a6b"
     },
     ".cm-gutters": {
-        backgroundColor: background,
+        backgroundColor: background$1,
         color: stone,
         border: "none"
     },
@@ -21444,9 +21444,13 @@ void main(void) {
 }
 `;
 
-const myTheme = EditorView.baseTheme({
+const background = '#282c3400';
+//const myTheme = EditorView.baseTheme({
+const myTheme = EditorView.theme({
   '&.cm-editor': {
     fontSize: '0.8rem',
+    backgroundColor: background,
+    //backgroundColor: 'rgb(255, 255, 255, 0.0)',
   },
   '.cm-scroller': {
     fontFamily:
