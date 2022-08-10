@@ -28,7 +28,7 @@ const chalky = '#e5c07b', // ゴールドぽい
 /**
 The editor theme styles for One Dark.
 */
-const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
+const myOneDarkTheme = EditorView.theme(
   {
     '&.cm-editor': {
       fontSize: '0.8rem',
@@ -105,7 +105,7 @@ const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
 /**
 The highlighting style for code in the One Dark theme.
 */
-const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
+const myOneDarkHighlightStyle = HighlightStyle.define([
   {
     tag: [
       tags.comment,
@@ -207,19 +207,15 @@ const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
     color: coral,
   },
   {
-    tag: [/*@__PURE__*/ tags.function(tags.variableName), tags.labelName],
+    tag: [tags.function(tags.variableName), tags.labelName],
     color: malibu,
   },
   {
-    tag: [
-      tags.color,
-      /*@__PURE__*/ tags.constant(tags.name),
-      /*@__PURE__*/ tags.standard(tags.name),
-    ],
+    tag: [tags.color, tags.constant(tags.name), tags.standard(tags.name)],
     color: whiskey,
   },
   {
-    tag: [/*@__PURE__*/ tags.definition(tags.name), tags.separator],
+    tag: [tags.definition(tags.name), tags.separator],
     color: ivory,
   },
   {
@@ -243,7 +239,7 @@ const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
       tags.escape,
       tags.regexp,
       tags.link,
-      /*@__PURE__*/ tags.special(tags.string),
+      tags.special(tags.string),
     ],
     color: cyan,
   },
@@ -265,7 +261,7 @@ const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
     color: coral,
   },
   {
-    tag: [tags.atom, tags.bool, /*@__PURE__*/ tags.special(tags.variableName)],
+    tag: [tags.atom, tags.bool, tags.special(tags.variableName)],
     color: whiskey,
   },
   {
@@ -278,9 +274,6 @@ const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
 Extension to enable the One Dark theme (both the editor theme and
 the highlight style).
 */
-const oneDark = [
-  oneDarkTheme,
-  /*@__PURE__*/ syntaxHighlighting(oneDarkHighlightStyle),
-];
+const myOneDark = [myOneDarkTheme, syntaxHighlighting(myOneDarkHighlightStyle)];
 
-export { oneDark, oneDarkHighlightStyle, oneDarkTheme };
+export { myOneDark, myOneDarkHighlightStyle, myOneDarkTheme };

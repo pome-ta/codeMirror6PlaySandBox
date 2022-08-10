@@ -17380,230 +17380,6 @@ this.
 */
 const indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
-const basicNormalize = typeof String.prototype.normalize == "function"
-    ? x => x.normalize("NFKD") : x => x;
-/**
-A search cursor provides an iterator over text matches in a
-document.
-*/
-class SearchCursor {
-    /**
-    Create a text cursor. The query is the search string, `from` to
-    `to` provides the region to search.
-    
-    When `normalize` is given, it will be called, on both the query
-    string and the content it is matched against, before comparing.
-    You can, for example, create a case-insensitive search by
-    passing `s => s.toLowerCase()`.
-    
-    Text is always normalized with
-    [`.normalize("NFKD")`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)
-    (when supported).
-    */
-    constructor(text, query, from = 0, to = text.length, normalize) {
-        /**
-        The current match (only holds a meaningful value after
-        [`next`](https://codemirror.net/6/docs/ref/#search.SearchCursor.next) has been called and when
-        `done` is false).
-        */
-        this.value = { from: 0, to: 0 };
-        /**
-        Whether the end of the iterated region has been reached.
-        */
-        this.done = false;
-        this.matches = [];
-        this.buffer = "";
-        this.bufferPos = 0;
-        this.iter = text.iterRange(from, to);
-        this.bufferStart = from;
-        this.normalize = normalize ? x => normalize(basicNormalize(x)) : basicNormalize;
-        this.query = this.normalize(query);
-    }
-    peek() {
-        if (this.bufferPos == this.buffer.length) {
-            this.bufferStart += this.buffer.length;
-            this.iter.next();
-            if (this.iter.done)
-                return -1;
-            this.bufferPos = 0;
-            this.buffer = this.iter.value;
-        }
-        return codePointAt(this.buffer, this.bufferPos);
-    }
-    /**
-    Look for the next match. Updates the iterator's
-    [`value`](https://codemirror.net/6/docs/ref/#search.SearchCursor.value) and
-    [`done`](https://codemirror.net/6/docs/ref/#search.SearchCursor.done) properties. Should be called
-    at least once before using the cursor.
-    */
-    next() {
-        while (this.matches.length)
-            this.matches.pop();
-        return this.nextOverlapping();
-    }
-    /**
-    The `next` method will ignore matches that partially overlap a
-    previous match. This method behaves like `next`, but includes
-    such matches.
-    */
-    nextOverlapping() {
-        for (;;) {
-            let next = this.peek();
-            if (next < 0) {
-                this.done = true;
-                return this;
-            }
-            let str = fromCodePoint(next), start = this.bufferStart + this.bufferPos;
-            this.bufferPos += codePointSize(next);
-            let norm = this.normalize(str);
-            for (let i = 0, pos = start;; i++) {
-                let code = norm.charCodeAt(i);
-                let match = this.match(code, pos);
-                if (match) {
-                    this.value = match;
-                    return this;
-                }
-                if (i == norm.length - 1)
-                    break;
-                if (pos == start && i < str.length && str.charCodeAt(i) == code)
-                    pos++;
-            }
-        }
-    }
-    match(code, pos) {
-        let match = null;
-        for (let i = 0; i < this.matches.length; i += 2) {
-            let index = this.matches[i], keep = false;
-            if (this.query.charCodeAt(index) == code) {
-                if (index == this.query.length - 1) {
-                    match = { from: this.matches[i + 1], to: pos + 1 };
-                }
-                else {
-                    this.matches[i]++;
-                    keep = true;
-                }
-            }
-            if (!keep) {
-                this.matches.splice(i, 2);
-                i -= 2;
-            }
-        }
-        if (this.query.charCodeAt(0) == code) {
-            if (this.query.length == 1)
-                match = { from: pos, to: pos + 1 };
-            else
-                this.matches.push(1, pos);
-        }
-        return match;
-    }
-}
-if (typeof Symbol != "undefined")
-    SearchCursor.prototype[Symbol.iterator] = function () { return this; };
-
-const defaultHighlightOptions = {
-    highlightWordAroundCursor: false,
-    minSelectionLength: 1,
-    maxMatches: 100,
-    wholeWords: false
-};
-const highlightConfig = /*@__PURE__*/Facet.define({
-    combine(options) {
-        return combineConfig(options, defaultHighlightOptions, {
-            highlightWordAroundCursor: (a, b) => a || b,
-            minSelectionLength: Math.min,
-            maxMatches: Math.min
-        });
-    }
-});
-/**
-This extension highlights text that matches the selection. It uses
-the `"cm-selectionMatch"` class for the highlighting. When
-`highlightWordAroundCursor` is enabled, the word at the cursor
-itself will be highlighted with `"cm-selectionMatch-main"`.
-*/
-function highlightSelectionMatches(options) {
-    let ext = [defaultTheme, matchHighlighter];
-    if (options)
-        ext.push(highlightConfig.of(options));
-    return ext;
-}
-const matchDeco = /*@__PURE__*/Decoration.mark({ class: "cm-selectionMatch" });
-const mainMatchDeco = /*@__PURE__*/Decoration.mark({ class: "cm-selectionMatch cm-selectionMatch-main" });
-// Whether the characters directly outside the given positions are non-word characters
-function insideWordBoundaries(check, state, from, to) {
-    return (from == 0 || check(state.sliceDoc(from - 1, from)) != CharCategory.Word) &&
-        (to == state.doc.length || check(state.sliceDoc(to, to + 1)) != CharCategory.Word);
-}
-// Whether the characters directly at the given positions are word characters
-function insideWord(check, state, from, to) {
-    return check(state.sliceDoc(from, from + 1)) == CharCategory.Word
-        && check(state.sliceDoc(to - 1, to)) == CharCategory.Word;
-}
-const matchHighlighter = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.decorations = this.getDeco(view);
-    }
-    update(update) {
-        if (update.selectionSet || update.docChanged || update.viewportChanged)
-            this.decorations = this.getDeco(update.view);
-    }
-    getDeco(view) {
-        let conf = view.state.facet(highlightConfig);
-        let { state } = view, sel = state.selection;
-        if (sel.ranges.length > 1)
-            return Decoration.none;
-        let range = sel.main, query, check = null;
-        if (range.empty) {
-            if (!conf.highlightWordAroundCursor)
-                return Decoration.none;
-            let word = state.wordAt(range.head);
-            if (!word)
-                return Decoration.none;
-            check = state.charCategorizer(range.head);
-            query = state.sliceDoc(word.from, word.to);
-        }
-        else {
-            let len = range.to - range.from;
-            if (len < conf.minSelectionLength || len > 200)
-                return Decoration.none;
-            if (conf.wholeWords) {
-                query = state.sliceDoc(range.from, range.to); // TODO: allow and include leading/trailing space?
-                check = state.charCategorizer(range.head);
-                if (!(insideWordBoundaries(check, state, range.from, range.to)
-                    && insideWord(check, state, range.from, range.to)))
-                    return Decoration.none;
-            }
-            else {
-                query = state.sliceDoc(range.from, range.to).trim();
-                if (!query)
-                    return Decoration.none;
-            }
-        }
-        let deco = [];
-        for (let part of view.visibleRanges) {
-            let cursor = new SearchCursor(state.doc, query, part.from, part.to);
-            while (!cursor.next().done) {
-                let { from, to } = cursor.value;
-                if (!check || insideWordBoundaries(check, state, from, to)) {
-                    if (range.empty && from <= range.from && to >= range.to)
-                        deco.push(mainMatchDeco.range(from, to));
-                    else if (from >= range.to || to <= range.from)
-                        deco.push(matchDeco.range(from, to));
-                    if (deco.length > conf.maxMatches)
-                        return Decoration.none;
-                }
-            }
-        }
-        return Decoration.set(deco);
-    }
-}, {
-    decorations: v => v.decorations
-});
-const defaultTheme = /*@__PURE__*/EditorView.baseTheme({
-    ".cm-selectionMatch": { backgroundColor: "#99ff7780" },
-    ".cm-searchMatch .cm-selectionMatch": { backgroundColor: "transparent" }
-});
-
 /**
 An instance of this is passed to completion source functions.
 */
@@ -21329,7 +21105,7 @@ const chalky = '#e5c07b', // ゴールドぽい
 /**
 The editor theme styles for One Dark.
 */
-const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
+const myOneDarkTheme = EditorView.theme(
   {
     '&.cm-editor': {
       fontSize: '0.8rem',
@@ -21406,7 +21182,7 @@ const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
 /**
 The highlighting style for code in the One Dark theme.
 */
-const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
+const myOneDarkHighlightStyle = HighlightStyle.define([
   {
     tag: [
       tags.comment,
@@ -21508,19 +21284,15 @@ const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
     color: coral,
   },
   {
-    tag: [/*@__PURE__*/ tags.function(tags.variableName), tags.labelName],
+    tag: [tags.function(tags.variableName), tags.labelName],
     color: malibu,
   },
   {
-    tag: [
-      tags.color,
-      /*@__PURE__*/ tags.constant(tags.name),
-      /*@__PURE__*/ tags.standard(tags.name),
-    ],
+    tag: [tags.color, tags.constant(tags.name), tags.standard(tags.name)],
     color: whiskey,
   },
   {
-    tag: [/*@__PURE__*/ tags.definition(tags.name), tags.separator],
+    tag: [tags.definition(tags.name), tags.separator],
     color: ivory$1,
   },
   {
@@ -21544,7 +21316,7 @@ const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
       tags.escape,
       tags.regexp,
       tags.link,
-      /*@__PURE__*/ tags.special(tags.string),
+      tags.special(tags.string),
     ],
     color: cyan,
   },
@@ -21566,7 +21338,7 @@ const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
     color: coral,
   },
   {
-    tag: [tags.atom, tags.bool, /*@__PURE__*/ tags.special(tags.variableName)],
+    tag: [tags.atom, tags.bool, tags.special(tags.variableName)],
     color: whiskey,
   },
   {
@@ -21579,17 +21351,12 @@ const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
 Extension to enable the One Dark theme (both the editor theme and
 the highlight style).
 */
-const oneDark = [
-  oneDarkTheme,
-  /*@__PURE__*/ syntaxHighlighting(oneDarkHighlightStyle),
-];
+const myOneDark = [myOneDarkTheme, syntaxHighlighting(myOneDarkHighlightStyle)];
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
-// editorDiv.style.background = 'lightslategray';
 editorDiv.style.background = 'blue';
 editorDiv.style.width = '100%';
-//editorDiv.style.height = '100%';
 document.body.appendChild(editorDiv);
 
 const codeSample = `const whitespaceShow = highlightSpecialChars({
@@ -21605,64 +21372,7 @@ const codeSample = `const whitespaceShow = highlightSpecialChars({
   addSpecialChars: /\x20/g,
 });
 `;
-
-//!baseTheme
-/*
-const baseTheme = EditorView.baseTheme({
-//const baseTheme = EditorView.theme({
-  '&light .cm-zebraStripe': { backgroundColor: '#d4fafa' },
-  '&dark .cm-zebraStripe': { backgroundColor: '#1a2727' },
-});
-*/
-
-EditorView.theme({
-  '.cm-zebraStripe': { backgroundColor: '#d4fafa' },
-  //'.cm-zebraStripe': { backgroundColor: '#1a2727' },
-});
-
-//!facet
-const stepSize = Facet.define({
-  combine: (values) => {
-    return values.length ? Math.min(...values) : 2;
-  },
-});
-
-//!stripeDeco
-const stripe = Decoration.line({
-  attributes: { class: 'cm-zebraStripe' },
-});
-
-function stripeDeco(view) {
-  let step = view.state.facet(stepSize);
-  let builder = new RangeSetBuilder();
-  for (let { from, to } of view.visibleRanges) {
-    for (let pos = from; pos <= to; ) {
-      let line = view.state.doc.lineAt(pos);
-      if (line.number % step == 0) builder.add(line.from, line.from, stripe);
-      pos = line.to + 1;
-    }
-  }
-  return builder.finish();
-}
-
-//!showStripes
-ViewPlugin.fromClass(
-  class {
-    constructor(view) {
-      // EditorView
-      this.decorations = stripeDeco(view);
-    }
-
-    update(update) {
-      if (update.docChanged || update.viewportChanged)
-        this.decorations = stripeDeco(update.view);
-    }
-  },
-  {
-    decorations: (v) => v.decorations,
-  }
-);
-const u22c5 = '⋅'; // DOT OPERATOR
+const uff65 = '･'; // 半角中点
 
 const ivory = '#abb2bf44'; // todo: oneDark から拝借
 const whitespaceShow = highlightSpecialChars({
@@ -21671,7 +21381,8 @@ const whitespaceShow = highlightSpecialChars({
     node.classList.add('cm-whoteSpace');
     // node.style.opacity = 0.5;
     node.style.color = ivory;
-    node.innerText = u22c5;
+    //node.innerText = u22c5;
+    node.innerText = uff65;
     node.title = '\\u' + code.toString(16);
     return node;
   },
@@ -21681,12 +21392,11 @@ const whitespaceShow = highlightSpecialChars({
 
 const darkBackground = '#21252b44';
 const backgroundOpacity = EditorView.theme({
-  // const backgroundOpacity = EditorView.baseTheme({
   '.cm-line': { padding: 0 },
   '.cm-line *': { backgroundColor: darkBackground },
 });
 
-new Compartment();
+const tabSize = new Compartment();
 
 const state = EditorState.create({
   doc: codeSample,
@@ -21699,20 +21409,17 @@ const state = EditorState.create({
     dropCursor(),
     indentOnInput(),
     bracketMatching(),
-    highlightSelectionMatches(),
+    //highlightSelectionMatches(),
     closeBrackets(),
     autocompletion(),
     keymap.of([...closeBracketsKeymap, ...completionKeymap, indentWithTab]),
     /* --- basicSetup */
-    // tabSize.of(EditorState.tabSize.of(2)),
+    tabSize.of(EditorState.tabSize.of(2)),
     EditorView.lineWrapping, // 改行
     javascript(),
-    oneDark, // theme
-    // indentationMarkers(),
+    myOneDark, // theme
     backgroundOpacity,
     whitespaceShow,
-    //!example
-    // zebraStripes(),
   ],
 });
 

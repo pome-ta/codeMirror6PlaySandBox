@@ -11,9 +11,9 @@ import {
   keymap,
   highlightSpecialChars,
 } from '@codemirror/view';
-import { indentOnInput, bracketMatching } from '@codemirror/language';
 
-import { highlightSelectionMatches } from '@codemirror/search';
+//import { highlightSelectionMatches } from '@codemirror/search';
+
 import {
   closeBrackets,
   autocompletion,
@@ -21,20 +21,19 @@ import {
   completionKeymap,
 } from '@codemirror/autocomplete';
 
+import { indentOnInput, bracketMatching } from '@codemirror/language';
+
 import { undo, redo, indentWithTab } from '@codemirror/commands';
 
 import { javascript } from '@codemirror/lang-javascript';
-//import { oneDark } from '@codemirror/theme-one-dark';
-import { indentationMarkers } from '@replit/codemirror-indentation-markers';
 
-import { oneDark } from './theme-my-oneDark.js';
+//import { oneDark } from '@codemirror/theme-one-dark';
+import { myOneDark } from './theme-my-oneDark.js';
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
-// editorDiv.style.background = 'lightslategray';
 editorDiv.style.background = 'blue';
 editorDiv.style.width = '100%';
-//editorDiv.style.height = '100%';
 document.body.appendChild(editorDiv);
 
 const codeSample = `const whitespaceShow = highlightSpecialChars({
@@ -78,77 +77,6 @@ void main(void) {
 `;
 */
 
-import { Decoration } from '@codemirror/view';
-import { RangeSetBuilder } from '@codemirror/state';
-import { Facet } from '@codemirror/state';
-import { ViewPlugin, ViewUpdate } from '@codemirror/view';
-
-//!baseTheme
-/*
-const baseTheme = EditorView.baseTheme({
-//const baseTheme = EditorView.theme({
-  '&light .cm-zebraStripe': { backgroundColor: '#d4fafa' },
-  '&dark .cm-zebraStripe': { backgroundColor: '#1a2727' },
-});
-*/
-
-const baseTheme = EditorView.theme({
-  '.cm-zebraStripe': { backgroundColor: '#d4fafa' },
-  //'.cm-zebraStripe': { backgroundColor: '#1a2727' },
-});
-
-//!facet
-const stepSize = Facet.define({
-  combine: (values) => {
-    return values.length ? Math.min(...values) : 2;
-  },
-});
-
-function zebraStripes(options = {}) {
-  //console.log(options.step == null ? [] : stepSize.of(options.step))
-  return [
-    baseTheme,
-    //options.step == null ? [] : stepSize.of(options.step),
-    showStripes,
-  ];
-}
-
-//!stripeDeco
-const stripe = Decoration.line({
-  attributes: { class: 'cm-zebraStripe' },
-});
-
-function stripeDeco(view) {
-  let step = view.state.facet(stepSize);
-  let builder = new RangeSetBuilder();
-  for (let { from, to } of view.visibleRanges) {
-    for (let pos = from; pos <= to; ) {
-      let line = view.state.doc.lineAt(pos);
-      if (line.number % step == 0) builder.add(line.from, line.from, stripe);
-      pos = line.to + 1;
-    }
-  }
-  return builder.finish();
-}
-
-//!showStripes
-const showStripes = ViewPlugin.fromClass(
-  class {
-    constructor(view) {
-      // EditorView
-      this.decorations = stripeDeco(view);
-    }
-
-    update(update) {
-      if (update.docChanged || update.viewportChanged)
-        this.decorations = stripeDeco(update.view);
-    }
-  },
-  {
-    decorations: (v) => v.decorations,
-  }
-);
-
 const u00b7 = '·'; // ラテン語中点
 const u2018 = '∘'; // RING OPERATOR
 const u2022 = '•'; // bullet
@@ -164,7 +92,8 @@ const whitespaceShow = highlightSpecialChars({
     node.classList.add('cm-whoteSpace');
     // node.style.opacity = 0.5;
     node.style.color = ivory;
-    node.innerText = u22c5;
+    //node.innerText = u22c5;
+    node.innerText = uff65;
     node.title = '\\u' + code.toString(16);
     return node;
   },
@@ -174,7 +103,6 @@ const whitespaceShow = highlightSpecialChars({
 
 const darkBackground = '#21252b44';
 const backgroundOpacity = EditorView.theme({
-  // const backgroundOpacity = EditorView.baseTheme({
   '.cm-line': { padding: 0 },
   '.cm-line *': { backgroundColor: darkBackground },
 });
@@ -192,20 +120,17 @@ const state = EditorState.create({
     dropCursor(),
     indentOnInput(),
     bracketMatching(),
-    highlightSelectionMatches(),
+    //highlightSelectionMatches(),
     closeBrackets(),
     autocompletion(),
     keymap.of([...closeBracketsKeymap, ...completionKeymap, indentWithTab]),
     /* --- basicSetup */
-    // tabSize.of(EditorState.tabSize.of(2)),
+    tabSize.of(EditorState.tabSize.of(2)),
     EditorView.lineWrapping, // 改行
     javascript(),
-    oneDark, // theme
-    // indentationMarkers(),
+    myOneDark, // theme
     backgroundOpacity,
     whitespaceShow,
-    //!example
-    // zebraStripes(),
   ],
 });
 
