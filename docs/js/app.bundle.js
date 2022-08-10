@@ -12148,7 +12148,7 @@ const tooltipPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
         scroll() { this.maybeMeasure(); }
     }
 });
-const baseTheme$2 = /*@__PURE__*/EditorView.baseTheme({
+const baseTheme$3 = /*@__PURE__*/EditorView.baseTheme({
     ".cm-tooltip": {
         zIndex: 100
     },
@@ -12214,7 +12214,7 @@ const noOffset = { x: 0, y: 0 };
 Facet to which an extension can add a value to show a tooltip.
 */
 const showTooltip = /*@__PURE__*/Facet.define({
-    enables: [tooltipPlugin, baseTheme$2]
+    enables: [tooltipPlugin, baseTheme$3]
 });
 /**
 Get the active tooltip view for a given tooltip, if available.
@@ -15830,7 +15830,7 @@ const defaultHighlightStyle = /*@__PURE__*/HighlightStyle.define([
         color: "#f00" }
 ]);
 
-const baseTheme$1 = /*@__PURE__*/EditorView.baseTheme({
+const baseTheme$2 = /*@__PURE__*/EditorView.baseTheme({
     "&.cm-focused .cm-matchingBracket": { backgroundColor: "#328c8252" },
     "&.cm-focused .cm-nonmatchingBracket": { backgroundColor: "#bb555544" }
 });
@@ -15878,7 +15878,7 @@ const bracketMatchingState = /*@__PURE__*/StateField.define({
 });
 const bracketMatchingUnique = [
     bracketMatchingState,
-    baseTheme$1
+    baseTheme$2
 ];
 /**
 Create an extension that enables bracket matching. Whenever the
@@ -18597,7 +18597,7 @@ const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
     }
 });
 
-const baseTheme = /*@__PURE__*/EditorView.baseTheme({
+const baseTheme$1 = /*@__PURE__*/EditorView.baseTheme({
     ".cm-tooltip.cm-tooltip-autocomplete": {
         "& > ul": {
             fontFamily: "monospace",
@@ -18876,7 +18876,7 @@ function snippet(template) {
             let active = new ActiveSnippet(ranges, 0);
             let effects = spec.effects = [setActive.of(active)];
             if (editor.state.field(snippetState, false) === undefined)
-                effects.push(StateEffect.appendConfig.of([snippetState, addSnippetKeymap, snippetPointerHandler, baseTheme]));
+                effects.push(StateEffect.appendConfig.of([snippetState, addSnippetKeymap, snippetPointerHandler, baseTheme$1]));
         }
         editor.dispatch(editor.state.update(spec));
     };
@@ -19197,7 +19197,7 @@ function autocompletion(config = {}) {
         completionConfig.of(config),
         completionPlugin,
         completionKeymapExt,
-        baseTheme
+        baseTheme$1
     ];
 }
 /**
@@ -21314,12 +21314,12 @@ const chalky = '#e5c07b', // ゴールドぽい
   sage = '#98c379', // 緑
   whiskey = '#d19a66', // オレンジ
   violet = '#c678dd', // ピンク
-  //darkBackground = '#21252b',
-  darkBackground = '#21252b44',
-  //highlightBackground = '#2c313a',
-  highlightBackground = '#2c313a88',
-  //background = '#282c34',
-  background = '#282c3400',
+  darkBackground = '#21252b',
+  //darkBackground = '#21252b44',
+  highlightBackground = '#2c313a',
+  //highlightBackground = '#2c313a88',
+  background = '#282c34',
+  //background = '#282c3400',
   tooltipBackground = '#353a42',
   selection = '#3E4451',
   cursor = '#528bff'; // あお
@@ -21523,18 +21523,61 @@ void main(void) {
   fragmentColor = vec4(ray.direction, 1.0);
 }
 `;
-//const myTheme = EditorView.baseTheme({
-EditorView.theme({
-  '&.cm-editor': {
-    fontSize: '0.8rem',
-    //backgroundColor: background,
-    //backgroundColor: 'rgb(255, 255, 255, 0.0)',
-  },
-  '.cm-scroller': {
-    fontFamily:
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-  },
+
+//!baseTheme
+const baseTheme = EditorView.baseTheme({
+//const baseTheme = EditorView.theme({
+  '&light .cm-zebraStripe': { backgroundColor: '#d4fafa' },
+  '&dark .cm-zebraStripe': { backgroundColor: '#1a2727' },
 });
+
+//!facet
+const stepSize = Facet.define({
+  combine: (values) => (values.length ? Math.min(...values) : 2),
+});
+
+function zebraStripes(options = {}) {
+  return [
+    baseTheme,
+    options.step == null ? [] : stepSize.of(options.step),
+    showStripes,
+  ];
+}
+
+//!stripeDeco
+const stripe = Decoration.line({
+  attributes: { class: 'cm-zebraStripe' },
+});
+
+function stripeDeco(view) {
+  let step = view.state.facet(stepSize);
+  let builder = new RangeSetBuilder();
+  for (let { from, to } of view.visibleRanges) {
+    for (let pos = from; pos <= to; ) {
+      let line = view.state.doc.lineAt(pos);
+      if (line.number % step == 0) builder.add(line.from, line.from, stripe);
+      pos = line.to + 1;
+    }
+  }
+  return builder.finish();
+}
+
+//!showStripes
+const showStripes = ViewPlugin.fromClass(
+  class {
+    constructor(view) {
+      this.decorations = stripeDeco(view);
+    }
+
+    update(update) {
+      if (update.docChanged || update.viewportChanged)
+        this.decorations = stripeDeco(update.view);
+    }
+  },
+  {
+    decorations: (v) => v.decorations,
+  }
+);
 const u22c5 = '⋅'; // DOT OPERATOR
 
 const whitespaceShow = highlightSpecialChars({
@@ -21570,6 +21613,8 @@ const state = EditorState.create({
     oneDark, // theme
     // indentationMarkers(),
     whitespaceShow,
+    //!example
+    zebraStripes(),
   ],
 });
 

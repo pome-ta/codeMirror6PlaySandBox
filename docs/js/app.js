@@ -12,6 +12,7 @@ import {
   highlightSpecialChars,
 } from '@codemirror/view';
 import { indentOnInput, bracketMatching } from '@codemirror/language';
+
 import { highlightSelectionMatches } from '@codemirror/search';
 import {
   closeBrackets,
@@ -61,19 +62,65 @@ void main(void) {
 }
 `;
 
-const background = '#282c3400';
-//const myTheme = EditorView.baseTheme({
-const myTheme = EditorView.theme({
-  '&.cm-editor': {
-    fontSize: '0.8rem',
-    //backgroundColor: background,
-    //backgroundColor: 'rgb(255, 255, 255, 0.0)',
-  },
-  '.cm-scroller': {
-    fontFamily:
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-  },
+import { Decoration } from '@codemirror/view';
+import { RangeSetBuilder } from '@codemirror/state';
+import { Facet } from '@codemirror/state';
+import { ViewPlugin, ViewUpdate } from '@codemirror/view';
+
+//!baseTheme
+const baseTheme = EditorView.baseTheme({
+//const baseTheme = EditorView.theme({
+  '&light .cm-zebraStripe': { backgroundColor: '#d4fafa' },
+  '&dark .cm-zebraStripe': { backgroundColor: '#1a2727' },
 });
+
+//!facet
+const stepSize = Facet.define({
+  combine: (values) => (values.length ? Math.min(...values) : 2),
+});
+
+function zebraStripes(options = {}) {
+  return [
+    baseTheme,
+    options.step == null ? [] : stepSize.of(options.step),
+    showStripes,
+  ];
+}
+
+//!stripeDeco
+const stripe = Decoration.line({
+  attributes: { class: 'cm-zebraStripe' },
+});
+
+function stripeDeco(view) {
+  let step = view.state.facet(stepSize);
+  let builder = new RangeSetBuilder();
+  for (let { from, to } of view.visibleRanges) {
+    for (let pos = from; pos <= to; ) {
+      let line = view.state.doc.lineAt(pos);
+      if (line.number % step == 0) builder.add(line.from, line.from, stripe);
+      pos = line.to + 1;
+    }
+  }
+  return builder.finish();
+}
+
+//!showStripes
+const showStripes = ViewPlugin.fromClass(
+  class {
+    constructor(view) {
+      this.decorations = stripeDeco(view);
+    }
+
+    update(update) {
+      if (update.docChanged || update.viewportChanged)
+        this.decorations = stripeDeco(update.view);
+    }
+  },
+  {
+    decorations: (v) => v.decorations,
+  }
+);
 
 const u00b7 = '·'; // ラテン語中点
 const u2018 = '∘'; // RING OPERATOR
@@ -116,6 +163,8 @@ const state = EditorState.create({
     oneDark, // theme
     // indentationMarkers(),
     whitespaceShow,
+    //!example
+    zebraStripes(),
   ],
 });
 
