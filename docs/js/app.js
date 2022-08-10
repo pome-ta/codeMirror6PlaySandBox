@@ -1,7 +1,7 @@
 import { EditorView } from 'codemirror';
 import { basicSetup, minimalSetup } from 'codemirror';
 
-import { EditorState } from '@codemirror/state';
+import { EditorState, Compartment } from '@codemirror/state';
 
 import {
   lineNumbers,
@@ -37,6 +37,21 @@ editorDiv.style.width = '100%';
 //editorDiv.style.height = '100%';
 document.body.appendChild(editorDiv);
 
+const codeSample = `const whitespaceShow = highlightSpecialChars({
+  render: (code) => {
+    let node = document.createElement('span');
+    node.style.opacity = 0.5;
+    node.innerText = u22c5;
+    node.title = '\\u' + code.toString(16);
+    // return node;
+    return document.createTextNode(String.fromCodePoint(code));
+  },
+  // specialChars: /\x20/g,
+  addSpecialChars: /\x20/g,
+});
+`;
+
+/*
 const codeSample = `#version 300 es
 precision highp float;
 
@@ -61,6 +76,7 @@ void main(void) {
   fragmentColor = vec4(ray.direction, 1.0);
 }
 `;
+*/
 
 import { Decoration } from '@codemirror/view';
 import { RangeSetBuilder } from '@codemirror/state';
@@ -141,17 +157,29 @@ const u2219 = '∙'; // BULLET OPERATOR
 const u22c5 = '⋅'; // DOT OPERATOR
 const uff65 = '･'; // 半角中点
 
+const ivory = '#abb2bf44'; // todo: oneDark から拝借
 const whitespaceShow = highlightSpecialChars({
   render: (code) => {
-    console.log(code)
     let node = document.createElement('span');
-    node.style.opacity = 0.5;
+    node.classList.add('cm-whoteSpace');
+    // node.style.opacity = 0.5;
+    node.style.color = ivory;
     node.innerText = u22c5;
     node.title = '\\u' + code.toString(16);
     return node;
   },
-  specialChars: /\x20/g,
+  // specialChars: /\x20/g,
+  addSpecialChars: /\x20/g,
 });
+
+const darkBackground = '#21252b44';
+const backgroundOpacity = EditorView.theme({
+  // const backgroundOpacity = EditorView.baseTheme({
+  '.cm-line': { padding: 0 },
+  '.cm-line *': { backgroundColor: darkBackground },
+});
+
+const tabSize = new Compartment();
 
 const state = EditorState.create({
   doc: codeSample,
@@ -169,14 +197,15 @@ const state = EditorState.create({
     autocompletion(),
     keymap.of([...closeBracketsKeymap, ...completionKeymap, indentWithTab]),
     /* --- basicSetup */
-    //tabSize.of(EditorState.tabSize.of(4)),
+    // tabSize.of(EditorState.tabSize.of(2)),
     EditorView.lineWrapping, // 改行
     javascript(),
-    //oneDark, // theme
+    oneDark, // theme
     // indentationMarkers(),
+    backgroundOpacity,
     whitespaceShow,
     //!example
-    zebraStripes(),
+    // zebraStripes(),
   ],
 });
 

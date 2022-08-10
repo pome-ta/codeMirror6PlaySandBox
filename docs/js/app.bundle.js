@@ -12148,7 +12148,7 @@ const tooltipPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
         scroll() { this.maybeMeasure(); }
     }
 });
-const baseTheme$3 = /*@__PURE__*/EditorView.baseTheme({
+const baseTheme$2 = /*@__PURE__*/EditorView.baseTheme({
     ".cm-tooltip": {
         zIndex: 100
     },
@@ -12214,7 +12214,7 @@ const noOffset = { x: 0, y: 0 };
 Facet to which an extension can add a value to show a tooltip.
 */
 const showTooltip = /*@__PURE__*/Facet.define({
-    enables: [tooltipPlugin, baseTheme$3]
+    enables: [tooltipPlugin, baseTheme$2]
 });
 /**
 Get the active tooltip view for a given tooltip, if available.
@@ -15830,7 +15830,7 @@ const defaultHighlightStyle = /*@__PURE__*/HighlightStyle.define([
         color: "#f00" }
 ]);
 
-const baseTheme$2 = /*@__PURE__*/EditorView.baseTheme({
+const baseTheme$1 = /*@__PURE__*/EditorView.baseTheme({
     "&.cm-focused .cm-matchingBracket": { backgroundColor: "#328c8252" },
     "&.cm-focused .cm-nonmatchingBracket": { backgroundColor: "#bb555544" }
 });
@@ -15878,7 +15878,7 @@ const bracketMatchingState = /*@__PURE__*/StateField.define({
 });
 const bracketMatchingUnique = [
     bracketMatchingState,
-    baseTheme$2
+    baseTheme$1
 ];
 /**
 Create an extension that enables bracket matching. Whenever the
@@ -18597,7 +18597,7 @@ const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
     }
 });
 
-const baseTheme$1 = /*@__PURE__*/EditorView.baseTheme({
+const baseTheme = /*@__PURE__*/EditorView.baseTheme({
     ".cm-tooltip.cm-tooltip-autocomplete": {
         "& > ul": {
             fontFamily: "monospace",
@@ -18876,7 +18876,7 @@ function snippet(template) {
             let active = new ActiveSnippet(ranges, 0);
             let effects = spec.effects = [setActive.of(active)];
             if (editor.state.field(snippetState, false) === undefined)
-                effects.push(StateEffect.appendConfig.of([snippetState, addSnippetKeymap, snippetPointerHandler, baseTheme$1]));
+                effects.push(StateEffect.appendConfig.of([snippetState, addSnippetKeymap, snippetPointerHandler, baseTheme]));
         }
         editor.dispatch(editor.state.update(spec));
     };
@@ -19197,7 +19197,7 @@ function autocompletion(config = {}) {
         completionConfig.of(config),
         completionPlugin,
         completionKeymapExt,
-        baseTheme$1
+        baseTheme
     ];
 }
 /**
@@ -21303,6 +21303,287 @@ const autoCloseTags = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, t
     return true;
 });
 
+// Using https://github.com/one-dark/vscode-one-dark-theme/ as reference for the colors
+const chalky = '#e5c07b', // ゴールドぽい
+  coral = '#e06c75', // ピンクっぽい
+  cyan = '#56b6c2', // シアン、水色系
+  invalid = '#ffffff', // 白
+  ivory$1 = '#abb2bf', // 灰色
+  stone = '#7d8799', // Brightened compared to original to increase contrast  // 濃い灰色
+  malibu = '#61afef', // 水色
+  sage = '#98c379', // 緑
+  whiskey = '#d19a66', // オレンジ
+  violet = '#c678dd', // ピンク
+  // darkBackground = '#21252b',
+  // darkBackground = '#21252b44',
+  darkBackground$1 = '#2c313a88', // 元は、`highlightBackground` の色
+  // highlightBackground = '#2c313a',
+  // highlightBackground = '#2c313a88',
+  highlightBackground = '#21252b44', // 元は、`darkBackground` の色
+  // background = '#282c34',
+  background = '#282c3400',
+  guttersBakcground = '#282c3444',
+  tooltipBackground = '#353a42',
+  selection = '#3E4451',
+  cursor = '#528bff'; // あお
+/**
+The editor theme styles for One Dark.
+*/
+const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
+  {
+    '&.cm-editor': {
+      fontSize: '0.8rem',
+    },
+
+    '.cm-scroller': {
+      fontFamily:
+        'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    },
+    '&': {
+      color: ivory$1,
+      backgroundColor: background,
+    },
+    '.cm-content': {
+      caretColor: cursor,
+    },
+    '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
+    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
+      {
+        backgroundColor: selection,
+      },
+
+    '.cm-panels': { backgroundColor: darkBackground$1, color: ivory$1 },
+    '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
+    '.cm-panels.cm-panels-bottom': { borderTop: '2px solid black' },
+    '.cm-searchMatch': {
+      backgroundColor: '#72a1ff59',
+      outline: '1px solid #457dff',
+    },
+    '.cm-searchMatch.cm-searchMatch-selected': {
+      backgroundColor: '#6199ff2f',
+    },
+    '.cm-activeLine': { backgroundColor: highlightBackground },
+    '.cm-selectionMatch': { backgroundColor: '#aafe661a' },
+    '&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket': {
+      backgroundColor: '#bad0f847',
+      outline: '1px solid #515a6b',
+    },
+    '.cm-gutters': {
+      // backgroundColor: background,
+      backgroundColor: guttersBakcground,
+      color: stone,
+      border: 'none',
+    },
+    '.cm-activeLineGutter': {
+      backgroundColor: highlightBackground,
+    },
+    '.cm-foldPlaceholder': {
+      backgroundColor: 'transparent',
+      border: 'none',
+      color: '#ddd',
+    },
+    '.cm-tooltip': {
+      border: 'none',
+      backgroundColor: tooltipBackground,
+    },
+    '.cm-tooltip .cm-tooltip-arrow:before': {
+      borderTopColor: 'transparent',
+      borderBottomColor: 'transparent',
+    },
+    '.cm-tooltip .cm-tooltip-arrow:after': {
+      borderTopColor: tooltipBackground,
+      borderBottomColor: tooltipBackground,
+    },
+    '.cm-tooltip-autocomplete': {
+      '& > ul > li[aria-selected]': {
+        backgroundColor: highlightBackground,
+        color: ivory$1,
+      },
+    },
+  },
+  { dark: true }
+);
+/**
+The highlighting style for code in the One Dark theme.
+*/
+const oneDarkHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
+  {
+    tag: [
+      tags.comment,
+      tags.lineComment,
+      tags.blockComment,
+      tags.docComment,
+      tags.name,
+      tags.variableName,
+      tags.typeName,
+      tags.tagName,
+      tags.propertyName,
+      tags.attributeName,
+      tags.className,
+      tags.labelName,
+      tags.namespace,
+      tags.macroName,
+      tags.literal,
+      tags.string,
+      tags.docString,
+      tags.character,
+      tags.attributeValue,
+      tags.number,
+      tags.integer,
+      tags.float,
+      tags.bool,
+      tags.regexp,
+      tags.escape,
+      tags.color,
+      tags.url,
+      tags.keyword,
+      tags.self,
+      tags.null,
+      tags.atom,
+      tags.unit,
+      tags.modifier,
+      tags.operatorKeyword,
+      tags.controlKeyword,
+      tags.definitionKeyword,
+      tags.moduleKeyword,
+      tags.operator,
+      tags.derefOperator,
+      tags.arithmeticOperator,
+      tags.logicOperator,
+      tags.bitwiseOperator,
+      tags.compareOperator,
+      tags.updateOperator,
+      tags.definitionOperator,
+      tags.typeOperator,
+      tags.controlOperator,
+      tags.punctuation,
+      tags.separator,
+      tags.bracket,
+      tags.angleBracket,
+      tags.squareBracket,
+      tags.paren,
+      tags.brace,
+      tags.content,
+      tags.heading,
+      tags.heading1,
+      tags.heading2,
+      tags.heading3,
+      tags.heading4,
+      tags.heading5,
+      tags.heading6,
+      tags.contentSeparator,
+      tags.list,
+      tags.quote,
+      tags.emphasis,
+      tags.strong,
+      tags.link,
+      tags.monospace,
+      tags.strikethrough,
+      tags.inserted,
+      tags.deleted,
+      tags.changed,
+      tags.invalid,
+      tags.meta,
+      tags.documentMeta,
+      tags.annotation,
+      tags.processingInstruction,
+      tags.definition,
+      tags.constant,
+      tags.function,
+      tags.standard,
+      tags.local,
+      tags.special,
+    ],
+    backgroundColor: darkBackground$1,
+  },
+  { tag: tags.keyword, color: violet },
+  {
+    tag: [
+      tags.name,
+      tags.deleted,
+      tags.character,
+      tags.propertyName,
+      tags.macroName,
+    ],
+    color: coral,
+  },
+  {
+    tag: [/*@__PURE__*/ tags.function(tags.variableName), tags.labelName],
+    color: malibu,
+  },
+  {
+    tag: [
+      tags.color,
+      /*@__PURE__*/ tags.constant(tags.name),
+      /*@__PURE__*/ tags.standard(tags.name),
+    ],
+    color: whiskey,
+  },
+  {
+    tag: [/*@__PURE__*/ tags.definition(tags.name), tags.separator],
+    color: ivory$1,
+  },
+  {
+    tag: [
+      tags.typeName,
+      tags.className,
+      tags.number,
+      tags.changed,
+      tags.annotation,
+      tags.modifier,
+      tags.self,
+      tags.namespace,
+    ],
+    color: chalky,
+  },
+  {
+    tag: [
+      tags.operator,
+      tags.operatorKeyword,
+      tags.url,
+      tags.escape,
+      tags.regexp,
+      tags.link,
+      /*@__PURE__*/ tags.special(tags.string),
+    ],
+    color: cyan,
+  },
+  { tag: [tags.meta, tags.comment], color: stone },
+  { tag: tags.strong, fontWeight: 'bold' },
+  { tag: tags.emphasis, fontStyle: 'italic' },
+  {
+    tag: tags.strikethrough,
+    textDecoration: 'line-through',
+  },
+  {
+    tag: tags.link,
+    color: stone,
+    textDecoration: 'underline',
+  },
+  {
+    tag: tags.heading,
+    fontWeight: 'bold',
+    color: coral,
+  },
+  {
+    tag: [tags.atom, tags.bool, /*@__PURE__*/ tags.special(tags.variableName)],
+    color: whiskey,
+  },
+  {
+    tag: [tags.processingInstruction, tags.string, tags.inserted],
+    color: sage,
+  },
+  { tag: tags.invalid, color: invalid },
+]);
+/**
+Extension to enable the One Dark theme (both the editor theme and
+the highlight style).
+*/
+const oneDark = [
+  oneDarkTheme,
+  /*@__PURE__*/ syntaxHighlighting(oneDarkHighlightStyle),
+];
+
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
 // editorDiv.style.background = 'lightslategray';
@@ -21311,29 +21592,18 @@ editorDiv.style.width = '100%';
 //editorDiv.style.height = '100%';
 document.body.appendChild(editorDiv);
 
-const codeSample = `#version 300 es
-precision highp float;
-
-uniform float time;
-uniform vec2 resolution;
-uniform vec2 mouse;
-
-out vec4 fragmentColor;
-
-struct Ray{
-  vec3 origin;
-  vec3 direction;
-};
-
-void main(void) {
-  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
-
-  Ray ray;
-  ray.origin = vec3(0.0, 0.0, 5.0);
-  ray.direction = normalize(vec3(p.x, p.y, -1.0));
-
-  fragmentColor = vec4(ray.direction, 1.0);
-}
+const codeSample = `const whitespaceShow = highlightSpecialChars({
+  render: (code) => {
+    let node = document.createElement('span');
+    node.style.opacity = 0.5;
+    node.innerText = u22c5;
+    node.title = '\\u' + code.toString(16);
+    // return node;
+    return document.createTextNode(String.fromCodePoint(code));
+  },
+  // specialChars: /\x20/g,
+  addSpecialChars: /\x20/g,
+});
 `;
 
 //!baseTheme
@@ -21345,7 +21615,7 @@ const baseTheme = EditorView.baseTheme({
 });
 */
 
-const baseTheme = EditorView.theme({
+EditorView.theme({
   '.cm-zebraStripe': { backgroundColor: '#d4fafa' },
   //'.cm-zebraStripe': { backgroundColor: '#1a2727' },
 });
@@ -21356,15 +21626,6 @@ const stepSize = Facet.define({
     return values.length ? Math.min(...values) : 2;
   },
 });
-
-function zebraStripes(options = {}) {
-  //console.log(options.step == null ? [] : stepSize.of(options.step))
-  return [
-    baseTheme,
-    //options.step == null ? [] : stepSize.of(options.step),
-    showStripes,
-  ];
-}
 
 //!stripeDeco
 const stripe = Decoration.line({
@@ -21385,7 +21646,7 @@ function stripeDeco(view) {
 }
 
 //!showStripes
-const showStripes = ViewPlugin.fromClass(
+ViewPlugin.fromClass(
   class {
     constructor(view) {
       // EditorView
@@ -21403,17 +21664,29 @@ const showStripes = ViewPlugin.fromClass(
 );
 const u22c5 = '⋅'; // DOT OPERATOR
 
+const ivory = '#abb2bf44'; // todo: oneDark から拝借
 const whitespaceShow = highlightSpecialChars({
   render: (code) => {
-    console.log(code);
     let node = document.createElement('span');
-    node.style.opacity = 0.5;
+    node.classList.add('cm-whoteSpace');
+    // node.style.opacity = 0.5;
+    node.style.color = ivory;
     node.innerText = u22c5;
     node.title = '\\u' + code.toString(16);
     return node;
   },
-  specialChars: /\x20/g,
+  // specialChars: /\x20/g,
+  addSpecialChars: /\x20/g,
 });
+
+const darkBackground = '#21252b44';
+const backgroundOpacity = EditorView.theme({
+  // const backgroundOpacity = EditorView.baseTheme({
+  '.cm-line': { padding: 0 },
+  '.cm-line *': { backgroundColor: darkBackground },
+});
+
+new Compartment();
 
 const state = EditorState.create({
   doc: codeSample,
@@ -21431,14 +21704,15 @@ const state = EditorState.create({
     autocompletion(),
     keymap.of([...closeBracketsKeymap, ...completionKeymap, indentWithTab]),
     /* --- basicSetup */
-    //tabSize.of(EditorState.tabSize.of(4)),
+    // tabSize.of(EditorState.tabSize.of(2)),
     EditorView.lineWrapping, // 改行
     javascript(),
-    //oneDark, // theme
+    oneDark, // theme
     // indentationMarkers(),
+    backgroundOpacity,
     whitespaceShow,
     //!example
-    zebraStripes(),
+    // zebraStripes(),
   ],
 });
 

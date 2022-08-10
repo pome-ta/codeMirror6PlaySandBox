@@ -1,3 +1,11 @@
+# 📝 2022/08/11
+
+## 背景theme
+
+- 力技で、theme のhighlight 要素全部に`backgroundColor` を仕込んだ
+- もう少し、手前の段階で反映することはできそう。。。
+- 現在は、js でのハイライト設定なので、GLSL にした時の挙動が心配
+
 # 📝 2022/08/10
 
 ## theme
@@ -29,7 +37,7 @@
 
 差分で、欲しいものを入れていく
 
-## todo
+## todoぅ
 
 - fontSize
 - 空白
@@ -38,7 +46,7 @@
 - `EditorState.create`
   - 使うなら、`doc` とかもこっち
 
-## 🤔
+## ふむ🤔
 
 - ミニマムなセッティングか否か
 - 関数を検知してまとめるやついらない？
@@ -50,7 +58,7 @@
 
 # 📝 2022/08/04
 
-## 😅
+## え😅
 
 - 入力できない？
   - css でタップ制御してました、、、
@@ -59,7 +67,7 @@
   - 過去の参照してるサイトは古い場合あり
   - 基本的なのは[basic-setup/codemirror.ts at main · codemirror/basic-setup](https://github.com/codemirror/basic-setup/blob/main/src/codemirror.ts) ここから確認するのがよさそう？
 
-## todo
+## todoぅう
 
 - 改行
   - `Compartment`
