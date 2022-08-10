@@ -68,21 +68,31 @@ import { Facet } from '@codemirror/state';
 import { ViewPlugin, ViewUpdate } from '@codemirror/view';
 
 //!baseTheme
+/*
 const baseTheme = EditorView.baseTheme({
 //const baseTheme = EditorView.theme({
   '&light .cm-zebraStripe': { backgroundColor: '#d4fafa' },
   '&dark .cm-zebraStripe': { backgroundColor: '#1a2727' },
 });
+*/
+
+const baseTheme = EditorView.theme({
+  '.cm-zebraStripe': { backgroundColor: '#d4fafa' },
+  //'.cm-zebraStripe': { backgroundColor: '#1a2727' },
+});
 
 //!facet
 const stepSize = Facet.define({
-  combine: (values) => (values.length ? Math.min(...values) : 2),
+  combine: (values) => {
+    return values.length ? Math.min(...values) : 2;
+  },
 });
 
 function zebraStripes(options = {}) {
+  //console.log(options.step == null ? [] : stepSize.of(options.step))
   return [
     baseTheme,
-    options.step == null ? [] : stepSize.of(options.step),
+    //options.step == null ? [] : stepSize.of(options.step),
     showStripes,
   ];
 }
@@ -109,6 +119,7 @@ function stripeDeco(view) {
 const showStripes = ViewPlugin.fromClass(
   class {
     constructor(view) {
+      // EditorView
       this.decorations = stripeDeco(view);
     }
 
@@ -160,7 +171,7 @@ const state = EditorState.create({
     //tabSize.of(EditorState.tabSize.of(4)),
     EditorView.lineWrapping, // 改行
     javascript(),
-    oneDark, // theme
+    //oneDark, // theme
     // indentationMarkers(),
     whitespaceShow,
     //!example
