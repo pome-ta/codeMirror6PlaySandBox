@@ -21315,7 +21315,7 @@ const chalky = '#e5c07b', // ゴールドぽい
   whiskey = '#d19a66', // オレンジ
   violet = '#c678dd', // ピンク
   //darkBackground = '#21252b',
-  darkBackground = '#21252b88',
+  darkBackground = '#21252b44',
   //highlightBackground = '#2c313a',
   highlightBackground = '#2c313a88',
   //background = '#282c34',
@@ -21332,9 +21332,10 @@ const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
       fontSize: '0.8rem',
     },
     '.cm-line': {
+      //display: 'table',
       // display: 'inline-block',
       // display: 'table-row-group',
-      // backgroundColor: darkBackground,
+      backgroundColor: darkBackground,
     },
     '.cm-line *': {
       // backgroundColor: 'red',
@@ -21354,7 +21355,10 @@ const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
     },
     '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
     '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
-      { backgroundColor: selection },
+      {
+        //display: 'block',
+        backgroundColor: selection,
+      },
 
     '.cm-panels': { backgroundColor: darkBackground, color: ivory },
     '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
@@ -21564,7 +21568,6 @@ const state = EditorState.create({
     EditorView.lineWrapping, // 改行
     javascript(),
     oneDark, // theme
-    //myTheme, // custom
     // indentationMarkers(),
     whitespaceShow,
   ],
