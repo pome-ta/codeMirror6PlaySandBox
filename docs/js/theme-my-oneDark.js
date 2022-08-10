@@ -3,16 +3,16 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 
 // Using https://github.com/one-dark/vscode-one-dark-theme/ as reference for the colors
-const chalky = '#e5c07b',  // ゴールドぽい
-  coral = '#e06c75',  // ピンクっぽい
-  cyan = '#56b6c2',  // シアン、水色系
-  invalid = '#ffffff',  // 白
-  ivory = '#abb2bf',  // 灰色
+const chalky = '#e5c07b', // ゴールドぽい
+  coral = '#e06c75', // ピンクっぽい
+  cyan = '#56b6c2', // シアン、水色系
+  invalid = '#ffffff', // 白
+  ivory = '#abb2bf', // 灰色
   stone = '#7d8799', // Brightened compared to original to increase contrast  // 濃い灰色
-  malibu = '#61afef',  // 水色
-  sage = '#98c379',
-  whiskey = '#d19a66',
-  violet = '#c678dd',
+  malibu = '#61afef', // 水色
+  sage = '#98c379', // 緑
+  whiskey = '#d19a66', // オレンジ
+  violet = '#c678dd', // ピンク
   //darkBackground = '#21252b',
   darkBackground = '#21252b88',
   //highlightBackground = '#2c313a',
@@ -21,15 +21,32 @@ const chalky = '#e5c07b',  // ゴールドぽい
   background = '#282c3400',
   tooltipBackground = '#353a42',
   selection = '#3E4451',
-  cursor = '#528bff';
+  cursor = '#528bff'; // あお
 /**
 The editor theme styles for One Dark.
 */
 const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
   {
+    '&.cm-editor': {
+      fontSize: '0.8rem',
+    },
+    '.cm-line': {
+      // display: 'inline-block',
+      // display: 'table-row-group',
+      // backgroundColor: darkBackground,
+    },
+    '.cm-line *': {
+      // backgroundColor: 'red',
+      // backgroundColor: darkBackground,
+    },
+
+    '.cm-scroller': {
+      fontFamily:
+        'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    },
     '&': {
       color: ivory,
-      backgroundColor: background
+      backgroundColor: background,
     },
     '.cm-content': {
       caretColor: cursor,
@@ -37,6 +54,7 @@ const oneDarkTheme = /*@__PURE__*/ EditorView.theme(
     '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
     '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
       { backgroundColor: selection },
+
     '.cm-panels': { backgroundColor: darkBackground, color: ivory },
     '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
     '.cm-panels.cm-panels-bottom': { borderTop: '2px solid black' },

@@ -30,7 +30,8 @@ import { oneDark } from './theme-my-oneDark.js';
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
-editorDiv.style.background = 'lightslategray';
+// editorDiv.style.background = 'lightslategray';
+editorDiv.style.background = 'blue';
 editorDiv.style.width = '100%';
 //editorDiv.style.height = '100%';
 document.body.appendChild(editorDiv);
