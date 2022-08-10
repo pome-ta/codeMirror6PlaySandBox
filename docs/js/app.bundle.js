@@ -21405,6 +21405,7 @@ const u22c5 = '⋅'; // DOT OPERATOR
 
 const whitespaceShow = highlightSpecialChars({
   render: (code) => {
+    console.log(code);
     let node = document.createElement('span');
     node.style.opacity = 0.5;
     node.innerText = u22c5;

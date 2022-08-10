@@ -143,6 +143,7 @@ const uff65 = '･'; // 半角中点
 
 const whitespaceShow = highlightSpecialChars({
   render: (code) => {
+    console.log(code)
     let node = document.createElement('span');
     node.style.opacity = 0.5;
     node.innerText = u22c5;
