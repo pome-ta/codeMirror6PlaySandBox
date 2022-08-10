@@ -1,10 +1,18 @@
 # 📝 2022/08/11
 
-## 背景theme
+## 背景 theme
 
-- 力技で、theme のhighlight 要素全部に`backgroundColor` を仕込んだ
+- 力技で、theme の highlight 要素全部に`backgroundColor` を仕込んだ
 - もう少し、手前の段階で反映することはできそう。。。
 - 現在は、js でのハイライト設定なので、GLSL にした時の挙動が心配
+
+## Underlining Command
+
+- [CodeMirror Decoration Example](https://codemirror.net/examples/decoration/)
+
+## テキスト要素の取得
+
+[CodeMirror Split View Example](https://codemirror.net/examples/split/)
 
 # 📝 2022/08/10
 
@@ -17,8 +25,8 @@
 
 ## todo
 
-- whitespace とindent
-  - 2つ並んでたら、置き換えとかできるかな？
+- whitespace と indent
+  - 2 つ並んでたら、置き換えとかできるかな？
 - undo redo アクション
   - [run a code with click event - discuss.CodeMirror](https://discuss.codemirror.net/t/run-a-code-with-click-event/4820)
   - これでいける？
@@ -37,7 +45,7 @@
 
 差分で、欲しいものを入れていく
 
-## todoぅ
+## todo ぅ
 
 - fontSize
 - 空白
@@ -46,28 +54,29 @@
 - `EditorState.create`
   - 使うなら、`doc` とかもこっち
 
-## ふむ🤔
+## ふむ 🤔
 
 - ミニマムなセッティングか否か
 - 関数を検知してまとめるやついらない？
 - インデントレベルがわかりつらい
 - undo, redo を気軽に呼び出し
 - glsl 用のやつ作る？
-- npm で追加したら、毎回codesandbox 側で一括インストール必要？
+- npm で追加したら、毎回 codesandbox 側で一括インストール必要？
 - `tabSize` が謎すぎる
 
 # 📝 2022/08/04
 
-## え😅
+## え 😅
 
 - 入力できない？
+
   - css でタップ制御してました、、、
 
 - `extensions` の呼び出し
   - 過去の参照してるサイトは古い場合あり
   - 基本的なのは[basic-setup/codemirror.ts at main · codemirror/basic-setup](https://github.com/codemirror/basic-setup/blob/main/src/codemirror.ts) ここから確認するのがよさそう？
 
-## todoぅう
+## todo ぅう
 
 - 改行
   - `Compartment`
@@ -79,7 +88,7 @@
 
 ## 想定
 
-大体fix したら、rollup して突っ込む
+大体 fix したら、rollup して突っ込む
 
 ## lsp
 
