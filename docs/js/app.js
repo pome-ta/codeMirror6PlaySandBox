@@ -131,6 +131,11 @@ const state = EditorState.create({
     myOneDark, // theme
     backgroundOpacity,
     whitespaceShow,
+    EditorView.updateListener.of((v) => {
+      if (v.docChanged) {
+        updateLog(v.state.doc.toString());
+      }
+    }),
   ],
 });
 
@@ -138,3 +143,7 @@ const editor = new EditorView({
   state,
   parent: editorDiv,
 });
+
+function updateLog(docs) {
+  console.log(docs);
+}
