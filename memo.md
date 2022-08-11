@@ -12,7 +12,9 @@
 
 ## テキスト要素の取得
 
-[CodeMirror Split View Example](https://codemirror.net/examples/split/)
+- [CodeMirror Split View Example](https://codemirror.net/examples/split/)
+
+- [CodeMirror 6: Proper way to listen for changes - discuss.CodeMirror](https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395)
 
 # 📝 2022/08/10
 
