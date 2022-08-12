@@ -288,26 +288,6 @@ const codeSample = `const whitespaceShow = highlightSpecialChars({
 `;
 */
 
-const codeSample = `#version 300 es
-precision highp float;
-
-/* よくあるやつ */
-
-uniform float time;
-uniform vec2 resolution;
-uniform vec2 mouse;
-
-out vec4 fragmentColor;
-
-void main() {
-  //vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
-  vec2 uv = gl_FragCoord.xy / resolution.xy;
-
-  vec3 outColor = vec3(uv, abs(sin(time)));
-  fragmentColor = vec4(outColor, 1.0);
-}
-`;
-
 const u00b7 = '·'; // ラテン語中点
 const u2018 = '∘'; // RING OPERATOR
 const u2022 = '•'; // bullet
@@ -343,7 +323,7 @@ const backgroundOpacity = EditorView.theme({
 const tabSize = new Compartment();
 
 const state = EditorState.create({
-  doc: codeSample,
+  doc: fragmentPrimitive,
   extensions: [
     minimalSetup,
     /* diff basicSetup */

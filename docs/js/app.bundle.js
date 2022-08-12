@@ -21560,41 +21560,6 @@ editorDiv.style.position = 'relative';
 editorDiv.style.zIndex = 2;
 editorDiv.style.top = 0;
 document.body.appendChild(editorDiv);
-/*
-const codeSample = `const whitespaceShow = highlightSpecialChars({
-  render: (code) => {
-    let node = document.createElement('span');
-    node.style.opacity = 0.5;
-    node.innerText = u22c5;
-    node.title = '\\u' + code.toString(16);
-    // return node;
-    return document.createTextNode(String.fromCodePoint(code));
-  },
-  // specialChars: /\x20/g,
-  addSpecialChars: /\x20/g,
-});
-`;
-*/
-
-const codeSample = `#version 300 es
-precision highp float;
-
-/* よくあるやつ */
-
-uniform float time;
-uniform vec2 resolution;
-uniform vec2 mouse;
-
-out vec4 fragmentColor;
-
-void main() {
-  //vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
-  vec2 uv = gl_FragCoord.xy / resolution.xy;
-
-  vec3 outColor = vec3(uv, abs(sin(time)));
-  fragmentColor = vec4(outColor, 1.0);
-}
-`;
 const u22c5 = '⋅'; // DOT OPERATOR
 
 const ivory = '#abb2bf44'; // todo: oneDark から拝借
@@ -21623,7 +21588,7 @@ const backgroundOpacity = EditorView.theme({
 const tabSize = new Compartment();
 
 const state = EditorState.create({
-  doc: codeSample,
+  doc: fragmentPrimitive,
   extensions: [
     minimalSetup,
     /* diff basicSetup */
