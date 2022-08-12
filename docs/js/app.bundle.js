@@ -21098,36 +21098,31 @@ const chalky = '#e5c07b', // ゴールドぽい
   highlightBackground = '#21252b44', // 元は、`darkBackground` の色
   // background = '#282c34',
   background = '#282c3400',
-  guttersBakcground = '#282c3444',
   tooltipBackground = '#353a42',
   selection = '#3E4451',
   cursor = '#528bff'; // あお
+
 /**
 The editor theme styles for One Dark.
 */
+
 const myOneDarkTheme = EditorView.theme(
   {
-    '&.cm-editor': {
-      fontSize: '0.8rem',
-    },
-
-    '.cm-scroller': {
-      fontFamily:
-        'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-    },
     '&': {
       color: ivory$1,
       backgroundColor: background,
+      fontSize: '0.8rem',
+    },
+    '.cm-scroller': {
+      fontFamily:
+        'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     },
     '.cm-content': {
       caretColor: cursor,
     },
     '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
     '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
-      {
-        backgroundColor: selection,
-      },
-
+      { backgroundColor: selection },
     '.cm-panels': { backgroundColor: darkBackground$1, color: ivory$1 },
     '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
     '.cm-panels.cm-panels-bottom': { borderTop: '2px solid black' },
@@ -21145,8 +21140,7 @@ const myOneDarkTheme = EditorView.theme(
       outline: '1px solid #515a6b',
     },
     '.cm-gutters': {
-      // backgroundColor: background,
-      backgroundColor: guttersBakcground,
+      backgroundColor: background,
       color: stone,
       border: 'none',
     },
@@ -21179,100 +21173,12 @@ const myOneDarkTheme = EditorView.theme(
   },
   { dark: true }
 );
+
 /**
 The highlighting style for code in the One Dark theme.
 */
 const myOneDarkHighlightStyle = HighlightStyle.define([
-  {
-    tag: [
-      tags.comment,
-      tags.lineComment,
-      tags.blockComment,
-      tags.docComment,
-      tags.name,
-      tags.variableName,
-      tags.typeName,
-      tags.tagName,
-      tags.propertyName,
-      tags.attributeName,
-      tags.className,
-      tags.labelName,
-      tags.namespace,
-      tags.macroName,
-      tags.literal,
-      tags.string,
-      tags.docString,
-      tags.character,
-      tags.attributeValue,
-      tags.number,
-      tags.integer,
-      tags.float,
-      tags.bool,
-      tags.regexp,
-      tags.escape,
-      tags.color,
-      tags.url,
-      tags.keyword,
-      tags.self,
-      tags.null,
-      tags.atom,
-      tags.unit,
-      tags.modifier,
-      tags.operatorKeyword,
-      tags.controlKeyword,
-      tags.definitionKeyword,
-      tags.moduleKeyword,
-      tags.operator,
-      tags.derefOperator,
-      tags.arithmeticOperator,
-      tags.logicOperator,
-      tags.bitwiseOperator,
-      tags.compareOperator,
-      tags.updateOperator,
-      tags.definitionOperator,
-      tags.typeOperator,
-      tags.controlOperator,
-      tags.punctuation,
-      tags.separator,
-      tags.bracket,
-      tags.angleBracket,
-      tags.squareBracket,
-      tags.paren,
-      tags.brace,
-      tags.content,
-      tags.heading,
-      tags.heading1,
-      tags.heading2,
-      tags.heading3,
-      tags.heading4,
-      tags.heading5,
-      tags.heading6,
-      tags.contentSeparator,
-      tags.list,
-      tags.quote,
-      tags.emphasis,
-      tags.strong,
-      tags.link,
-      tags.monospace,
-      tags.strikethrough,
-      tags.inserted,
-      tags.deleted,
-      tags.changed,
-      tags.invalid,
-      tags.meta,
-      tags.documentMeta,
-      tags.annotation,
-      tags.processingInstruction,
-      tags.definition,
-      tags.constant,
-      tags.function,
-      tags.standard,
-      tags.local,
-      tags.special,
-    ],
-    backgroundColor: darkBackground$1,
-  },
-  { tag: tags.keyword, color: violet },
+  { tag: tags.keyword, color: violet, backgroundColor: darkBackground$1 },
   {
     tag: [
       tags.name,
@@ -21282,18 +21188,22 @@ const myOneDarkHighlightStyle = HighlightStyle.define([
       tags.macroName,
     ],
     color: coral,
+    backgroundColor: darkBackground$1,
   },
   {
     tag: [tags.function(tags.variableName), tags.labelName],
     color: malibu,
+    backgroundColor: darkBackground$1,
   },
   {
     tag: [tags.color, tags.constant(tags.name), tags.standard(tags.name)],
     color: whiskey,
+    backgroundColor: darkBackground$1,
   },
   {
     tag: [tags.definition(tags.name), tags.separator],
     color: ivory$1,
+    backgroundColor: darkBackground$1,
   },
   {
     tag: [
@@ -21307,6 +21217,7 @@ const myOneDarkHighlightStyle = HighlightStyle.define([
       tags.namespace,
     ],
     color: chalky,
+    backgroundColor: darkBackground$1,
   },
   {
     tag: [
@@ -21319,44 +21230,335 @@ const myOneDarkHighlightStyle = HighlightStyle.define([
       tags.special(tags.string),
     ],
     color: cyan,
+    backgroundColor: darkBackground$1,
   },
-  { tag: [tags.meta, tags.comment], color: stone },
-  { tag: tags.strong, fontWeight: 'bold' },
-  { tag: tags.emphasis, fontStyle: 'italic' },
+  {
+    tag: [tags.meta, tags.comment],
+    color: stone,
+    backgroundColor: darkBackground$1,
+  },
+  { tag: tags.strong, fontWeight: 'bold', backgroundColor: darkBackground$1 },
+  { tag: tags.emphasis, fontStyle: 'italic', backgroundColor: darkBackground$1 },
   {
     tag: tags.strikethrough,
     textDecoration: 'line-through',
+    backgroundColor: darkBackground$1,
   },
   {
     tag: tags.link,
     color: stone,
     textDecoration: 'underline',
+    backgroundColor: darkBackground$1,
   },
   {
     tag: tags.heading,
     fontWeight: 'bold',
     color: coral,
+    backgroundColor: darkBackground$1,
   },
   {
-    tag: [tags.atom, tags.bool, tags.special(tags.variableName)],
+    tag: [tags.atom, tags.bool, /*@__PURE__*/ tags.special(tags.variableName)],
     color: whiskey,
+    backgroundColor: darkBackground$1,
   },
   {
     tag: [tags.processingInstruction, tags.string, tags.inserted],
     color: sage,
+    backgroundColor: darkBackground$1,
   },
-  { tag: tags.invalid, color: invalid },
+  {
+    tag: tags.invalid,
+    color: invalid,
+    backgroundColor: darkBackground$1,
+  },
+  {
+    tag: [
+      tags.lineComment,
+      tags.blockComment,
+      tags.docComment,
+      tags.tagName,
+      tags.attributeName,
+      tags.literal,
+      tags.docString,
+      tags.attributeValue,
+      tags.integer,
+      tags.float,
+      tags.null,
+      tags.unit,
+      tags.controlKeyword,
+      tags.definitionKeyword,
+      tags.moduleKeyword,
+      tags.derefOperator,
+      tags.arithmeticOperator,
+      tags.logicOperator,
+      tags.bitwiseOperator,
+      tags.compareOperator,
+      tags.updateOperator,
+      tags.definitionOperator,
+      tags.typeOperator,
+      tags.controlOperator,
+      tags.punctuation,
+      tags.bracket,
+      tags.angleBracket,
+      tags.squareBracket,
+      tags.paren,
+      tags.brace,
+      tags.content,
+      tags.heading1,
+      tags.heading2,
+      tags.heading3,
+      tags.heading4,
+      tags.heading5,
+      tags.heading6,
+      tags.contentSeparator,
+      tags.list,
+      tags.quote,
+      tags.monospace,
+      tags.documentMeta,
+      tags.local,
+    ],
+    backgroundColor: darkBackground$1,
+  },
 ]);
+
 /**
 Extension to enable the One Dark theme (both the editor theme and
 the highlight style).
 */
 const myOneDark = [myOneDarkTheme, syntaxHighlighting(myOneDarkHighlightStyle)];
 
+const vertexPrimitive = `#version 300 es
+precision highp float;
+
+in vec3 vertexPosition;
+
+void main(void){
+    gl_Position = vec4(vertexPosition, 1.0);
+}
+`;
+
+let fragmentPrimitive = `#version 300 es
+precision highp float;
+/* よくあるやつ */
+
+uniform float time;
+uniform vec2 resolution;
+uniform vec2 mouse;
+
+out vec4 fragmentColor;
+
+void main() {
+  vec2 uv = gl_FragCoord.xy / resolution.xy;
+
+  vec3 outColor = vec3(uv, abs(sin(time)));
+  fragmentColor = vec4(outColor, 1.0);
+}`;
+
+let canvasDiv, cxtCanvas;
+let gl;
+let uniLocation = new Array();
+
+let mouseX = 0.5;
+let mouseY = 0.5;
+let canvasW, canvasH;
+
+let time = 0.0;
+const FPS = 120;
+const frameTime = 1 / FPS;
+let prevTimestamp = 0;
+
+function createCanvas() {
+  document.body.style.backgroundColor = '#232323';
+  canvasDiv = document.createElement('div');
+  cxtCanvas = document.createElement('canvas');
+  canvasDiv.appendChild(cxtCanvas);
+  document.body.appendChild(canvasDiv);
+  canvasDiv.style.width = '100%';
+  canvasDiv.style.height = '100%';
+  canvasDiv.style.position = 'fixed';
+  canvasDiv.style.top = 0;
+  canvasDiv.style.left = 0;
+  canvasDiv.style.zIndex = 1;
+
+  cxtCanvas.style.width = '100%';
+}
+
+function initCanvasSize() {
+  // const oneSide = Math.min(canvasDiv.clientWidth, canvasDiv.clientHeight);
+  // const oneSide = canvasDiv.clientWidth;
+  // cxtCanvas.width = oneSide;
+  // cxtCanvas.height = oneSide;
+  cxtCanvas.width = canvasDiv.clientWidth;
+  cxtCanvas.height = canvasDiv.clientHeight;
+  canvasW = cxtCanvas.width;
+  canvasH = cxtCanvas.height;
+}
+
+function initShader() {
+  gl = cxtCanvas.getContext('webgl2');
+  //gl = cxtCanvas.getContext('webgl');
+  const prg = create_program(
+    create_shader('vs', vertexPrimitive),
+    create_shader('fs', fragmentPrimitive)
+  );
+  uniLocation[0] = gl.getUniformLocation(prg, 'time');
+  uniLocation[1] = gl.getUniformLocation(prg, 'mouse');
+  uniLocation[2] = gl.getUniformLocation(prg, 'resolution');
+
+  const position = new Float32Array([
+    -1.0, 1.0, 0.0, 1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 1.0, -1.0, 0.0,
+  ]);
+  const index = new Uint16Array([0, 2, 1, 1, 2, 3]);
+
+  const vPosition = create_vbo(position);
+  const vIndex = create_ibo(index);
+  const vAttLocation = gl.getAttribLocation(prg, 'vertexPosition');
+
+  const VERTEX_SIZE = 3; // vec3
+
+  gl.viewport(0, 0, canvasW, canvasH);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vPosition);
+  gl.enableVertexAttribArray(vAttLocation);
+  gl.vertexAttribPointer(vAttLocation, VERTEX_SIZE, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vIndex);
+
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+}
+
+function upRender() {
+  initCanvasSize();
+  gl.viewport(0, 0, canvasW, canvasH);
+}
+
+// シェーダを生成する関数
+function create_shader(type, text) {
+  let shader;
+  // scriptタグのtype属性をチェック
+  switch (type) {
+    // 頂点シェーダの場合
+    case 'vs':
+      shader = gl.createShader(gl.VERTEX_SHADER);
+      break;
+    // フラグメントシェーダの場合
+    case 'fs':
+      shader = gl.createShader(gl.FRAGMENT_SHADER);
+      break;
+    default:
+      return;
+  }
+
+  // 生成されたシェーダにソースを割り当てる
+  gl.shaderSource(shader, text);
+  // シェーダをコンパイルする
+  gl.compileShader(shader);
+  // シェーダが正しくコンパイルされたかチェック
+  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    // 成功していたらシェーダを返して終了
+    return shader;
+  } else {
+    // 失敗していたらエラーログをアラートしコンソールに出力
+    // alert(gl.getShaderInfoLog(shader));
+    console.log(gl.getShaderInfoLog(shader));
+  }
+}
+
+// プログラムオブジェクトを生成しシェーダをリンクする関数
+function create_program(vs, fs) {
+  // プログラムオブジェクトの生成
+  const program = gl.createProgram();
+  if (!program) {
+    return null;
+  }
+  // プログラムオブジェクトにシェーダを割り当てる
+  gl.attachShader(program, vs);
+  gl.deleteShader(vs);
+  gl.attachShader(program, fs);
+  gl.deleteShader(fs);
+  // シェーダをリンク
+  gl.linkProgram(program);
+  // シェーダのリンクが正しく行なわれたかチェック
+  if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    // 成功していたらプログラムオブジェクトを有効にする
+    gl.useProgram(program);
+    // プログラムオブジェクトを返して終了
+    return program;
+  } else {
+    // 失敗していたら NULL を返す
+    return null;
+  }
+}
+
+// VBOを生成する関数
+function create_vbo(data) {
+  // バッファオブジェクトの生成
+  const vbo = gl.createBuffer();
+  // バッファをバインドする
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  // バッファにデータをセット
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  // バッファのバインドを無効化
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  // 生成した VBO を返して終了
+  return vbo;
+}
+
+// IBOを生成する関数
+function create_ibo(data) {
+  // バッファオブジェクトの生成
+  const ibo = gl.createBuffer();
+  // バッファをバインドする
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+  // バッファにデータをセット
+  // gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  // バッファのバインドを無効化
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+  // 生成したIBOを返して終了
+  return ibo;
+}
+
+function glRender(time) {
+  // カラーバッファをクリア
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  // uniform 関連
+  gl.uniform1f(uniLocation[0], time);
+  gl.uniform2fv(uniLocation[1], [mouseX, mouseY]);
+  gl.uniform2fv(uniLocation[2], [canvasW, canvasH]);
+  // 描画
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+  gl.flush();
+}
+
+function loop(timestamp) {
+  const elapsed = (timestamp - prevTimestamp) / 1000;
+  if (elapsed <= frameTime) {
+    requestAnimationFrame(loop);
+    return;
+  }
+  prevTimestamp = timestamp;
+
+  time += frameTime;
+  glRender(time);
+  // 再帰
+  requestAnimationFrame(loop);
+}
+
+createCanvas();
+initCanvasSize();
+initShader();
+glRender(time);
+loop();
+
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editorWrap';
-editorDiv.style.background = 'blue';
+// editorDiv.style.background = 'blue';
+// editorDiv.style.background = 'slategray';
 editorDiv.style.width = '100%';
+editorDiv.style.position = 'relative';
+editorDiv.style.zIndex = 2;
+editorDiv.style.top = 0;
 document.body.appendChild(editorDiv);
 /*
 const codeSample = `const whitespaceShow = highlightSpecialChars({
@@ -21373,7 +21575,6 @@ const codeSample = `const whitespaceShow = highlightSpecialChars({
 });
 `;
 */
-
 
 const codeSample = `#version 300 es
 precision highp float;
@@ -21394,7 +21595,7 @@ void main() {
   fragmentColor = vec4(outColor, 1.0);
 }
 `;
-const uff65 = '･'; // 半角中点
+const u22c5 = '⋅'; // DOT OPERATOR
 
 const ivory = '#abb2bf44'; // todo: oneDark から拝借
 const whitespaceShow = highlightSpecialChars({
@@ -21403,8 +21604,9 @@ const whitespaceShow = highlightSpecialChars({
     node.classList.add('cm-whoteSpace');
     // node.style.opacity = 0.5;
     node.style.color = ivory;
-    //node.innerText = u22c5;
-    node.innerText = uff65;
+    // node.style.color = stone;
+    node.innerText = u22c5;
+    // node.innerText = uff65;
     node.title = '\\u' + code.toString(16);
     return node;
   },
@@ -21440,6 +21642,7 @@ const state = EditorState.create({
     EditorView.lineWrapping, // 改行
     javascript(),
     myOneDark, // theme
+    // oneDark,
     backgroundOpacity,
     whitespaceShow,
     EditorView.updateListener.of((v) => {
@@ -21456,5 +21659,8 @@ new EditorView({
 });
 
 function updateLog(docs) {
-  console.log(docs);
+  fragmentPrimitive = docs;
+  initShader();
 }
+
+window.addEventListener('resize', upRender);
