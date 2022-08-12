@@ -25,32 +25,28 @@ const chalky = '#e5c07b', // ゴールドぽい
   tooltipBackground = '#353a42',
   selection = '#3E4451',
   cursor = '#528bff'; // あお
+
 /**
 The editor theme styles for One Dark.
 */
+
 const myOneDarkTheme = EditorView.theme(
   {
-    '&.cm-editor': {
-      fontSize: '0.8rem',
-    },
-
-    '.cm-scroller': {
-      fontFamily:
-        'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-    },
     '&': {
       color: ivory,
       backgroundColor: background,
+      fontSize: '0.8rem',
+    },
+    '.cm-scroller': {
+      fontFamily:
+        'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     },
     '.cm-content': {
       caretColor: cursor,
     },
     '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
     '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
-      {
-        backgroundColor: selection,
-      },
-
+      { backgroundColor: selection },
     '.cm-panels': { backgroundColor: darkBackground, color: ivory },
     '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
     '.cm-panels.cm-panels-bottom': { borderTop: '2px solid black' },
@@ -68,8 +64,7 @@ const myOneDarkTheme = EditorView.theme(
       outline: '1px solid #515a6b',
     },
     '.cm-gutters': {
-      // backgroundColor: background,
-      backgroundColor: guttersBakcground,
+      backgroundColor: background,
       color: stone,
       border: 'none',
     },
@@ -102,100 +97,12 @@ const myOneDarkTheme = EditorView.theme(
   },
   { dark: true }
 );
+
 /**
 The highlighting style for code in the One Dark theme.
 */
 const myOneDarkHighlightStyle = HighlightStyle.define([
-  {
-    tag: [
-      tags.comment,
-      tags.lineComment,
-      tags.blockComment,
-      tags.docComment,
-      tags.name,
-      tags.variableName,
-      tags.typeName,
-      tags.tagName,
-      tags.propertyName,
-      tags.attributeName,
-      tags.className,
-      tags.labelName,
-      tags.namespace,
-      tags.macroName,
-      tags.literal,
-      tags.string,
-      tags.docString,
-      tags.character,
-      tags.attributeValue,
-      tags.number,
-      tags.integer,
-      tags.float,
-      tags.bool,
-      tags.regexp,
-      tags.escape,
-      tags.color,
-      tags.url,
-      tags.keyword,
-      tags.self,
-      tags.null,
-      tags.atom,
-      tags.unit,
-      tags.modifier,
-      tags.operatorKeyword,
-      tags.controlKeyword,
-      tags.definitionKeyword,
-      tags.moduleKeyword,
-      tags.operator,
-      tags.derefOperator,
-      tags.arithmeticOperator,
-      tags.logicOperator,
-      tags.bitwiseOperator,
-      tags.compareOperator,
-      tags.updateOperator,
-      tags.definitionOperator,
-      tags.typeOperator,
-      tags.controlOperator,
-      tags.punctuation,
-      tags.separator,
-      tags.bracket,
-      tags.angleBracket,
-      tags.squareBracket,
-      tags.paren,
-      tags.brace,
-      tags.content,
-      tags.heading,
-      tags.heading1,
-      tags.heading2,
-      tags.heading3,
-      tags.heading4,
-      tags.heading5,
-      tags.heading6,
-      tags.contentSeparator,
-      tags.list,
-      tags.quote,
-      tags.emphasis,
-      tags.strong,
-      tags.link,
-      tags.monospace,
-      tags.strikethrough,
-      tags.inserted,
-      tags.deleted,
-      tags.changed,
-      tags.invalid,
-      tags.meta,
-      tags.documentMeta,
-      tags.annotation,
-      tags.processingInstruction,
-      tags.definition,
-      tags.constant,
-      tags.function,
-      tags.standard,
-      tags.local,
-      tags.special,
-    ],
-    backgroundColor: darkBackground,
-  },
-  { tag: tags.keyword, color: violet },
+  { tag: tags.keyword, color: violet, backgroundColor: darkBackground },
   {
     tag: [
       tags.name,
@@ -205,18 +112,22 @@ const myOneDarkHighlightStyle = HighlightStyle.define([
       tags.macroName,
     ],
     color: coral,
+    backgroundColor: darkBackground,
   },
   {
     tag: [tags.function(tags.variableName), tags.labelName],
     color: malibu,
+    backgroundColor: darkBackground,
   },
   {
     tag: [tags.color, tags.constant(tags.name), tags.standard(tags.name)],
     color: whiskey,
+    backgroundColor: darkBackground,
   },
   {
     tag: [tags.definition(tags.name), tags.separator],
     color: ivory,
+    backgroundColor: darkBackground,
   },
   {
     tag: [
@@ -230,6 +141,7 @@ const myOneDarkHighlightStyle = HighlightStyle.define([
       tags.namespace,
     ],
     color: chalky,
+    backgroundColor: darkBackground,
   },
   {
     tag: [
@@ -242,34 +154,97 @@ const myOneDarkHighlightStyle = HighlightStyle.define([
       tags.special(tags.string),
     ],
     color: cyan,
+    backgroundColor: darkBackground,
   },
-  { tag: [tags.meta, tags.comment], color: stone },
-  { tag: tags.strong, fontWeight: 'bold' },
-  { tag: tags.emphasis, fontStyle: 'italic' },
+  {
+    tag: [tags.meta, tags.comment],
+    color: stone,
+    backgroundColor: darkBackground,
+  },
+  { tag: tags.strong, fontWeight: 'bold', backgroundColor: darkBackground },
+  { tag: tags.emphasis, fontStyle: 'italic', backgroundColor: darkBackground },
   {
     tag: tags.strikethrough,
     textDecoration: 'line-through',
+    backgroundColor: darkBackground,
   },
   {
     tag: tags.link,
     color: stone,
     textDecoration: 'underline',
+    backgroundColor: darkBackground,
   },
   {
     tag: tags.heading,
     fontWeight: 'bold',
     color: coral,
+    backgroundColor: darkBackground,
   },
   {
-    tag: [tags.atom, tags.bool, tags.special(tags.variableName)],
+    tag: [tags.atom, tags.bool, /*@__PURE__*/ tags.special(tags.variableName)],
     color: whiskey,
+    backgroundColor: darkBackground,
   },
   {
     tag: [tags.processingInstruction, tags.string, tags.inserted],
     color: sage,
+    backgroundColor: darkBackground,
   },
-  { tag: tags.invalid, color: invalid },
+  {
+    tag: tags.invalid,
+    color: invalid,
+    backgroundColor: darkBackground,
+  },
+  {
+    tag: [
+      tags.lineComment,
+      tags.blockComment,
+      tags.docComment,
+      tags.tagName,
+      tags.attributeName,
+      tags.literal,
+      tags.docString,
+      tags.attributeValue,
+      tags.integer,
+      tags.float,
+      tags.null,
+      tags.unit,
+      tags.controlKeyword,
+      tags.definitionKeyword,
+      tags.moduleKeyword,
+      tags.derefOperator,
+      tags.arithmeticOperator,
+      tags.logicOperator,
+      tags.bitwiseOperator,
+      tags.compareOperator,
+      tags.updateOperator,
+      tags.definitionOperator,
+      tags.typeOperator,
+      tags.controlOperator,
+      tags.punctuation,
+      tags.bracket,
+      tags.angleBracket,
+      tags.squareBracket,
+      tags.paren,
+      tags.brace,
+      tags.content,
+      tags.heading1,
+      tags.heading2,
+      tags.heading3,
+      tags.heading4,
+      tags.heading5,
+      tags.heading6,
+      tags.contentSeparator,
+      tags.list,
+      tags.quote,
+      tags.monospace,
+      tags.documentMeta,
+      tags.local,
+    ],
+    backgroundColor: darkBackground,
+  },
 ]);
+
 /**
 Extension to enable the One Dark theme (both the editor theme and
 the highlight style).
