@@ -35,7 +35,7 @@ editorDiv.id = 'editorWrap';
 editorDiv.style.background = 'blue';
 editorDiv.style.width = '100%';
 document.body.appendChild(editorDiv);
-
+/*
 const codeSample = `const whitespaceShow = highlightSpecialChars({
   render: (code) => {
     let node = document.createElement('span');
@@ -49,10 +49,13 @@ const codeSample = `const whitespaceShow = highlightSpecialChars({
   addSpecialChars: /\x20/g,
 });
 `;
+*/
 
-/*
+
 const codeSample = `#version 300 es
 precision highp float;
+
+/* よくあるやつ */
 
 uniform float time;
 uniform vec2 resolution;
@@ -60,22 +63,15 @@ uniform vec2 mouse;
 
 out vec4 fragmentColor;
 
-struct Ray{
-  vec3 origin;
-  vec3 direction;
-};
+void main() {
+  //vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+  vec2 uv = gl_FragCoord.xy / resolution.xy;
 
-void main(void) {
-  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
-
-  Ray ray;
-  ray.origin = vec3(0.0, 0.0, 5.0);
-  ray.direction = normalize(vec3(p.x, p.y, -1.0));
-
-  fragmentColor = vec4(ray.direction, 1.0);
+  vec3 outColor = vec3(uv, abs(sin(time)));
+  fragmentColor = vec4(outColor, 1.0);
 }
 `;
-*/
+
 
 const u00b7 = '·'; // ラテン語中点
 const u2018 = '∘'; // RING OPERATOR

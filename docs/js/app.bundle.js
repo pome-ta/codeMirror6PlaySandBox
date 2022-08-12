@@ -21358,7 +21358,7 @@ editorDiv.id = 'editorWrap';
 editorDiv.style.background = 'blue';
 editorDiv.style.width = '100%';
 document.body.appendChild(editorDiv);
-
+/*
 const codeSample = `const whitespaceShow = highlightSpecialChars({
   render: (code) => {
     let node = document.createElement('span');
@@ -21371,6 +21371,28 @@ const codeSample = `const whitespaceShow = highlightSpecialChars({
   // specialChars: /\x20/g,
   addSpecialChars: /\x20/g,
 });
+`;
+*/
+
+
+const codeSample = `#version 300 es
+precision highp float;
+
+/* よくあるやつ */
+
+uniform float time;
+uniform vec2 resolution;
+uniform vec2 mouse;
+
+out vec4 fragmentColor;
+
+void main() {
+  //vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+  vec2 uv = gl_FragCoord.xy / resolution.xy;
+
+  vec3 outColor = vec3(uv, abs(sin(time)));
+  fragmentColor = vec4(outColor, 1.0);
+}
 `;
 const uff65 = '･'; // 半角中点
 
