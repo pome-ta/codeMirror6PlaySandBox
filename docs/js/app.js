@@ -166,7 +166,7 @@ function create_shader(type, text) {
   } else {
     // 失敗していたらエラーログをアラートしコンソールに出力
     // alert(gl.getShaderInfoLog(shader));
-    console.log(gl.getShaderInfoLog(shader));
+    // console.log(gl.getShaderInfoLog(shader));
   }
 }
 
