@@ -1,3 +1,15 @@
+# 📝 2022/08/17
+
+``` .js
+EditorView.updateListener.of((v) => {
+  if (v.docChanged) {
+    updateLog(v.state.doc.toString());
+  }
+}),
+```
+
+2重にとっちゃったり、入力にラグがあったりちょっと危機怪々な挙動をしている
+
 # 📝 2022/08/12
 
 ## ハイライト設定

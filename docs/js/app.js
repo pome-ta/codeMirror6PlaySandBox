@@ -345,6 +345,7 @@ const state = EditorState.create({
     // oneDark,
     backgroundOpacity,
     whitespaceShow,
+    // todo: コピーで2重に取得しちゃう
     EditorView.updateListener.of((v) => {
       if (v.docChanged) {
         updateLog(v.state.doc.toString());
