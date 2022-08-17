@@ -10,6 +10,10 @@ EditorView.updateListener.of((v) => {
 
 2重にとっちゃったり、入力にラグがあったりちょっと危機怪々な挙動をしている
 
+[CodeMirror 6: Proper way to listen for changes - discuss.CodeMirror](https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/10)
+
+ここらで解決できそう？
+
 # 📝 2022/08/12
 
 ## ハイライト設定
