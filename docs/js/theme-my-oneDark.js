@@ -35,7 +35,8 @@ const myOneDarkTheme = EditorView.theme(
     '&': {
       color: ivory,
       backgroundColor: background,
-      fontSize: '0.8rem',
+      //fontSize: '0.8rem',
+      fontSize: '1.0rem',
     },
     '.cm-scroller': {
       fontFamily:

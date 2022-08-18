@@ -16681,6 +16681,14 @@ end of the indentation instead of the start of the line.
 */
 const cursorLineBoundaryBackward = view => moveSel(view, range => moveByLineBoundary(view, range, false));
 /**
+Move the selection one line wrap point to the left.
+*/
+const cursorLineBoundaryLeft = view => moveSel(view, range => moveByLineBoundary(view, range, !ltrAtCursor(view)));
+/**
+Move the selection one line wrap point to the right.
+*/
+const cursorLineBoundaryRight = view => moveSel(view, range => moveByLineBoundary(view, range, ltrAtCursor(view)));
+/**
 Move the selection to the start of the line.
 */
 const cursorLineStart = view => moveSel(view, range => EditorSelection.cursor(view.lineBlockAt(range.head).from, 1));
@@ -16782,6 +16790,14 @@ const selectLineBoundaryForward = view => extendSel(view, range => moveByLineBou
 Move the selection head to the previous line boundary.
 */
 const selectLineBoundaryBackward = view => extendSel(view, range => moveByLineBoundary(view, range, false));
+/**
+Move the selection head one line boundary to the left.
+*/
+const selectLineBoundaryLeft = view => extendSel(view, range => moveByLineBoundary(view, range, !ltrAtCursor(view)));
+/**
+Move the selection head one line boundary to the right.
+*/
+const selectLineBoundaryRight = view => extendSel(view, range => moveByLineBoundary(view, range, ltrAtCursor(view)));
 /**
 Move the selection head to the start of the line.
 */
@@ -17305,11 +17321,11 @@ property changed to `mac`.)
 */
 const standardKeymap = /*@__PURE__*/[
     { key: "ArrowLeft", run: cursorCharLeft, shift: selectCharLeft, preventDefault: true },
-    { key: "Mod-ArrowLeft", mac: "Alt-ArrowLeft", run: cursorGroupLeft, shift: selectGroupLeft },
-    { mac: "Cmd-ArrowLeft", run: cursorLineBoundaryBackward, shift: selectLineBoundaryBackward },
+    { key: "Mod-ArrowLeft", mac: "Alt-ArrowLeft", run: cursorGroupLeft, shift: selectGroupLeft, preventDefault: true },
+    { mac: "Cmd-ArrowLeft", run: cursorLineBoundaryLeft, shift: selectLineBoundaryLeft, preventDefault: true },
     { key: "ArrowRight", run: cursorCharRight, shift: selectCharRight, preventDefault: true },
-    { key: "Mod-ArrowRight", mac: "Alt-ArrowRight", run: cursorGroupRight, shift: selectGroupRight },
-    { mac: "Cmd-ArrowRight", run: cursorLineBoundaryForward, shift: selectLineBoundaryForward },
+    { key: "Mod-ArrowRight", mac: "Alt-ArrowRight", run: cursorGroupRight, shift: selectGroupRight, preventDefault: true },
+    { mac: "Cmd-ArrowRight", run: cursorLineBoundaryRight, shift: selectLineBoundaryRight, preventDefault: true },
     { key: "ArrowUp", run: cursorLineUp, shift: selectLineUp, preventDefault: true },
     { mac: "Cmd-ArrowUp", run: cursorDocStart, shift: selectDocStart },
     { mac: "Ctrl-ArrowUp", run: cursorPageUp, shift: selectPageUp },
@@ -19553,6 +19569,15 @@ class InputStream {
         }
         return pos;
     }
+    /// @internal
+    clipPos(pos) {
+        if (pos >= this.range.from && pos < this.range.to)
+            return pos;
+        for (let range of this.ranges)
+            if (range.to > pos)
+                return Math.max(pos, range.from);
+        return this.end;
+    }
     /// Look at a code unit near the stream position. `.peek(0)` equals
     /// `.next`, `.peek(-1)` gives you the previous character, and so
     /// on.
@@ -19994,7 +20019,8 @@ class TokenCache {
         return main;
     }
     updateCachedToken(token, tokenizer, stack) {
-        tokenizer.token(this.stream.reset(stack.pos, token), stack);
+        let start = this.stream.clipPos(stack.pos);
+        tokenizer.token(this.stream.reset(start, token), stack);
         if (token.value > -1) {
             let { parser } = stack.p;
             for (let i = 0; i < parser.specialized.length; i++)
@@ -20011,7 +20037,7 @@ class TokenCache {
         }
         else {
             token.value = 0 /* Err */;
-            token.end = Math.min(stack.p.stream.end, stack.pos + 1);
+            token.end = this.stream.clipPos(start + 1);
         }
     }
     putAction(action, token, end, index) {
@@ -21111,7 +21137,8 @@ const myOneDarkTheme = EditorView.theme(
     '&': {
       color: ivory$1,
       backgroundColor: background,
-      fontSize: '0.8rem',
+      //fontSize: '0.8rem',
+      fontSize: '1.0rem',
     },
     '.cm-scroller': {
       fontFamily:
@@ -21378,7 +21405,7 @@ function createCanvas() {
   canvasDiv.style.position = 'fixed';
   canvasDiv.style.top = 0;
   canvasDiv.style.left = 0;
-  canvasDiv.style.zIndex = 1;
+  canvasDiv.style.zIndex = 0;
 
   cxtCanvas.style.width = '100%';
 }
@@ -21552,10 +21579,6 @@ editorDiv.id = 'editorWrap';
 // editorDiv.style.background = 'blue';
 // editorDiv.style.background = 'slategray';
 editorDiv.style.width = '100%';
-editorDiv.style.position = 'relative';
-editorDiv.style.zIndex = 2;
-editorDiv.style.top = 0;
-document.body.appendChild(editorDiv);
 const u22c5 = '⋅'; // DOT OPERATOR
 
 const ivory = '#abb2bf44'; // todo: oneDark から拝借
@@ -21579,6 +21602,16 @@ const darkBackground = '#21252b44';
 const backgroundOpacity = EditorView.theme({
   '.cm-line': { padding: 0 },
   '.cm-line *': { backgroundColor: darkBackground },
+});
+
+const overflowView = EditorView.theme({
+  '&': { maxHeight: `${visualViewport.height}`, fontSize: '1.0rem' },
+  '.cm-gutter,.cm-content': { minHeight: `${visualViewport.height}` },
+  '.cm-scroller': {
+    overflow: 'auto',
+    fontFamily:
+      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+  },
 });
 
 const tabSize = new Compartment();
@@ -21618,10 +21651,11 @@ const state = EditorState.create({
     //   }
     // }),
     updateCallback,
+    overflowView,
   ],
 });
 
-new EditorView({
+const editor = new EditorView({
   state,
   parent: editorDiv,
 });
@@ -21635,3 +21669,5 @@ function onChange(docs) {
 }
 
 window.addEventListener('resize', upRender);
+
+export { EditorSelection, editor, editorDiv, redo, undo };

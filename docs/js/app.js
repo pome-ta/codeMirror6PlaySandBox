@@ -1,7 +1,7 @@
 import { EditorView } from 'codemirror';
 import { basicSetup, minimalSetup } from 'codemirror';
 
-import { EditorState, Compartment } from '@codemirror/state';
+import { EditorState, EditorSelection, Compartment } from '@codemirror/state';
 
 import {
   lineNumbers,
@@ -85,7 +85,7 @@ function createCanvas() {
   canvasDiv.style.position = 'fixed';
   canvasDiv.style.top = 0;
   canvasDiv.style.left = 0;
-  canvasDiv.style.zIndex = 1;
+  canvasDiv.style.zIndex = 0;
 
   cxtCanvas.style.width = '100%';
 }
@@ -268,10 +268,12 @@ editorDiv.id = 'editorWrap';
 // editorDiv.style.background = 'blue';
 // editorDiv.style.background = 'slategray';
 editorDiv.style.width = '100%';
+/*
 editorDiv.style.position = 'relative';
 editorDiv.style.zIndex = 2;
-editorDiv.style.top = 0;
-document.body.appendChild(editorDiv);
+editorDiv.style.top = 0;*/
+//document.body.appendChild(editorDiv);
+
 /*
 const codeSample = `const whitespaceShow = highlightSpecialChars({
   render: (code) => {
@@ -320,6 +322,16 @@ const backgroundOpacity = EditorView.theme({
   '.cm-line *': { backgroundColor: darkBackground },
 });
 
+const overflowView = EditorView.theme({
+  '&': { maxHeight: `${visualViewport.height}`, fontSize: '1.0rem' },
+  '.cm-gutter,.cm-content': { minHeight: `${visualViewport.height}` },
+  '.cm-scroller': {
+    overflow: 'auto',
+    fontFamily:
+      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+  },
+});
+
 const tabSize = new Compartment();
 
 const updateCallback = EditorView.updateListener.of(
@@ -357,6 +369,7 @@ const state = EditorState.create({
     //   }
     // }),
     updateCallback,
+    overflowView,
   ],
 });
 
@@ -374,3 +387,5 @@ function onChange(docs) {
 }
 
 window.addEventListener('resize', upRender);
+
+export { editor, editorDiv, undo, redo, EditorSelection };
