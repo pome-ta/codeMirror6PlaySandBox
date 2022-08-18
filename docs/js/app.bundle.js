@@ -21456,10 +21456,6 @@ function create_shader(type, text) {
   if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     // 成功していたらシェーダを返して終了
     return shader;
-  } else {
-    // 失敗していたらエラーログをアラートしコンソールに出力
-    // alert(gl.getShaderInfoLog(shader));
-    console.log(gl.getShaderInfoLog(shader));
   }
 }
 
@@ -21587,6 +21583,10 @@ const backgroundOpacity = EditorView.theme({
 
 const tabSize = new Compartment();
 
+const updateCallback = EditorView.updateListener.of(
+  (update) => update.docChanged && onChange(update.state.doc.toString())
+);
+
 const state = EditorState.create({
   doc: fragmentPrimitive,
   extensions: [
@@ -21611,11 +21611,13 @@ const state = EditorState.create({
     backgroundOpacity,
     whitespaceShow,
     // todo: コピーで2重に取得しちゃう
-    EditorView.updateListener.of((v) => {
-      if (v.docChanged) {
-        updateLog(v.state.doc.toString());
-      }
-    }),
+    // EditorView.updateListener.of((v) => {
+    //   if (v.docChanged) {
+    //     updateLog(v.state.doc.toString());
+    //     v.des
+    //   }
+    // }),
+    updateCallback,
   ],
 });
 
@@ -21624,9 +21626,12 @@ new EditorView({
   parent: editorDiv,
 });
 
-function updateLog(docs) {
+function onChange(docs) {
   fragmentPrimitive = docs;
-  initShader();
+  try {
+    initShader();
+  } catch {}
+  // editor.destroy();
 }
 
 window.addEventListener('resize', upRender);

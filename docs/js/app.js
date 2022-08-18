@@ -322,6 +322,10 @@ const backgroundOpacity = EditorView.theme({
 
 const tabSize = new Compartment();
 
+const updateCallback = EditorView.updateListener.of(
+  (update) => update.docChanged && onChange(update.state.doc.toString())
+);
+
 const state = EditorState.create({
   doc: fragmentPrimitive,
   extensions: [
@@ -346,11 +350,13 @@ const state = EditorState.create({
     backgroundOpacity,
     whitespaceShow,
     // todo: コピーで2重に取得しちゃう
-    EditorView.updateListener.of((v) => {
-      if (v.docChanged) {
-        updateLog(v.state.doc.toString());
-      }
-    }),
+    // EditorView.updateListener.of((v) => {
+    //   if (v.docChanged) {
+    //     updateLog(v.state.doc.toString());
+    //     v.des
+    //   }
+    // }),
+    updateCallback,
   ],
 });
 
@@ -359,9 +365,12 @@ const editor = new EditorView({
   parent: editorDiv,
 });
 
-function updateLog(docs) {
+function onChange(docs) {
   fragmentPrimitive = docs;
-  initShader();
+  try {
+    initShader();
+  } catch {}
+  // editor.destroy();
 }
 
 window.addEventListener('resize', upRender);
