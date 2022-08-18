@@ -165,7 +165,7 @@ function logAreaSwipeMove(event) {
   // todo: mobile しか想定していないけども
   // xxx: ドラッグでの移動
   endX = event.touches ? event.touches[0].pageX : event.pageX;
-  const moveDistance = Math.round((endX - startX) / 16);
+  const moveDistance = Math.round((endX - startX) / 10);
   startX = endX;
   caret += moveDistance;
   const cursor = caret >= 0 ? caret : 0;

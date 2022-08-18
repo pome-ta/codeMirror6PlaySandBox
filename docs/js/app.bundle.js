@@ -21138,7 +21138,7 @@ const myOneDarkTheme = EditorView.theme(
       color: ivory$1,
       backgroundColor: background,
       //fontSize: '0.8rem',
-      fontSize: '1.0rem',
+      fontSize: '0.9rem',
     },
     '.cm-scroller': {
       fontFamily:
@@ -21605,7 +21605,7 @@ const backgroundOpacity = EditorView.theme({
 });
 
 const overflowView = EditorView.theme({
-  '&': { maxHeight: `${visualViewport.height}`, fontSize: '1.0rem' },
+  '&': { maxHeight: `${visualViewport.height}`},
   '.cm-gutter,.cm-content': { minHeight: `${visualViewport.height}` },
   '.cm-scroller': {
     overflow: 'auto',

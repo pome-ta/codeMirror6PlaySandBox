@@ -323,7 +323,7 @@ const backgroundOpacity = EditorView.theme({
 });
 
 const overflowView = EditorView.theme({
-  '&': { maxHeight: `${visualViewport.height}`, fontSize: '1.0rem' },
+  '&': { maxHeight: `${visualViewport.height}`},
   '.cm-gutter,.cm-content': { minHeight: `${visualViewport.height}` },
   '.cm-scroller': {
     overflow: 'auto',
