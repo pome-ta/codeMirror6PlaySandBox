@@ -57,8 +57,7 @@ void main() {
   fragmentColor = vec4(outColor, 1.0);
 }`;
 
-
-fragmentPrimitive = `#version 300 es
+let _fragmentPrimitive = `#version 300 es
 precision highp float;
 
 uniform float time;
@@ -85,9 +84,6 @@ void main() {
   //vec3 outColor = vec3(uv, abs(sin(time)));
   fragmentColor = vec4(color, 1.0);
 }`;
-
-
-
 
 let canvasDiv, cxtCanvas;
 let gl;
@@ -355,7 +351,7 @@ const backgroundOpacity = EditorView.theme({
 });
 
 const overflowView = EditorView.theme({
-  '&': { maxHeight: `${visualViewport.height}`},
+  '&': { maxHeight: `${visualViewport.height}` },
   '.cm-gutter,.cm-content': { minHeight: `${visualViewport.height}` },
   '.cm-scroller': {
     overflow: 'auto',
