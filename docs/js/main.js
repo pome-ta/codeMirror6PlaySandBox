@@ -16,7 +16,7 @@ operationDiv.style.backgroundColor = '#1c1c1e80'; // Gray6
 operationDiv.style.display = 'flex';
 operationDiv.style.alignItems = 'center';
 
-const btnW = '2rem';
+const btnW = '2.5rem';
 const btnRadius = '16%';
 
 const logAreaDiv = document.createElement('div');
@@ -68,12 +68,15 @@ function createActionButton(iconChar) {
   button.appendChild(icon);
   return wrap;
 }
-
+const leftButton = createActionButton('↼');
+const rightButton = createActionButton('⇀');
 const selectAllButton = createActionButton('⎁');
 const redoButton = createActionButton('⤻');
 const undoButton = createActionButton('⤺');
 
 operationDiv.appendChild(logAreaDiv);
+operationDiv.appendChild(leftButton);
+operationDiv.appendChild(rightButton);
 operationDiv.appendChild(selectAllButton);
 operationDiv.appendChild(redoButton);
 operationDiv.appendChild(undoButton);
@@ -154,6 +157,28 @@ let caret = 0;
 let startX = 0;
 let endX = 0;
 
+function moveCaret(pos) {
+  editor.dispatch({
+    selection: EditorSelection.create([EditorSelection.cursor(pos)]),
+  });
+  editor.focus();
+}
+
+leftButton.addEventListener('click', () => {
+  caret = editor.state.selection.main.anchor;
+  caret -= 1
+  moveCaret(caret)
+  
+});
+
+rightButton.addEventListener('click', () => {
+  caret = editor.state.selection.main.anchor;
+  caret += 1
+  moveCaret(caret)
+  
+});
+
+
 function logAreaSwipeStart(event) {
   caret = editor.state.selection.main.anchor;
   // todo: mobile しか想定していないけども
@@ -170,10 +195,7 @@ function logAreaSwipeMove(event) {
   caret += moveDistance;
   const cursor = caret >= 0 ? caret : 0;
   logParagraph.textContent = `${cursor}: ${moveDistance}`;
-  editor.dispatch({
-    selection: EditorSelection.create([EditorSelection.cursor(cursor)]),
-  });
-  editor.focus();
+  moveCaret(cursor)
 }
 
 logAreaDiv.addEventListener(touchBegan, logAreaSwipeStart);
