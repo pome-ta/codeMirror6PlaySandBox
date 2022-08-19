@@ -166,18 +166,15 @@ function moveCaret(pos) {
 
 leftButton.addEventListener('click', () => {
   caret = editor.state.selection.main.anchor;
-  caret -= 1
-  moveCaret(caret)
-  
+  caret -= 1;
+  moveCaret(caret);
 });
 
 rightButton.addEventListener('click', () => {
   caret = editor.state.selection.main.anchor;
-  caret += 1
-  moveCaret(caret)
-  
+  caret += 1;
+  moveCaret(caret);
 });
-
 
 function logAreaSwipeStart(event) {
   caret = editor.state.selection.main.anchor;
@@ -195,14 +192,13 @@ function logAreaSwipeMove(event) {
   caret += moveDistance;
   const cursor = caret >= 0 ? caret : 0;
   logParagraph.textContent = `${cursor}: ${moveDistance}`;
-  moveCaret(cursor)
+  moveCaret(cursor);
 }
 
 logAreaDiv.addEventListener(touchBegan, logAreaSwipeStart);
 
 logAreaDiv.addEventListener(touchMoved, logAreaSwipeMove);
 
-
 window.addEventListener('resize', () => {
-  visualViewportHandler()
+  visualViewportHandler();
 });
