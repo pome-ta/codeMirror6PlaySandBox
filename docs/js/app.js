@@ -57,7 +57,7 @@ void main() {
   fragmentColor = vec4(outColor, 1.0);
 }`;
 
-let _fragmentPrimitive = `#version 300 es
+let f_fragmentPrimitive = `#version 300 es
 precision highp float;
 
 uniform float time;
