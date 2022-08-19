@@ -57,6 +57,38 @@ void main() {
   fragmentColor = vec4(outColor, 1.0);
 }`;
 
+
+fragmentPrimitive = `#version 300 es
+precision highp float;
+
+uniform float time;
+uniform vec2 resolution;
+uniform vec2 mouse;
+
+out vec4 fragmentColor;
+
+
+const float PI = acos(-1.0);
+
+float plot(vec2 st, float pct){
+  return  smoothstep(pct - 0.02, pct, st.y) -
+          smoothstep(pct, pct + 0.02, st.y);
+}
+
+void main() {
+  vec2  st= gl_FragCoord.xy / resolution.xy;
+
+  float y = smoothstep(0.1, 0.9, st.x);
+  vec3 color = vec3(y);
+  float pct = plot(st,y);
+  color = (1.0 - pct) * color + pct * vec3(0.0, 1.0, abs(sin(time)));
+  //vec3 outColor = vec3(uv, abs(sin(time)));
+  fragmentColor = vec4(color, 1.0);
+}`;
+
+
+
+
 let canvasDiv, cxtCanvas;
 let gl;
 let uniLocation = new Array();
