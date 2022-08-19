@@ -179,3 +179,8 @@ function logAreaSwipeMove(event) {
 logAreaDiv.addEventListener(touchBegan, logAreaSwipeStart);
 
 logAreaDiv.addEventListener(touchMoved, logAreaSwipeMove);
+
+
+window.addEventListener('resize', () => {
+  visualViewportHandler()
+});
