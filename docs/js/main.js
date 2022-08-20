@@ -6,10 +6,16 @@ import {
   EditorSelection,
 } from './app.bundle.js';
 
+
+function createAccessory() {
+  const ele = document.createElement('div');
+  
+}
+
 const operationDiv = document.createElement('div');
 operationDiv.id = 'operationWrap';
 operationDiv.style.width = '100%';
-operationDiv.style.height = '3rem';
+operationDiv.style.height = '6rem';
 operationDiv.style.padding = '0.2rem';
 operationDiv.style.backgroundColor = '#1c1c1e80'; // Gray6
 // operationDiv.style.backgroundColor = '#1c1c1e'; // Gray6
