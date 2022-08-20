@@ -18,16 +18,20 @@ function createAccessory(height) {
   ele.style.padding = '0.2rem';
   ele.style.backgroundColor = '#1c1c1e80'; // Gray6
   // ele.style.backgroundColor = '#1c1c1e'; // Gray6
-  ele.style.display = 'flex';
-  ele.style.alignItems = 'center';
+  // ele.style.display = 'flex';
+  // ele.style.alignItems = 'center';
+  ele.style.display = 'grid';
+  // ele.style.gridTemplateRows = '1fr auto';
+  // ele.style.gridTemplateRows = 'auto auto';
+  ele.style.gridTemplateRows = 'auto 1fr';
   return ele;
 }
 
 function createLogArea() {
   const ele = document.createElement('div');
   ele.style.padding = '0.2rem';
-  ele.style.flexGrow = '1';
-  ele.style.height = '100%';
+  // ele.style.flexGrow = '1';
+  ele.style.height = '2rem';
   const pEle = document.createElement('p');
   pEle.textContent = 'area';
   pEle.style.height = '100%';
@@ -68,24 +72,90 @@ function createActionButton(iconChar) {
   button.style.borderRadius = btnRadius;
   // button.style.backgroundColor = '#ababab';
   button.style.backgroundColor = '#8e8e93'; // light gray
+  button.style.filter = 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))';
   button.appendChild(icon);
   return wrap;
 }
 
-const accessoryDiv = createAccessory('4rem');
+const accessoryDiv = createAccessory('6rem');
 accessoryDiv.style.display = 'none';
-// operationDiv.style.position = 'fixed';
 accessoryDiv.style.position = 'sticky';
 accessoryDiv.style.zIndex = 1;
 accessoryDiv.style.bottom = 0;
 
 const [logAreaDiv, logParagraph] = createLogArea();
+const buttonArea = document.createElement('div');
+buttonArea.style.width = '100%';
+// buttonArea.style.height = '100%';
+buttonArea.style.display = 'flex';
+buttonArea.style.justifyContent = 'space-around';
 
-const leftButton = createActionButton('↼');
-const rightButton = createActionButton('⇀');
-const selectAllButton = createActionButton('⎁');
-const redoButton = createActionButton('⤻');
-const undoButton = createActionButton('⤺');
+// const commentButton = createActionButton('//');
+// const tabButton = createActionButton('⇥');
+// const equalButton = createActionButton('=');
+// const plusButton = createActionButton;
+// const semicolonButton = createActionButton(';');
+// const leftButton = createActionButton('↼');
+// const rightButton = createActionButton('⇀');
+// const selectAllButton = createActionButton('⎁');
+// const redoButton = createActionButton('⤻');
+// const undoButton = createActionButton('⤺');
+
+const [
+  commentButton,
+  tabButton,
+  equalButton,
+  plusButton,
+  minusButton,
+  mulButton,
+  divButton,
+  dotButton,
+  semicolonButton,
+  commaButton,
+  leftButton,
+  rightButton,
+  selectAllButton,
+  redoButton,
+  undoButton,
+] = [
+  '//',
+  '⇥',
+  '=',
+  '+',
+  '-',
+  '*',
+  '/',
+  ',',
+  '.',
+  ';',
+  '↼',
+  '⇀',
+  '⎁',
+  '⤻',
+  '⤺',
+].map((str) => {
+  const ele = createActionButton(str);
+  buttonArea.appendChild(ele);
+  return ele;
+});
+
+// [
+//   commentButton,
+//   tabButton,
+//   equalButton,
+//   plusButton,
+//   minusButton,
+//   mulButton,
+//   divButton,
+//   dotButton,
+//   semicolonButton,
+//   commaButton,
+//   leftButton,
+//   rightButton,
+//   selectAllButton,
+//   redoButton,
+//   undoButton,
+// ].forEach((ele) => buttonArea.appendChild(ele));
 
 const container = document.createElement('div');
 container.id = 'mainWrap';
@@ -100,18 +170,11 @@ editorDiv.style.overflow = 'auto';
 document.body.appendChild(container);
 container.appendChild(editorDiv);
 container.appendChild(accessoryDiv);
-[
-  logAreaDiv,
-  leftButton,
-  rightButton,
-  selectAllButton,
-  redoButton,
-  undoButton,
-].forEach((ele) => accessoryDiv.appendChild(ele));
+[logAreaDiv, buttonArea].forEach((ele) => accessoryDiv.appendChild(ele));
 
 function visualViewportHandler() {
   if (editor.hasFocus) {
-    accessoryDiv.style.display = 'flex';
+    accessoryDiv.style.display = 'grid';
     // document.body.style.backgroundColor = 'blue';
   } else {
     accessoryDiv.style.display = 'none';
