@@ -6,24 +6,23 @@ import {
   EditorSelection,
 } from './app.bundle.js';
 
+const btnW = '2.5rem';
+const btnRadius = '16%';
 
 function createAccessory() {
   const ele = document.createElement('div');
-  
+  ele.id = 'operationWrap';
+  ele.style.width = '100%';
+  ele.style.height = '3rem';
+  ele.style.padding = '0.2rem';
+  ele.style.backgroundColor = '#1c1c1e80'; // Gray6
+  // ele.style.backgroundColor = '#1c1c1e'; // Gray6
+  ele.style.display = 'flex';
+  ele.style.alignItems = 'center';
+  return ele;
 }
 
-const operationDiv = document.createElement('div');
-operationDiv.id = 'operationWrap';
-operationDiv.style.width = '100%';
-operationDiv.style.height = '6rem';
-operationDiv.style.padding = '0.2rem';
-operationDiv.style.backgroundColor = '#1c1c1e80'; // Gray6
-// operationDiv.style.backgroundColor = '#1c1c1e'; // Gray6
-operationDiv.style.display = 'flex';
-operationDiv.style.alignItems = 'center';
-
-const btnW = '2.5rem';
-const btnRadius = '16%';
+const operationDiv = createAccessory('div');
 
 const logAreaDiv = document.createElement('div');
 logAreaDiv.style.padding = '0.2rem';
