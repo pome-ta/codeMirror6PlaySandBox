@@ -9,11 +9,12 @@ import {
 const btnW = '2.5rem';
 const btnRadius = '16%';
 
-function createAccessory() {
+function createAccessory(height) {
   const ele = document.createElement('div');
   ele.id = 'operationWrap';
   ele.style.width = '100%';
-  ele.style.height = '3rem';
+  // ele.style.height = '3rem';
+  ele.style.height = height;
   ele.style.padding = '0.2rem';
   ele.style.backgroundColor = '#1c1c1e80'; // Gray6
   // ele.style.backgroundColor = '#1c1c1e'; // Gray6
@@ -22,24 +23,21 @@ function createAccessory() {
   return ele;
 }
 
-const operationDiv = createAccessory('div');
-
-const logAreaDiv = document.createElement('div');
-logAreaDiv.style.padding = '0.2rem';
-// const logSpan = document.createElement('span');
-const logParagraph = document.createElement('p');
-logParagraph.textContent = 'log area & move caret';
-logParagraph.style.height = '100%';
-logParagraph.style.margin = 0;
-logParagraph.style.fontSize = '0.8rem';
-// logParagraph.style.backgroundColor = 'red';
-logParagraph.style.backgroundColor = '#8e8e9380';
-logParagraph.style.color = '#d1d1d6'; // light Gray4
-logAreaDiv.id = 'logAreaWrap';
-logAreaDiv.style.flexGrow = '1';
-logAreaDiv.style.height = '100%';
-// logAreaDiv.style.backgroundColor = '#bcbcbc';
-logAreaDiv.appendChild(logParagraph);
+function createLogArea() {
+  const ele = document.createElement('div');
+  ele.style.padding = '0.2rem';
+  ele.style.flexGrow = '1';
+  ele.style.height = '100%';
+  const pEle = document.createElement('p');
+  pEle.textContent = 'area';
+  pEle.style.height = '100%';
+  pEle.style.margin = 0;
+  pEle.style.fontSize = '0.8rem';
+  pEle.style.backgroundColor = '#8e8e9380';
+  pEle.style.color = '#d1d1d6'; // light Gray4
+  ele.appendChild(pEle);
+  return [ele, pEle];
+}
 
 function _createButtonWrap(width, height) {
   const wrap = document.createElement('div');
@@ -73,20 +71,27 @@ function createActionButton(iconChar) {
   button.appendChild(icon);
   return wrap;
 }
+
+const accessoryDiv = createAccessory('4rem');
+const [logAreaDiv, logParagraph] = createLogArea();
+
 const leftButton = createActionButton('↼');
 const rightButton = createActionButton('⇀');
 const selectAllButton = createActionButton('⎁');
 const redoButton = createActionButton('⤻');
 const undoButton = createActionButton('⤺');
 
-operationDiv.appendChild(logAreaDiv);
-operationDiv.appendChild(leftButton);
-operationDiv.appendChild(rightButton);
-operationDiv.appendChild(selectAllButton);
-operationDiv.appendChild(redoButton);
-operationDiv.appendChild(undoButton);
+[
+  logAreaDiv,
+  leftButton,
+  rightButton,
+  selectAllButton,
+  redoButton,
+  undoButton,
+].forEach((ele) => accessoryDiv.appendChild(ele));
 
 const container = document.createElement('div');
+container.id = 'mainWrap';
 container.style.width = '100%';
 container.style.height = '100%';
 container.style.display = 'grid';
@@ -97,20 +102,20 @@ editorDiv.style.overflow = 'auto';
 
 document.body.appendChild(container);
 container.appendChild(editorDiv);
-container.appendChild(operationDiv);
+container.appendChild(accessoryDiv);
 
-operationDiv.style.display = 'none';
+// operationDiv.style.display = 'none';
 // operationDiv.style.position = 'fixed';
-operationDiv.style.position = 'sticky';
-operationDiv.style.zIndex = 1;
-operationDiv.style.bottom = 0;
+accessoryDiv.style.position = 'sticky';
+accessoryDiv.style.zIndex = 1;
+accessoryDiv.style.bottom = 0;
 
 function visualViewportHandler() {
   if (editor.hasFocus) {
-    operationDiv.style.display = 'flex';
+    accessoryDiv.style.display = 'flex';
     //document.body.style.backgroundColor = 'blue';
   } else {
-    operationDiv.style.display = 'none';
+    // operationDiv.style.display = 'none';
     //document.body.style.backgroundColor = 'yellow';
   }
 
@@ -120,9 +125,9 @@ function visualViewportHandler() {
     visualViewport.offsetTop -
     visualViewport.pageTop;
 
-  const editorDivHeight = container.offsetHeight - operationDiv.offsetHeight;
+  const editorDivHeight = container.offsetHeight - accessoryDiv.offsetHeight;
 
-  operationDiv.style.bottom = `${upBottom}px`;
+  accessoryDiv.style.bottom = `${upBottom}px`;
   editorDiv.style.height = `${editorDivHeight}px`;
 }
 
