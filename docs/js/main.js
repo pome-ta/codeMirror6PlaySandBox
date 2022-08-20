@@ -104,7 +104,7 @@ document.body.appendChild(container);
 container.appendChild(editorDiv);
 container.appendChild(accessoryDiv);
 
-// operationDiv.style.display = 'none';
+accessoryDiv.style.display = 'none';
 // operationDiv.style.position = 'fixed';
 accessoryDiv.style.position = 'sticky';
 accessoryDiv.style.zIndex = 1;
@@ -113,9 +113,9 @@ accessoryDiv.style.bottom = 0;
 function visualViewportHandler() {
   if (editor.hasFocus) {
     accessoryDiv.style.display = 'flex';
-    //document.body.style.backgroundColor = 'blue';
+    // document.body.style.backgroundColor = 'blue';
   } else {
-    // operationDiv.style.display = 'none';
+    accessoryDiv.style.display = 'none';
     //document.body.style.backgroundColor = 'yellow';
   }
 
