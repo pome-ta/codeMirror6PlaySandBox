@@ -73,6 +73,12 @@ function createActionButton(iconChar) {
 }
 
 const accessoryDiv = createAccessory('4rem');
+accessoryDiv.style.display = 'none';
+// operationDiv.style.position = 'fixed';
+accessoryDiv.style.position = 'sticky';
+accessoryDiv.style.zIndex = 1;
+accessoryDiv.style.bottom = 0;
+
 const [logAreaDiv, logParagraph] = createLogArea();
 
 const leftButton = createActionButton('↼');
@@ -80,15 +86,6 @@ const rightButton = createActionButton('⇀');
 const selectAllButton = createActionButton('⎁');
 const redoButton = createActionButton('⤻');
 const undoButton = createActionButton('⤺');
-
-[
-  logAreaDiv,
-  leftButton,
-  rightButton,
-  selectAllButton,
-  redoButton,
-  undoButton,
-].forEach((ele) => accessoryDiv.appendChild(ele));
 
 const container = document.createElement('div');
 container.id = 'mainWrap';
@@ -103,12 +100,14 @@ editorDiv.style.overflow = 'auto';
 document.body.appendChild(container);
 container.appendChild(editorDiv);
 container.appendChild(accessoryDiv);
-
-accessoryDiv.style.display = 'none';
-// operationDiv.style.position = 'fixed';
-accessoryDiv.style.position = 'sticky';
-accessoryDiv.style.zIndex = 1;
-accessoryDiv.style.bottom = 0;
+[
+  logAreaDiv,
+  leftButton,
+  rightButton,
+  selectAllButton,
+  redoButton,
+  undoButton,
+].forEach((ele) => accessoryDiv.appendChild(ele));
 
 function visualViewportHandler() {
   if (editor.hasFocus) {
