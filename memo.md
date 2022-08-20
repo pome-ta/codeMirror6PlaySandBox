@@ -92,7 +92,7 @@ EditorView.updateListener.of((v) => {
 
 # 📝 2022/08/08
 
-## todo
+## todo ---
 
 - whitespace と indent
   - 2 つ並んでたら、置き換えとかできるかな？
