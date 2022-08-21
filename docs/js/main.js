@@ -31,7 +31,7 @@ function createLogArea() {
   const ele = document.createElement('div');
   ele.style.padding = '0.2rem';
   // ele.style.flexGrow = '1';
-  ele.style.height = '2rem';
+  ele.style.height = '2.5rem';
   const pEle = document.createElement('p');
   pEle.textContent = 'area';
   pEle.style.height = '100%';
@@ -77,7 +77,7 @@ function createActionButton(iconChar) {
   return wrap;
 }
 
-const accessoryDiv = createAccessory('6rem');
+const accessoryDiv = createAccessory('5rem');
 accessoryDiv.style.display = 'none';
 accessoryDiv.style.position = 'sticky';
 accessoryDiv.style.zIndex = 1;
@@ -90,28 +90,17 @@ buttonArea.style.width = '100%';
 buttonArea.style.display = 'flex';
 buttonArea.style.justifyContent = 'space-around';
 
-// const commentButton = createActionButton('//');
-// const tabButton = createActionButton('⇥');
-// const equalButton = createActionButton('=');
-// const plusButton = createActionButton;
-// const semicolonButton = createActionButton(';');
-// const leftButton = createActionButton('↼');
-// const rightButton = createActionButton('⇀');
-// const selectAllButton = createActionButton('⎁');
-// const redoButton = createActionButton('⤻');
-// const undoButton = createActionButton('⤺');
-
 const [
   commentButton,
   tabButton,
   equalButton,
-  plusButton,
-  minusButton,
-  mulButton,
-  divButton,
-  dotButton,
-  semicolonButton,
+  //plusButton,
+  //minusButton,
+  //mulButton,
+  //divButton,
+  //dotButton,
   commaButton,
+  semicolonButton,
   leftButton,
   rightButton,
   selectAllButton,
@@ -121,12 +110,12 @@ const [
   '//',
   '⇥',
   '=',
-  '+',
-  '-',
-  '*',
-  '/',
+  //'+',
+  //'-',
+  //'*',
+  //'/',
+  //'.',
   ',',
-  '.',
   ';',
   '↼',
   '⇀',
