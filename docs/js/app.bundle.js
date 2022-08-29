@@ -4163,8 +4163,8 @@ function getSelection(root) {
 function contains(dom, node) {
     return node ? dom == node || dom.contains(node.nodeType != 1 ? node.parentNode : node) : false;
 }
-function deepActiveElement() {
-    let elt = document.activeElement;
+function deepActiveElement(doc) {
+    let elt = doc.activeElement;
     while (elt && elt.shadowRoot)
         elt = elt.shadowRoot.activeElement;
     return elt;
@@ -4903,7 +4903,7 @@ class MarkView extends ContentView {
         return new MarkView(this.mark, result, length);
     }
     domAtPos(pos) {
-        return inlineDOMAtPos(this.dom, this.children, pos);
+        return inlineDOMAtPos(this, pos);
     }
     coordsAt(pos, side) {
         return coordsInChildren(this, pos, side);
@@ -5054,11 +5054,14 @@ class CompositionView extends WidgetView {
 // offset.
 function scanCompositionTree(pos, side, view, text, enterView, fromText) {
     if (view instanceof MarkView) {
-        for (let child of view.children) {
-            let hasComp = contains(child.dom, text);
-            let len = hasComp ? text.nodeValue.length : child.length;
-            if (pos < len || pos == len && child.getSide() <= 0)
-                return hasComp ? scanCompositionTree(pos, side, child, text, enterView, fromText) : enterView(child, pos, side);
+        for (let child = view.dom.firstChild; child; child = child.nextSibling) {
+            let desc = ContentView.get(child);
+            if (!desc)
+                return fromText(pos, side);
+            let hasComp = contains(child, text);
+            let len = desc.length + (hasComp ? text.nodeValue.length : 0);
+            if (pos < len || pos == len && desc.getSide() <= 0)
+                return hasComp ? scanCompositionTree(pos, side, desc, text, enterView, fromText) : enterView(desc, pos, side);
             pos -= len;
         }
         return enterView(view, view.length, -1);
@@ -5148,8 +5151,8 @@ function inlineSiblingRect(view, side) {
     }
     return undefined;
 }
-function inlineDOMAtPos(dom, children, pos) {
-    let i = 0;
+function inlineDOMAtPos(parent, pos) {
+    let dom = parent.dom, { children } = parent, i = 0;
     for (let off = 0; i < children.length; i++) {
         let child = children[i], end = off + child.length;
         if (end == off && child.getSide() <= 0)
@@ -5160,10 +5163,16 @@ function inlineDOMAtPos(dom, children, pos) {
             break;
         off = end;
     }
-    for (; i > 0; i--) {
-        let before = children[i - 1].dom;
-        if (before.parentNode == dom)
-            return DOMPos.after(before);
+    //  if (i) return DOMPos.after(children[i - 1].dom!)
+    for (let j = i; j > 0; j--) {
+        let prev = children[j - 1];
+        if (prev.dom.parentNode == dom)
+            return prev.domAtPos(prev.length);
+    }
+    for (let j = i; j < children.length; j++) {
+        let next = children[j];
+        if (next.dom.parentNode == dom)
+            return next.domAtPos(0);
     }
     return new DOMPos(dom, 0);
 }
@@ -5571,7 +5580,7 @@ class LineView extends ContentView {
             this.attrs = combineAttrs({ class: cls }, this.attrs || {});
     }
     domAtPos(pos) {
-        return inlineDOMAtPos(this.dom, this.children, pos);
+        return inlineDOMAtPos(this, pos);
     }
     reuseDOM(node) {
         if (node.nodeName == "DIV") {
@@ -6216,9 +6225,10 @@ function charType(ch) {
             0x600 <= ch && ch <= 0x6f9 ? ArabicTypes[ch - 0x600] :
                 0x6ee <= ch && ch <= 0x8ac ? 4 /* AL */ :
                     0x2000 <= ch && ch <= 0x200b ? 256 /* NI */ :
-                        ch == 0x200c ? 256 /* NI */ : 1 /* L */;
+                        0xfb50 <= ch && ch <= 0xfdff ? 4 /* AL */ :
+                            ch == 0x200c ? 256 /* NI */ : 1 /* L */;
 }
-const BidiRE = /[\u0590-\u05f4\u0600-\u06ff\u0700-\u08ac]/;
+const BidiRE = /[\u0590-\u05f4\u0600-\u06ff\u0700-\u08ac\ufb50-\ufdff]/;
 /**
 Represents a contiguous range of text that has a single direction
 (as in left-to-right or right-to-left).
@@ -7597,9 +7607,10 @@ class InputState {
         // applyDOMChange, notify key handlers of it and reset to
         // the state they produce.
         let pending;
-        if (browser.ios && (pending = PendingKeys.find(key => key.keyCode == event.keyCode)) &&
-            !(event.ctrlKey || event.altKey || event.metaKey) && !event.synthetic) {
-            this.pendingIOSKey = pending;
+        if (browser.ios && !event.synthetic && !event.altKey && !event.metaKey &&
+            ((pending = PendingKeys.find(key => key.keyCode == event.keyCode)) && !event.ctrlKey ||
+                EmacsyPendingKeys.indexOf(event.key) > -1 && event.ctrlKey && !event.shiftKey)) {
+            this.pendingIOSKey = pending || event;
             setTimeout(() => this.flushIOSKey(view), 250);
             return true;
         }
@@ -7654,6 +7665,7 @@ const PendingKeys = [
     { key: "Enter", keyCode: 13, inputType: "insertParagraph" },
     { key: "Delete", keyCode: 46, inputType: "deleteContentForward" }
 ];
+const EmacsyPendingKeys = "dthko";
 // Key codes for modifier keys
 const modifierCodes = [16, 17, 18, 20, 91, 92, 224, 225];
 class MouseSelection {
@@ -9712,7 +9724,8 @@ class DOMObserver {
         let { view } = this;
         // The Selection object is broken in shadow roots in Safari. See
         // https://github.com/codemirror/dev/issues/414
-        let range = browser.safari && view.root.nodeType == 11 && deepActiveElement() == this.dom &&
+        let range = browser.safari && view.root.nodeType == 11 &&
+            deepActiveElement(this.dom.ownerDocument) == this.dom &&
             safariSelectionRangeHack(this.view) || getSelection(view.root);
         if (!range || this.selectionRange.eq(range))
             return false;
@@ -9957,7 +9970,7 @@ function safariSelectionRangeHack(view) {
         found = event.getTargetRanges()[0];
     }
     view.contentDOM.addEventListener("beforeinput", read, true);
-    document.execCommand("indent");
+    view.dom.ownerDocument.execCommand("indent");
     view.contentDOM.removeEventListener("beforeinput", read, true);
     if (!found)
         return null;
@@ -10840,7 +10853,7 @@ class EditorView {
         // or closing, which leads us to ignore selection changes from the
         // context menu because it looks like the editor isn't focused.
         // This kludges around that.
-        return (document.hasFocus() || browser.safari && ((_a = this.inputState) === null || _a === void 0 ? void 0 : _a.lastContextMenu) > Date.now() - 3e4) &&
+        return (this.dom.ownerDocument.hasFocus() || browser.safari && ((_a = this.inputState) === null || _a === void 0 ? void 0 : _a.lastContextMenu) > Date.now() - 3e4) &&
             this.root.activeElement == this.contentDOM;
     }
     /**
@@ -11247,7 +11260,7 @@ function runHandlers(map, event, view, scope) {
         }
         return false;
     };
-    let scopeObj = map[scope], baseName;
+    let scopeObj = map[scope], baseName, shiftName;
     if (scopeObj) {
         if (runFor(scopeObj[prefix + modifiers(name, event, !isChar)]))
             return true;
@@ -11255,8 +11268,8 @@ function runHandlers(map, event, view, scope) {
             (baseName = base[event.keyCode]) && baseName != name) {
             if (runFor(scopeObj[prefix + modifiers(baseName, event, true)]))
                 return true;
-            else if (event.shiftKey && shift[event.keyCode] != baseName &&
-                runFor(scopeObj[prefix + modifiers(shift[event.keyCode], event, false)]))
+            else if (event.shiftKey && (shiftName = shift[event.keyCode]) != name && shiftName != baseName &&
+                runFor(scopeObj[prefix + modifiers(shiftName, event, false)]))
                 return true;
         }
         else if (isChar && event.shiftKey) {
