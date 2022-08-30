@@ -104,5 +104,4 @@ dist
 .tern-port
 
 # my setting
-!/outModules/
-
+!/outModules/**
