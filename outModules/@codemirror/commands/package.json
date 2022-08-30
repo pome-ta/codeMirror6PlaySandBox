@@ -1,0 +1,72 @@
+{
+  "_from": "@codemirror/commands@^6.0.0",
+  "_id": "@codemirror/commands@6.1.0",
+  "_inBundle": false,
+  "_integrity": "sha512-qCj2YqmbBjj0P1iumnlL5lBqZvJPzT+t2UvgjcaXErp5ZvMqFRVgQyrEfdXX6SX5UcvcHKBjXqno+MkUp0aYvQ==",
+  "_location": "/@codemirror/commands",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "@codemirror/commands@^6.0.0",
+    "name": "@codemirror/commands",
+    "escapedName": "@codemirror%2fcommands",
+    "scope": "@codemirror",
+    "rawSpec": "^6.0.0",
+    "saveSpec": null,
+    "fetchSpec": "^6.0.0"
+  },
+  "_requiredBy": [
+    "/codemirror"
+  ],
+  "_resolved": "https://registry.npmjs.org/@codemirror/commands/-/commands-6.1.0.tgz",
+  "_shasum": "c9da851f419f25dae400d7cd94f80b80ef060696",
+  "_spec": "@codemirror/commands@^6.0.0",
+  "_where": "/private/var/mobile/Containers/Shared/AppGroup/CD0D241D-A767-4CE7-823D-680C601C49D6/File Provider Storage/Repositories/codeMirror6PlaySandBox/node_modules/codemirror",
+  "author": {
+    "name": "Marijn Haverbeke",
+    "email": "marijnh@gmail.com",
+    "url": "http://marijnhaverbeke.nl"
+  },
+  "bugs": {
+    "url": "https://github.com/codemirror/commands/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
+    "@lezer/common": "^1.0.0"
+  },
+  "deprecated": false,
+  "description": "Collection of editing commands for the CodeMirror code editor",
+  "devDependencies": {
+    "@codemirror/buildhelper": "^0.1.5",
+    "@codemirror/lang-javascript": "^6.0.0"
+  },
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "homepage": "https://github.com/codemirror/commands#readme",
+  "keywords": [
+    "editor",
+    "code"
+  ],
+  "license": "MIT",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "name": "@codemirror/commands",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codemirror/commands.git"
+  },
+  "scripts": {
+    "prepare": "cm-buildhelper src/commands.ts",
+    "test": "cm-runtests"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "version": "6.1.0"
+}
