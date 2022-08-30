@@ -6,6 +6,4 @@
 
 [codemirror/basic-setup: Example configuration for the CodeMirror code editor](https://github.com/codemirror/basic-setup)
 
-
 ごりっと取ってくる
-
