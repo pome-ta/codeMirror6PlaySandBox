@@ -1,3 +1,30 @@
+# 📝 2022/08/31
+
+## エディタの点線
+
+
+``` .js
+const baseTheme$1 = /*@__PURE__*/ buildTheme(
+  '.' + baseThemeID,
+  {
+    '&.cm-editor': {
+      position: 'relative !important',
+      boxSizing: 'border-box',
+      '&.cm-focused': {
+        // Provide a simple default outline to make sure a focused
+        // editor is visually distinct. Can't leave the default behavior
+        // because that will apply to the content element, which is
+        // inside the scrollable container and doesn't include the
+        // gutters. We also can't use an 'auto' outline, since those
+        // are, for some reason, drawn behind the element content, which
+        // will cause things like the active line background to cover
+        // the outline (#297).
+        outline: '1px dotted #212121',
+      },
+```
+Provide a simple default outline to make sure a focused  editor is visually distinct. Can't leave the default behavior because that will apply to the content element, which is inside the scrollable container and doesn't include the gutters. We also can't use an 'auto' outline, since those are, for some reason, drawn behind the element content, which will cause things like the active line background to cover the outline (#297).
+
+
 # 📝 2022/08/30
 
 ## Working Copy での`merge`
