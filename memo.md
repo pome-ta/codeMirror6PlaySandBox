@@ -1,9 +1,33 @@
+# 📝 2022/09/03
+
+## スマホ(タッチできる) デバイスの判定
+
+[JavaScript によるデバイスの判定のあれこれ](https://zenn.dev/jamband/scraps/3749203f91875c)
+
+```js
+export const hasTouchScreen = () => {
+  if (navigator.maxTouchPoints > 0) {
+    return true;
+  }
+  if (navigator.msMaxTouchPoints > 0) {
+    return true;
+  }
+  if (window.matchMedia("(pointer:coarse)").matches) {
+    return true;
+  }
+  if ("orientation" in window) {
+    return true;
+  }
+
+  return false;
+};
+```
+
 # 📝 2022/08/31
 
 ## エディタの点線
 
-
-``` .js
+```.js
 const baseTheme$1 = /*@__PURE__*/ buildTheme(
   '.' + baseThemeID,
   {
@@ -22,20 +46,18 @@ const baseTheme$1 = /*@__PURE__*/ buildTheme(
         outline: '1px dotted #212121',
       },
 ```
-Provide a simple default outline to make sure a focused  editor is visually distinct. Can't leave the default behavior because that will apply to the content element, which is inside the scrollable container and doesn't include the gutters. We also can't use an 'auto' outline, since those are, for some reason, drawn behind the element content, which will cause things like the active line background to cover the outline (#297).
 
+Provide a simple default outline to make sure a focused editor is visually distinct. Can't leave the default behavior because that will apply to the content element, which is inside the scrollable container and doesn't include the gutters. We also can't use an 'auto' outline, since those are, for some reason, drawn behind the element content, which will cause things like the active line background to cover the outline (#297).
 
 # 📝 2022/08/30
 
 ## Working Copy での`merge`
 
-古いbranch の状態で、新しいbranch を選び`merge `する。
+古い branch の状態で、新しい branch を選び`merge `する。
 
 `allow fast-forward` している
 
 いつも忘れるので
-
-
 
 # 📝 2022/08/21
 
@@ -49,7 +71,7 @@ Provide a simple default outline to make sure a focused  editor is visually dist
 
 背景色設定の時に何か役立つかも？
 
-[CSSで行ではなくテキストの後ろにだけ背景色を敷きたい！ | yanagi's memo](https://ponsyon.com/archives/4623)
+[CSS で行ではなくテキストの後ろにだけ背景色を敷きたい！ | yanagi's memo](https://ponsyon.com/archives/4623)
 
 ## ボタン類
 
@@ -73,7 +95,7 @@ Provide a simple default outline to make sure a focused  editor is visually dist
 - pc 時に、操作バー出る問題
 - webgl 組み直し
 - キャレット移動は、ポチポチボタンも入れる？
-- 操作バー2段組み？
+- 操作バー 2 段組み？
 
 # 📝 2022/08/18
 
@@ -81,7 +103,7 @@ Provide a simple default outline to make sure a focused  editor is visually dist
 
 # 📝 2022/08/17
 
-``` .js
+```.js
 EditorView.updateListener.of((v) => {
   if (v.docChanged) {
     updateLog(v.state.doc.toString());
@@ -89,7 +111,7 @@ EditorView.updateListener.of((v) => {
 }),
 ```
 
-2重にとっちゃったり、入力にラグがあったりちょっと危機怪々な挙動をしている
+2 重にとっちゃったり、入力にラグがあったりちょっと危機怪々な挙動をしている
 
 [CodeMirror 6: Proper way to listen for changes - discuss.CodeMirror](https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/10)
 
@@ -103,7 +125,7 @@ EditorView.updateListener.of((v) => {
 
 `backgroundColor` を一括で設定してしまうと、`color` も上書きされちゃう
 
-## 背後に`canvas` としてglsl の何か設置
+## 背後に`canvas` として glsl の何か設置
 
 いったん愚直に、ベタで書き切る
 
