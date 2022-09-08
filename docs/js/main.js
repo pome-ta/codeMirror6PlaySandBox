@@ -22,51 +22,51 @@ btn.style.height = '3rem';
 container.appendChild(btn);
 document.body.appendChild(container).appendChild(editorDiv);
 
-const addUnderLine = StateEffect.define({
+const addBackgroundLine = StateEffect.define({
   map: ({ from, to }, change) => ({
     from: change.mapPos(from),
     to: change.mapPos(to),
   }),
 });
 
-const underlineField = StateField.define({
+const backgroundlineField = StateField.define({
   create() {
     return Decoration.none;
   },
-  update(underlines, tr) {
+  update(backgroundlines, tr) {
     //console.log(underlines);
-    underlines = underlines.map(tr.changes);
+    backgroundlines = backgroundlines.map(tr.changes);
     for (let e of tr.effects)
-      if (e.is(addUnderLine)) {
-        underlines = underlines.update({
-          add: [underlineMark.range(e.value.from, e.value.to)],
+      if (e.is(addBackgroundLine)) {
+        backgroundlines = backgroundlines.update({
+          add: [backgroundlineMark.range(e.value.from, e.value.to)],
         });
       }
-    return underlines;
+    return backgroundlines;
   },
   provide: (f) => EditorView.decorations.from(f),
 });
 
-const underlineMark = Decoration.mark({ class: 'cm-underline' });
+const backgroundlineMark = Decoration.mark({ class: 'cm-backgroundline' });
 /*
 const underlineTheme = EditorView.baseTheme({
   '.cm-underline': { textDecoration: 'underline 3px red' },
 });
 */
 
-const underlineTheme = EditorView.baseTheme({
-  '.cm-underline': { textDecoration: 'underline 8px red' },
-  // '.cm-underline': { fontSize: '2rem' },
+const backgroundlineTheme = EditorView.baseTheme({
+  //'.cm-backgroundline': { textDecoration: 'underline 8px red' },
+  '.cm-backgroundline': { fontSize: '2rem' },
 });
 
-function underlineSelection(view) {
+function backgroundlineSelection(view) {
   //console.log(view);
   const endRange = view.state.doc.length;
   const ranges = [EditorSelection.range(0, endRange)];
   let effects = ranges
     .filter((r) => !r.empty)
-    .map(({ from, to }) => addUnderLine.of({ from, to }));
-  console.log(effects);
+    .map(({ from, to }) => addBackgroundLine.of({ from, to }));
+  //console.log(effects);
   if (!effects.length) {
     return false;
   }
@@ -75,18 +75,20 @@ function underlineSelection(view) {
     .filter((r) => !r.empty)
     .map(({ from, to }) => addUnderLine.of({ from, to }));
   */
-  if (!view.state.field(underlineField, false)) {
-    effects.push(StateEffect.appendConfig.of([underlineField, underlineTheme]));
+  if (!view.state.field(backgroundlineField, false)) {
+    effects.push(
+      StateEffect.appendConfig.of([backgroundlineField, backgroundlineTheme])
+    );
   }
   view.dispatch({ effects });
   return true;
 }
 
-const underlineKeymap = keymap.of([
+const backgroundlineKeymap = keymap.of([
   {
     key: 'b',
     preventDefault: true,
-    run: underlineSelection,
+    run: backgroundlineSelection,
   },
 ]);
 /*
@@ -101,7 +103,7 @@ function upup(view) {
 }
 */
 //const extensions = [...initExtensions];
-const extensions = [...initExtensions, underlineKeymap];
+const extensions = [...initExtensions, backgroundlineKeymap];
 // const extensions = [...initExtensions, updateCallBack];
 //const extensions = [...initExtensions, underlineKeymap, updateCallBack];
 const docText = `hoge fuga あああああ
@@ -119,12 +121,12 @@ const editor = new EditorView({
   parent: editorDiv,
 });
 
-underlineSelection(editor);
+backgroundlineSelection(editor);
 
 btn.addEventListener('click', () => {
   btn.style.height = '4rem';
   //console.log(editor)
-  underlineSelection(editor);
+  backgroundlineSelection(editor);
 });
 
 //underlineSelection(editor)
