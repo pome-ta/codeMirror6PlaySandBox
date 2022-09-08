@@ -55,7 +55,8 @@ const underlineTheme = EditorView.baseTheme({
 */
 
 const underlineTheme = EditorView.baseTheme({
-  '.cm-underline': { fontSize: '2rem' },
+  '.cm-underline': { textDecoration: 'underline 8px red' },
+  // '.cm-underline': { fontSize: '2rem' },
 });
 
 function underlineSelection(view) {
@@ -65,7 +66,7 @@ function underlineSelection(view) {
   let effects = ranges
     .filter((r) => !r.empty)
     .map(({ from, to }) => addUnderLine.of({ from, to }));
-  console.log(effects)
+  console.log(effects);
   if (!effects.length) {
     return false;
   }
@@ -118,12 +119,12 @@ const editor = new EditorView({
   parent: editorDiv,
 });
 
-underlineSelection(editor)
+underlineSelection(editor);
 
 btn.addEventListener('click', () => {
   btn.style.height = '4rem';
   //console.log(editor)
-  underlineSelection(editor)
+  underlineSelection(editor);
 });
 
 //underlineSelection(editor)
