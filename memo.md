@@ -1,3 +1,9 @@
+# 📝 2022/09/08
+
+## ミニマム構築
+
+文字に、座布団を敷きたいと考えている
+
 # 📝 2022/09/03
 
 ## スマホ(タッチできる) デバイスの判定
@@ -53,7 +59,7 @@ Provide a simple default outline to make sure a focused editor is visually disti
 
 ## Working Copy での`merge`
 
-古い branch の状態で、新しい branch を選び`merge `する。
+古い branch の状態で、新しい branch を選び`merge`する。
 
 `allow fast-forward` している
 

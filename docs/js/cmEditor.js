@@ -7,63 +7,64 @@ import {
   highlightActiveLine,
 } from '@codemirror/view';
 
+import { EditorSelection } from '@codemirror/state';
 import { Decoration } from '@codemirror/view';
 import { StateField, StateEffect } from '@codemirror/state';
 
-const addUnderLine = StateEffect.define({
-  map: ({ from, to }, change) => ({
-    from: change.mapPos(from),
-    to: change.mapPos(to),
-  }),
-});
+// const addUnderLine = StateEffect.define({
+//   map: ({ from, to }, change) => ({
+//     from: change.mapPos(from),
+//     to: change.mapPos(to),
+//   }),
+// });
 
-const underlineField = StateField.define({
-  create() {
-    return Decoration.none;
-  },
-  update(underlines, tr) {
-    //console.log(underlines);
-    underlines = underlines.map(tr.changes);
-    for (let e of tr.effects)
-      if (e.is(addUnderLine)) {
-        underlines = underlines.update({
-          add: [underlineMark.range(e.value.from, e.value.to)],
-        });
-      }
-    return underlines;
-  },
-  provide: (f) => EditorView.decorations.from(f),
-});
+// const underlineField = StateField.define({
+//   create() {
+//     return Decoration.none;
+//   },
+//   update(underlines, tr) {
+//     //console.log(underlines);
+//     underlines = underlines.map(tr.changes);
+//     for (let e of tr.effects)
+//       if (e.is(addUnderLine)) {
+//         underlines = underlines.update({
+//           add: [underlineMark.range(e.value.from, e.value.to)],
+//         });
+//       }
+//     return underlines;
+//   },
+//   provide: (f) => EditorView.decorations.from(f),
+// });
 
-const underlineMark = Decoration.mark({ class: 'cm-underline' });
+// const underlineMark = Decoration.mark({ class: 'cm-underline' });
 
-const underlineTheme = EditorView.baseTheme({
-  '.cm-underline': { textDecoration: 'underline 3px red' },
-});
+// const underlineTheme = EditorView.baseTheme({
+//   '.cm-underline': { textDecoration: 'underline 3px red' },
+// });
 
-function underlineSelection(view) {
-  // console.log(view);
-  let effects = view.state.selection.ranges
-    .filter((r) => !r.empty)
-    .map(({ from, to }) => addUnderLine.of({ from, to }));
-  if (!effects.length) {
-    return false;
-  }
-  if (!view.state.field(underlineField, false)) {
-    effects.push(StateEffect.appendConfig.of([underlineField, underlineTheme]));
-  }
-  view.dispatch({ effects });
-  return true;
-}
+// function underlineSelection(view) {
+//   console.log(view);
+//   let effects = view.state.selection.ranges
+//     .filter((r) => !r.empty)
+//     .map(({ from, to }) => addUnderLine.of({ from, to }));
+//   if (!effects.length) {
+//     return false;
+//   }
+//   if (!view.state.field(underlineField, false)) {
+//     effects.push(StateEffect.appendConfig.of([underlineField, underlineTheme]));
+//   }
+//   view.dispatch({ effects });
+//   return true;
+// }
 
 import { keymap } from '@codemirror/view';
-const underlineKeymap = keymap.of([
-  {
-    key: 'Mod-b',
-    preventDefault: true,
-    run: underlineSelection,
-  },
-]);
+// const underlineKeymap = keymap.of([
+//   {
+//     key: 'Mod-b',
+//     preventDefault: true,
+//     run: underlineSelection,
+//   },
+// ]);
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editor-div';
@@ -85,8 +86,18 @@ const initExtensions = [
   highlightActiveLineGutter(),
   highlightActiveLine(),
   EditorView.lineWrapping, // 改行
-  underlineKeymap,
+  // underlineKeymap,
   myTheme,
 ];
 
-export { EditorView, EditorState, initExtensions, editorDiv };
+export {
+  EditorView,
+  EditorState,
+  EditorSelection,
+  keymap,
+  StateEffect,
+  StateField,
+  Decoration,
+  initExtensions,
+  editorDiv,
+};
