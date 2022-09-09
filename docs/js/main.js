@@ -14,12 +14,14 @@ import {
 const container = document.createElement('main');
 container.id = 'container-main';
 container.style.height = '100%';
-
+container.style.backgroundColor = 'red'
+/*
 const btn = document.createElement('div');
 btn.textContent = 'underline';
 btn.style.height = '3rem';
 
 container.appendChild(btn);
+*/
 document.body.appendChild(container).appendChild(editorDiv);
 
 const addBackgroundLine = StateEffect.define({
@@ -56,7 +58,8 @@ const underlineTheme = EditorView.baseTheme({
 
 const backgroundlineTheme = EditorView.baseTheme({
   //'.cm-backgroundline': { textDecoration: 'underline 8px red' },
-  '.cm-backgroundline': { fontSize: '2rem' },
+  //'.cm-backgroundline': { fontSize: '2rem' },
+  '.cm-backgroundline': { backgroundColor: '#23232380' },
 });
 
 function backgroundlineSelection(view) {
@@ -102,14 +105,13 @@ function upup(view) {
   view;
 }
 */
-//const extensions = [...initExtensions];
-const extensions = [...initExtensions, backgroundlineKeymap];
+const extensions = [...initExtensions];
+//const extensions = [...initExtensions, backgroundlineKeymap];
 // const extensions = [...initExtensions, updateCallBack];
 //const extensions = [...initExtensions, underlineKeymap, updateCallBack];
 const docText = `hoge fuga あああああ
 ほげほげ、ふががう
-hoge i0oialuwOlL1
-`;
+hoge i0oialuwOlL1`;
 
 const state = EditorState.create({
   doc: docText,
@@ -122,11 +124,11 @@ const editor = new EditorView({
 });
 
 backgroundlineSelection(editor);
-
+/*
 btn.addEventListener('click', () => {
   btn.style.height = '4rem';
   //console.log(editor)
   backgroundlineSelection(editor);
 });
-
+*/
 //underlineSelection(editor)
