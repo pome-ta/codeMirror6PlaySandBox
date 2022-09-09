@@ -14,7 +14,7 @@ import {
 const container = document.createElement('main');
 container.id = 'container-main';
 container.style.height = '100%';
-container.style.backgroundColor = 'red'
+container.style.backgroundColor = 'red';
 /*
 const btn = document.createElement('div');
 btn.textContent = 'underline';
@@ -60,6 +60,19 @@ const backgroundlineTheme = EditorView.baseTheme({
   //'.cm-backgroundline': { textDecoration: 'underline 8px red' },
   //'.cm-backgroundline': { fontSize: '2rem' },
   '.cm-backgroundline': { backgroundColor: '#23232380' },
+  '&.cm-editor': {
+    '&.cm-focused': {
+      // Provide a simple default outline to make sure a focused
+      // editor is visually distinct. Can't leave the default behavior
+      // because that will apply to the content element, which is
+      // inside the scrollable container and doesn't include the
+      // gutters. We also can't use an 'auto' outline, since those
+      // are, for some reason, drawn behind the element content, which
+      // will cause things like the active line background to cover
+      // the outline (#297).
+      outline: '0px dotted #212121',
+    },
+  },
 });
 
 function backgroundlineSelection(view) {
