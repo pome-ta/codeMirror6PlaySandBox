@@ -16735,7 +16735,6 @@ const initExtensions = [
   highlightActiveLineGutter(),
   highlightActiveLine(),
   EditorView.lineWrapping, // 改行
-  // underlineKeymap,
   myTheme,
 ];
 
