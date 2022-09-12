@@ -1,13 +1,10 @@
 # 📝 2022/09/12
 
-
 ## 座布団
 
 更新させたい
 
-
 # 📝 2022/09/09
-
 
 ## 座布団敷きたい
 
@@ -15,9 +12,7 @@
 
 [codeMirror6PlaySandBox/index.js at a42f6d79ece6ced0f1506d54ee72b1bf3cf7de66 · pome-ta/codeMirror6PlaySandBox](https://github.com/pome-ta/codeMirror6PlaySandBox/blob/a42f6d79ece6ced0f1506d54ee72b1bf3cf7de66/outModules/%40codemirror/language/dist/index.js#L1232)
 
-
 `unfoldEffect` で解除的な？
-
 
 # 📝 2022/09/08
 

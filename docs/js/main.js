@@ -46,7 +46,10 @@ const backgroundlineField = StateField.define({
       }
     return backgroundlines;
   },
-  provide: (f) => EditorView.decorations.from(f),
+  provide: (f) => {
+    //console.log(f)
+    return EditorView.decorations.from(f)
+  },
 });
 
 const backgroundlineMark = Decoration.mark({ class: 'cm-backgroundline' });
@@ -76,7 +79,7 @@ const backgroundlineTheme = EditorView.baseTheme({
 });
 
 function backgroundlineSelection(view) {
-  //console.log(view);
+  console.log(view);
   const endRange = view.state.doc.length;
   const ranges = [EditorSelection.range(0, endRange)];
   let effects = ranges
@@ -124,6 +127,7 @@ const extensions = [...initExtensions];
 //const extensions = [...initExtensions, underlineKeymap, updateCallBack];
 const docText = `hoge fuga あああああ
 ほげほげ、ふががう
+
 hoge i0oialuwOlL1`;
 
 const state = EditorState.create({
