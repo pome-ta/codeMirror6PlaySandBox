@@ -44,8 +44,8 @@ const effectBackgroundLine = StateEffect.define({
 const effectBackgroundLine = StateEffect.define({ from: 0, to: 0 });
 
 const sEffect = {
-  add: effectBackgroundLine,
-  remove: effectBackgroundLine,
+  add: StateEffect.define({ from: 0, to: 0 }),
+  remove: StateEffect.define({ from: 0, to: 0 }),
 };
 
 /*
@@ -83,17 +83,14 @@ const backgroundlineField = StateField.define({
         });
       } else if (e.is(sEffect.remove)) {
         backgroundlines = backgroundlines.update({
-        /*
           filter: (from, to, value) => {
             let shouldRemove =
               from === e.value.from &&
               to === e.value.to &&
               value.spec.class === 'cm-backgroundline';
             return !shouldRemove;
-          }*/
-          filter: (from, to, value) => value.class ==='cm-backgroundline'
+          },
         });
-        
       }
     }
     return backgroundlines;
@@ -115,14 +112,15 @@ const backgroundlineTheme = EditorView.baseTheme({
   '.cm-backgroundline': { backgroundColor: '#23232380' },
 });
 
-
 function backgroundlineSelection(view) {
   //console.log(view);
   const decoSet = view.state.field(backgroundlineField, false);
   let effects = [];
 
   if (!decoSet) {
-    effects.push(StateEffect.appendConfig.of([backgroundlineField, backgroundlineTheme]));
+    effects.push(
+      StateEffect.appendConfig.of([backgroundlineField, backgroundlineTheme])
+    );
   }
 
   const endRange = view.state.doc.length;
@@ -194,7 +192,6 @@ function upup(view) {
   view;
 }
 */
-
 
 const resOutlineTheme = EditorView.baseTheme({
   '&.cm-editor': {
