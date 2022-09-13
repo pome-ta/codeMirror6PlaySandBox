@@ -10,6 +10,7 @@ import {
   editorDiv,
 } from './modules/cmEditor.bundle.js';
 
+
 /* -- main */
 const container = document.createElement('main');
 container.id = 'container-main';
@@ -102,11 +103,6 @@ const backgroundlineField = StateField.define({
 });
 
 const backgroundlineMark = Decoration.mark({ class: 'cm-backgroundline' });
-/*
-const underlineTheme = EditorView.baseTheme({
-  '.cm-underline': { textDecoration: 'underline 3px red' },
-});
-*/
 
 const backgroundlineTheme = EditorView.baseTheme({
   '.cm-backgroundline': { backgroundColor: '#23232380' },
@@ -123,9 +119,7 @@ function backgroundlineSelection(view) {
     );
   }
 
-  const endRange = view.state.doc.length;
-  const ranges = [EditorSelection.range(0, endRange)];
-  ranges
+  view.state.selection.ranges
     .filter((r) => !r.empty)
     .forEach(({ from, to }) => {
       effects.push(sEffect.add.of({ from, to }));
@@ -152,28 +146,7 @@ function backgroundlineSelection(view) {
   return true;
 }
 
-/*
-function backgroundlineSelection(view) {
-  //console.log(view);
-  const endRange = view.state.doc.length;
-  const ranges = [EditorSelection.range(0, endRange)];
-  let effects = ranges
-    .filter((r) => !r.empty)
-    .map(({ from, to }) => addBackgroundLine.of({ from, to }));
-  //console.log(effects);
-  if (!effects.length) {
-    return false;
-  }
 
-  if (!view.state.field(backgroundlineField, false)) {
-    effects.push(
-      StateEffect.appendConfig.of([backgroundlineField])
-    );
-  }
-  view.dispatch({ effects });
-  return true;
-}
-*/
 const backgroundlineKeymap = keymap.of([
   {
     key: 'b',
@@ -212,7 +185,7 @@ const resOutlineTheme = EditorView.baseTheme({
 //const extensions = [...initExtensions, backgroundlineKeymap];
 // const extensions = [...initExtensions, updateCallBack];
 //const extensions = [...initExtensions, underlineKeymap, updateCallBack];
-const extensions = [...initExtensions, resOutlineTheme];
+const extensions = [...initExtensions, resOutlineTheme, backgroundlineKeymap];
 const docText = `hoge fuga あああああ
 ほげほげ、ふががう
 
