@@ -23,20 +23,25 @@ btn.style.height = '3rem';
 container.appendChild(btn);
 */
 document.body.appendChild(container).appendChild(editorDiv);
-
+/*
 const addBackgroundLine = StateEffect.define({
   map: ({ from, to }, change) => ({
     from: change.mapPos(from),
     to: change.mapPos(to),
   }),
 });
-
+*/
+const addBackgroundLine = StateEffect.define({ from: 0, to: 0 });
+/*
 const effectBackgroundLine = StateEffect.define({
   map: ({ from, to }, change) => ({
     from: change.mapPos(from),
     to: change.mapPos(to),
   }),
 });
+*/
+
+const effectBackgroundLine = StateEffect.define({ from: 0, to: 0 });
 
 const sEffect = {
   add: effectBackgroundLine,
@@ -78,14 +83,17 @@ const backgroundlineField = StateField.define({
         });
       } else if (e.is(sEffect.remove)) {
         backgroundlines = backgroundlines.update({
+        /*
           filter: (from, to, value) => {
             let shouldRemove =
               from === e.value.from &&
               to === e.value.to &&
               value.spec.class === 'cm-backgroundline';
             return !shouldRemove;
-          },
+          }*/
+          filter: (from, to, value) => value.class ==='cm-backgroundline'
         });
+        
       }
     }
     return backgroundlines;
@@ -104,59 +112,44 @@ const underlineTheme = EditorView.baseTheme({
 */
 
 const backgroundlineTheme = EditorView.baseTheme({
-  //'.cm-backgroundline': { textDecoration: 'underline 8px red' },
-  //'.cm-backgroundline': { fontSize: '2rem' },
   '.cm-backgroundline': { backgroundColor: '#23232380' },
-  '&.cm-editor': {
-    '&.cm-focused': {
-      // Provide a simple default outline to make sure a focused
-      // editor is visually distinct. Can't leave the default behavior
-      // because that will apply to the content element, which is
-      // inside the scrollable container and doesn't include the
-      // gutters. We also can't use an 'auto' outline, since those
-      // are, for some reason, drawn behind the element content, which
-      // will cause things like the active line background to cover
-      // the outline (#297).
-      outline: '0px dotted #212121',
-    },
-  },
 });
+
 
 function backgroundlineSelection(view) {
   //console.log(view);
   const decoSet = view.state.field(backgroundlineField, false);
   let effects = [];
-  
-  if (!decoSet) {
-    effects.push(StateEffect.appendConfig.of([backgroundlineField]))
-  };
-  
 
+  if (!decoSet) {
+    effects.push(StateEffect.appendConfig.of([backgroundlineField, backgroundlineTheme]));
+  }
 
   const endRange = view.state.doc.length;
   const ranges = [EditorSelection.range(0, endRange)];
-  ranges.filter((r) => !r.empty).forEach(({ from, to })=>{
-    effects.push(sEffect.add.of({ from, to }));
-    decoSet?.between(from, to, (decoFrom, decoTo) => {
-      if (from === decoTo || to === decoFrom){
-        return;
-      }
-      effects.push(sEffect.remove.of({ from, to }));
-      effects.push(sEffect.remove.of({ from: decoFrom, to: decoTo }));
-      if (decoFrom < from) {
-        effects.push(sEffect.add.of({ from: decoFrom, to: from }));
-      }
-      if (decoTo > to) {
-        effects.push(Effect.add.of({ from: to, to: decoTo }));
-      }
-    })
-  })
-  
+  ranges
+    .filter((r) => !r.empty)
+    .forEach(({ from, to }) => {
+      effects.push(sEffect.add.of({ from, to }));
+      decoSet?.between(from, to, (decoFrom, decoTo) => {
+        if (from === decoTo || to === decoFrom) {
+          return;
+        }
+        effects.push(sEffect.remove.of({ from, to }));
+        effects.push(sEffect.remove.of({ from: decoFrom, to: decoTo }));
+        if (decoFrom < from) {
+          effects.push(sEffect.add.of({ from: decoFrom, to: from }));
+        }
+        if (decoTo > to) {
+          effects.push(Effect.add.of({ from: to, to: decoTo }));
+        }
+      });
+    });
+
   if (!effects.length) {
     return false;
   }
 
-  
   view.dispatch({ effects });
   return true;
 }
@@ -201,11 +194,28 @@ function upup(view) {
   view;
 }
 */
+
+
+const resOutlineTheme = EditorView.baseTheme({
+  '&.cm-editor': {
+    '&.cm-focused': {
+      // Provide a simple default outline to make sure a focused
+      // editor is visually distinct. Can't leave the default behavior
+      // because that will apply to the content element, which is
+      // inside the scrollable container and doesn't include the
+      // gutters. We also can't use an 'auto' outline, since those
+      // are, for some reason, drawn behind the element content, which
+      // will cause things like the active line background to cover
+      // the outline (#297).
+      outline: '0px dotted #212121',
+    },
+  },
+});
 //const extensions = [...initExtensions];
 //const extensions = [...initExtensions, backgroundlineKeymap];
 // const extensions = [...initExtensions, updateCallBack];
 //const extensions = [...initExtensions, underlineKeymap, updateCallBack];
-const extensions = [...initExtensions, backgroundlineTheme];
+const extensions = [...initExtensions, resOutlineTheme];
 const docText = `hoge fuga あああああ
 ほげほげ、ふががう
 
