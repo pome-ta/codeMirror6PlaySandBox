@@ -31,6 +31,19 @@ const addBackgroundLine = StateEffect.define({
   }),
 });
 
+const effectBackgroundLine = StateEffect.define({
+  map: ({ from, to }, change) => ({
+    from: change.mapPos(from),
+    to: change.mapPos(to),
+  }),
+});
+
+const sEffect = {
+  add: effectBackgroundLine,
+  remove: effectBackgroundLine,
+};
+
+/*
 const backgroundlineField = StateField.define({
   create() {
     return Decoration.none;
@@ -49,6 +62,37 @@ const backgroundlineField = StateField.define({
   provide: (f) => {
     //console.log(f)
     return EditorView.decorations.from(f)
+  },
+});
+*/
+const backgroundlineField = StateField.define({
+  create() {
+    return Decoration.none;
+  },
+  update(backgroundlines, tr) {
+    backgroundlines = backgroundlines.map(tr.changes);
+    for (let e of tr.effects) {
+      if (e.is(sEffect.add)) {
+        backgroundlines = backgroundlines.update({
+          add: [backgroundlineMark.range(e.value.from, e.value.to)],
+        });
+      } else if (e.is(sEffect.remove)) {
+        backgroundlines = backgroundlines.update({
+          filter: (from, to, value) => {
+            let shouldRemove =
+              from === e.value.from &&
+              to === e.value.to &&
+              value.spec.class === 'cm-backgroundline';
+            return !shouldRemove;
+          },
+        });
+      }
+    }
+    return backgroundlines;
+  },
+  provide: (f) => {
+    //console.log(f)
+    return EditorView.decorations.from(f);
   },
 });
 
@@ -79,7 +123,47 @@ const backgroundlineTheme = EditorView.baseTheme({
 });
 
 function backgroundlineSelection(view) {
-  console.log(view);
+  //console.log(view);
+  const decoSet = view.state.field(backgroundlineField, false);
+  let effects = [];
+  
+  if (!decoSet) {
+    effects.push(StateEffect.appendConfig.of([backgroundlineField]))
+  };
+  
+
+
+  const endRange = view.state.doc.length;
+  const ranges = [EditorSelection.range(0, endRange)];
+  ranges.filter((r) => !r.empty).forEach(({ from, to })=>{
+    effects.push(sEffect.add.of({ from, to }));
+    decoSet?.between(from, to, (decoFrom, decoTo) => {
+      if (from === decoTo || to === decoFrom){
+        return;
+      }
+      effects.push(sEffect.remove.of({ from, to }));
+      effects.push(sEffect.remove.of({ from: decoFrom, to: decoTo }));
+      if (decoFrom < from) {
+        effects.push(sEffect.add.of({ from: decoFrom, to: from }));
+      }
+      if (decoTo > to) {
+        effects.push(Effect.add.of({ from: to, to: decoTo }));
+      }
+    })
+  })
+  
+  if (!effects.length) {
+    return false;
+  }
+
+  
+  view.dispatch({ effects });
+  return true;
+}
+
+/*
+function backgroundlineSelection(view) {
+  //console.log(view);
   const endRange = view.state.doc.length;
   const ranges = [EditorSelection.range(0, endRange)];
   let effects = ranges
@@ -89,20 +173,16 @@ function backgroundlineSelection(view) {
   if (!effects.length) {
     return false;
   }
-  /*
-  let effects = view.state.selection.ranges
-    .filter((r) => !r.empty)
-    .map(({ from, to }) => addUnderLine.of({ from, to }));
-  */
+
   if (!view.state.field(backgroundlineField, false)) {
     effects.push(
-      StateEffect.appendConfig.of([backgroundlineField, backgroundlineTheme])
+      StateEffect.appendConfig.of([backgroundlineField])
     );
   }
   view.dispatch({ effects });
   return true;
 }
-
+*/
 const backgroundlineKeymap = keymap.of([
   {
     key: 'b',
@@ -121,10 +201,11 @@ function upup(view) {
   view;
 }
 */
-const extensions = [...initExtensions];
+//const extensions = [...initExtensions];
 //const extensions = [...initExtensions, backgroundlineKeymap];
 // const extensions = [...initExtensions, updateCallBack];
 //const extensions = [...initExtensions, underlineKeymap, updateCallBack];
+const extensions = [...initExtensions, backgroundlineTheme];
 const docText = `hoge fuga あああああ
 ほげほげ、ふががう
 
@@ -140,6 +221,7 @@ const editor = new EditorView({
   parent: editorDiv,
 });
 
+backgroundlineSelection(editor);
 backgroundlineSelection(editor);
 /*
 btn.addEventListener('click', () => {
