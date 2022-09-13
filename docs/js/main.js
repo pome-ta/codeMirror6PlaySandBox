@@ -10,7 +10,6 @@ import {
   editorDiv,
 } from './modules/cmEditor.bundle.js';
 
-
 /* -- main */
 const container = document.createElement('main');
 container.id = 'container-main';
@@ -40,8 +39,13 @@ const effectBackgroundLine = StateEffect.define({
     to: change.mapPos(to),
   }),
 });
-*/
 
+
+const sEffect = {
+  add: effectBackgroundLine,
+  remove: effectBackgroundLine
+}
+*/
 const effectBackgroundLine = StateEffect.define({ from: 0, to: 0 });
 
 const sEffect = {
@@ -84,6 +88,7 @@ const backgroundlineField = StateField.define({
         });
       } else if (e.is(sEffect.remove)) {
         backgroundlines = backgroundlines.update({
+          /*
           filter: (from, to, value) => {
             let shouldRemove =
               from === e.value.from &&
@@ -91,6 +96,8 @@ const backgroundlineField = StateField.define({
               value.spec.class === 'cm-backgroundline';
             return !shouldRemove;
           },
+          */
+          filter: (f, t, value) => !(value.class === 'cm-backgroundline'),
         });
       }
     }
@@ -145,7 +152,6 @@ function backgroundlineSelection(view) {
   view.dispatch({ effects });
   return true;
 }
-
 
 const backgroundlineKeymap = keymap.of([
   {
