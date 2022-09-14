@@ -1,13 +1,13 @@
 import {
-	EditorView,
-	EditorState,
-	EditorSelection,
-	keymap,
-	StateEffect,
-	StateField,
-	Decoration,
-	initExtensions,
-	editorDiv,
+  EditorView,
+  EditorState,
+  EditorSelection,
+  keymap,
+  StateEffect,
+  StateField,
+  Decoration,
+  initExtensions,
+  editorDiv,
 } from './modules/cmEditor.bundle.js';
 
 /* -- main */
@@ -51,7 +51,8 @@ const bgRectangleField = StateField.define({
           //     value.spec.class === bgRectangleClassName;
           //   return !shouldRemove;
           // },
-          filter: (f, t, value) => !(value.class === bgRectangleClassName),
+          filter: (f, t, value) =>
+          !(value.class === bgRectangleClassName),
         });
       }
     }
@@ -75,7 +76,7 @@ function bgRectangleSet(view) {
 
   let effects = [];
   effects.push(
-    !decoSet ? StateEffect.appendConfig.of([bgRectangleField]) : null
+    !decoSet ? StateEffect.appendConfig.of([bgRectangleField]) : null,
   );
   decoSet?.between(from, to, (decoFrom, decoTo) => {
     if (from === decoTo || to === decoFrom) {
@@ -96,39 +97,42 @@ function bgRectangleSet(view) {
   return true;
 }
 
-
-
 const updateCallBack = EditorView.updateListener.of(
-  (update) => update.docChanged && updateDocs(update)
+  (update) => update.docChanged && updateDocs(update),
 );
 
 function updateDocs(view) {
-  bgRectangleSet(editor)
+  bgRectangleSet(editor);
 }
 
-
 const resOutlineTheme = EditorView.baseTheme({
-	'&.cm-editor': {
-		'&.cm-focused': {
-			outline: '0px dotted #212121',
-		},
-	},
+  '&.cm-editor': {
+    '&.cm-focused': {
+      outline: '0px dotted #212121',
+    },
+  },
 });
 
-const extensions = [...initExtensions, resOutlineTheme,bgRectangleTheme, updateCallBack];
+const extensions = [
+  ...initExtensions,
+  resOutlineTheme,
+  bgRectangleTheme,
+  updateCallBack,
+];
 const docText = `hoge fuga あああああ
 ほげほげ、ふががう
 
 hoge i0oialuwOlL1`;
 
 const state = EditorState.create({
-	doc: docText,
-	extensions: extensions,
+  doc: docText,
+  extensions: extensions,
 });
 
 const editor = new EditorView({
-	state,
-	parent: editorDiv,
+  state,
+  parent: editorDiv,
 });
 
-bgRectangleSet(editor)
+bgRectangleSet(editor);
+
