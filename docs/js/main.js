@@ -24,110 +24,88 @@ container.appendChild(btn);
 */
 document.body.appendChild(container).appendChild(editorDiv);
 
-const effectBackgroundLine = StateEffect.define({ from: 0, to: 0 });
+const bgRectangleClassName = 'cm-bgRectangle';
 
-const sEffect = {
-	add: StateEffect.define({ from: 0, to: 0 }),
-	remove: StateEffect.define({ from: 0, to: 0 }),
+const bgRectEffect = {
+  add: StateEffect.define({ from: 0, to: 0 }),
+  remove: StateEffect.define({ from: 0, to: 0 }),
 };
 
-const backgroundlineField = StateField.define({
-	create() {
-		return Decoration.none;
-	},
-	update(backgroundlines, tr) {
-		backgroundlines = backgroundlines.map(tr.changes);
-		for (let e of tr.effects) {
-			if (e.is(sEffect.add)) {
-				backgroundlines = backgroundlines.update({
-					add: [backgroundlineMark.range(e.value.from, e.value.to)],
-				});
-			} else if (e.is(sEffect.remove)) {
-				backgroundlines = backgroundlines.update({
-					filter: (from, to, value) => {
-						let shouldRemove =
-							from === e.value.from &&
-							to === e.value.to &&
-							value.spec.class === 'cm-backgroundline';
-						return !shouldRemove;
-					},
-
-					//filter: (f, t, value) => !(value.class === 'cm-backgroundline'),
-				});
-			}
-		}
-		return backgroundlines;
-	},
-	provide: (f) => {
-		return EditorView.decorations.from(f);
-	},
+const bgRectangleField = StateField.define({
+  create() {
+    return Decoration.none;
+  },
+  update(bgRectangles, tr) {
+    bgRectangles = bgRectangles.map(tr.changes);
+    for (const ef of tr.effects) {
+      if (ef.is(bgRectEffect.add)) {
+        bgRectangles = bgRectangles.update({
+          add: [bgRectangleMark.range(ef.value.from, ef.value.to)],
+        });
+      } else if (ef.is(bgRectEffect.remove)) {
+        bgRectangles = bgRectangles.update({
+          // filter: (from, to, value) => {
+          //   let shouldRemove =
+          //     from === e.value.from &&
+          //     to === e.value.to &&
+          //     value.spec.class === bgRectangleClassName;
+          //   return !shouldRemove;
+          // },
+          filter: (f, t, value) => !(value.class === bgRectangleClassName),
+        });
+      }
+    }
+    return bgRectangles;
+  },
+  provide: (f) => EditorView.decorations.from(f),
 });
 
-const backgroundlineMark = Decoration.mark({ class: 'cm-backgroundline' });
-
-const backgroundlineTheme = EditorView.baseTheme({
-	'.cm-backgroundline': { backgroundColor: '#23232380' },
+const bgRectangleMark = Decoration.mark({ class: bgRectangleClassName });
+const bgRectangleTheme = EditorView.baseTheme({
+  '.cm-bgRectangle': { backgroundColor: '#23232380' },
 });
 
-function backgroundlineSelection(view) {
-	const decoSet = view.state.field(backgroundlineField, false);
-	let effects = [];
+function bgRectangleSet(view) {
+  const { state, dispatch } = view;
+  const { from, to } = state.selection.main.extend(0, state.doc.length);
+  const decoSet = state.field(bgRectangleField, false);
 
-	if (!decoSet) {
-		effects.push(
-			StateEffect.appendConfig.of([
-				backgroundlineField,
-				backgroundlineTheme,
-			])
-		);
-	}
+  const addFromTO = (from, to) => bgRectEffect.add.of({ from, to });
+  const removeFromTO = (from, to) => bgRectEffect.remove.of({ from, to });
 
-	view.state.selection.ranges
-		.filter((r) => !r.empty)
-		.forEach(({ from, to }) => {
-			//effects.push(sEffect.add.of({ from, to }));
-			decoSet?.between(from, to, (decoFrom, decoTo) => {
-				if (from === decoTo || to === decoFrom) {
-					return;
-				}
-				effects.push(sEffect.remove.of({ from, to }));
-				effects.push(sEffect.remove.of({ from: decoFrom, to: decoTo }));
-				if (decoFrom < from) {
-					effects.push(sEffect.add.of({ from: decoFrom, to: from }));
-				}
-				if (decoTo > to) {
-					effects.push(Effect.add.of({ from: to, to: decoTo }));
-				}
-			});
-			effects.push(sEffect.add.of({ from, to }));
-		});
+  let effects = [];
+  effects.push(
+    !decoSet ? StateEffect.appendConfig.of([bgRectangleField]) : null
+  );
+  decoSet?.between(from, to, (decoFrom, decoTo) => {
+    if (from === decoTo || to === decoFrom) {
+      return;
+    }
+    effects.push(removeFromTO(from, to));
+    effects.push(removeFromTO(decoFrom, decoTo));
+    effects.push(decoFrom < from ? addFromTO(decoFrom, from) : null);
+    effects.push(decoTo > to ? addFromTO(to, decoTo) : null);
+  });
 
-	if (!effects.length) {
-		return false;
-	}
+  effects.push(addFromTO(from, to));
 
-	view.dispatch({ effects });
-	return true;
+  if (!effects.length) {
+    return false;
+  }
+  dispatch({ effects: effects.filter((ef) => ef) });
+  return true;
 }
 
-const backgroundlineKeymap = keymap.of([
-	{
-		key: 'b',
-		preventDefault: true,
-		run: backgroundlineSelection,
-	},
-]);
-/*
+
+
 const updateCallBack = EditorView.updateListener.of(
-  (update) => update.docChanged && upup(update)
+  (update) => update.docChanged && updateDocs(update)
 );
 
-function upup(view) {
-  //console.log('hoge');
-  //console.log(view);
-  view;
+function updateDocs(view) {
+  bgRectangleSet(editor)
 }
-*/
+
 
 const resOutlineTheme = EditorView.baseTheme({
 	'&.cm-editor': {
@@ -137,7 +115,7 @@ const resOutlineTheme = EditorView.baseTheme({
 	},
 });
 
-const extensions = [...initExtensions, resOutlineTheme, backgroundlineKeymap];
+const extensions = [...initExtensions, resOutlineTheme,bgRectangleTheme, updateCallBack];
 const docText = `hoge fuga あああああ
 ほげほげ、ふががう
 
@@ -152,3 +130,5 @@ const editor = new EditorView({
 	state,
 	parent: editorDiv,
 });
+
+bgRectangleSet(editor)
