@@ -11,7 +11,6 @@ import { EditorSelection } from '@codemirror/state';
 import { Decoration } from '@codemirror/view';
 import { StateField, StateEffect } from '@codemirror/state';
 
-
 import { keymap } from '@codemirror/view';
 // const underlineKeymap = keymap.of([
 //   {
