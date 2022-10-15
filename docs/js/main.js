@@ -51,8 +51,7 @@ const bgRectangleField = StateField.define({
           //     value.spec.class === bgRectangleClassName;
           //   return !shouldRemove;
           // },
-          filter: (f, t, value) =>
-          !(value.class === bgRectangleClassName),
+          filter: (f, t, value) => !(value.class === bgRectangleClassName),
         });
       }
     }
@@ -76,7 +75,7 @@ function bgRectangleSet(view) {
 
   let effects = [];
   effects.push(
-    !decoSet ? StateEffect.appendConfig.of([bgRectangleField]) : null,
+    !decoSet ? StateEffect.appendConfig.of([bgRectangleField]) : null
   );
   decoSet?.between(from, to, (decoFrom, decoTo) => {
     if (from === decoTo || to === decoFrom) {
@@ -98,7 +97,7 @@ function bgRectangleSet(view) {
 }
 
 const updateCallBack = EditorView.updateListener.of(
-  (update) => update.docChanged && updateDocs(update),
+  (update) => update.docChanged && updateDocs(update)
 );
 
 function updateDocs(view) {
@@ -135,4 +134,3 @@ const editor = new EditorView({
 });
 
 bgRectangleSet(editor);
-

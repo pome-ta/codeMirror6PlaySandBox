@@ -27,10 +27,10 @@ class Text {
     */
     replace(from, to, text) {
         let parts = [];
-        this.decompose(0, from, parts, 2 /* To */);
+        this.decompose(0, from, parts, 2 /* Open.To */);
         if (text.length)
-            text.decompose(0, text.length, parts, 1 /* From */ | 2 /* To */);
-        this.decompose(to, this.length, parts, 1 /* From */);
+            text.decompose(0, text.length, parts, 1 /* Open.From */ | 2 /* Open.To */);
+        this.decompose(to, this.length, parts, 1 /* Open.From */);
         return TextNode.from(parts, this.length - (to - from) + text.length);
     }
     /**
@@ -120,7 +120,7 @@ class Text {
             throw new RangeError("A document must have at least one line");
         if (text.length == 1 && !text[0])
             return Text.empty;
-        return text.length <= 32 /* Branch */ ? new TextLeaf(text) : TextNode.from(TextLeaf.split(text, []));
+        return text.length <= 32 /* Tree.Branch */ ? new TextLeaf(text) : TextNode.from(TextLeaf.split(text, []));
     }
 }
 // Leaves store an array of line strings. There are always line breaks
@@ -146,10 +146,10 @@ class TextLeaf extends Text {
     decompose(from, to, target, open) {
         let text = from <= 0 && to >= this.length ? this
             : new TextLeaf(sliceText(this.text, from, to), Math.min(to, this.length) - Math.max(0, from));
-        if (open & 1 /* From */) {
+        if (open & 1 /* Open.From */) {
             let prev = target.pop();
             let joined = appendText(text.text, prev.text.slice(), 0, text.length);
-            if (joined.length <= 32 /* Branch */) {
+            if (joined.length <= 32 /* Tree.Branch */) {
                 target.push(new TextLeaf(joined, prev.length + text.length));
             }
             else {
@@ -166,7 +166,7 @@ class TextLeaf extends Text {
             return super.replace(from, to, text);
         let lines = appendText(this.text, appendText(text.text, sliceText(this.text, 0, from)), to);
         let newLen = this.length + text.length - (to - from);
-        if (lines.length <= 32 /* Branch */)
+        if (lines.length <= 32 /* Tree.Branch */)
             return new TextLeaf(lines, newLen);
         return TextNode.from(TextLeaf.split(lines, []), newLen);
     }
@@ -192,7 +192,7 @@ class TextLeaf extends Text {
         for (let line of text) {
             part.push(line);
             len += line.length + 1;
-            if (part.length == 32 /* Branch */) {
+            if (part.length == 32 /* Tree.Branch */) {
                 target.push(new TextLeaf(part, len));
                 part = [];
                 len = -1;
@@ -229,7 +229,7 @@ class TextNode extends Text {
         for (let i = 0, pos = 0; pos <= to && i < this.children.length; i++) {
             let child = this.children[i], end = pos + child.length;
             if (from <= end && to >= pos) {
-                let childOpen = open & ((pos <= from ? 1 /* From */ : 0) | (end >= to ? 2 /* To */ : 0));
+                let childOpen = open & ((pos <= from ? 1 /* Open.From */ : 0) | (end >= to ? 2 /* Open.To */ : 0));
                 if (pos >= from && end <= to && !childOpen)
                     target.push(child);
                 else
@@ -248,8 +248,8 @@ class TextNode extends Text {
                 if (from >= pos && to <= end) {
                     let updated = child.replace(from - pos, to - pos, text);
                     let totalLines = this.lines - child.lines + updated.lines;
-                    if (updated.lines < (totalLines >> (5 /* BranchShift */ - 1)) &&
-                        updated.lines > (totalLines >> (5 /* BranchShift */ + 1))) {
+                    if (updated.lines < (totalLines >> (5 /* Tree.BranchShift */ - 1)) &&
+                        updated.lines > (totalLines >> (5 /* Tree.BranchShift */ + 1))) {
                         let copy = this.children.slice();
                         copy[i] = updated;
                         return new TextNode(copy, this.length - (to - from) + text.length);
@@ -295,13 +295,13 @@ class TextNode extends Text {
         let lines = 0;
         for (let ch of children)
             lines += ch.lines;
-        if (lines < 32 /* Branch */) {
+        if (lines < 32 /* Tree.Branch */) {
             let flat = [];
             for (let ch of children)
                 ch.flatten(flat);
             return new TextLeaf(flat, length);
         }
-        let chunk = Math.max(32 /* Branch */, lines >> 5 /* BranchShift */), maxChunk = chunk << 1, minChunk = chunk >> 1;
+        let chunk = Math.max(32 /* Tree.Branch */, lines >> 5 /* Tree.BranchShift */), maxChunk = chunk << 1, minChunk = chunk >> 1;
         let chunked = [], currentLines = 0, currentLen = -1, currentChunk = [];
         function add(child) {
             let last;
@@ -315,7 +315,7 @@ class TextNode extends Text {
             }
             else if (child instanceof TextLeaf && currentLines &&
                 (last = currentChunk[currentChunk.length - 1]) instanceof TextLeaf &&
-                child.lines + last.lines <= 32 /* Branch */) {
+                child.lines + last.lines <= 32 /* Tree.Branch */) {
                 currentLines += child.lines;
                 currentLen += child.length + 1;
                 currentChunk[currentChunk.length - 1] = new TextLeaf(last.text.concat(child.text), last.length + 1 + child.length);
@@ -1300,12 +1300,12 @@ class SelectionRange {
     The anchor of the range—the side that doesn't move when you
     extend it.
     */
-    get anchor() { return this.flags & 16 /* Inverted */ ? this.to : this.from; }
+    get anchor() { return this.flags & 16 /* RangeFlag.Inverted */ ? this.to : this.from; }
     /**
     The head of the range, which is moved when the range is
     [extended](https://codemirror.net/6/docs/ref/#state.SelectionRange.extend).
     */
-    get head() { return this.flags & 16 /* Inverted */ ? this.from : this.to; }
+    get head() { return this.flags & 16 /* RangeFlag.Inverted */ ? this.from : this.to; }
     /**
     True when `anchor` and `head` are at the same position.
     */
@@ -1316,13 +1316,13 @@ class SelectionRange {
     the character before its position, 1 the character after, and 0
     means no association.
     */
-    get assoc() { return this.flags & 4 /* AssocBefore */ ? -1 : this.flags & 8 /* AssocAfter */ ? 1 : 0; }
+    get assoc() { return this.flags & 4 /* RangeFlag.AssocBefore */ ? -1 : this.flags & 8 /* RangeFlag.AssocAfter */ ? 1 : 0; }
     /**
     The bidirectional text level associated with this cursor, if
     any.
     */
     get bidiLevel() {
-        let level = this.flags & 3 /* BidiLevelMask */;
+        let level = this.flags & 3 /* RangeFlag.BidiLevelMask */;
         return level == 3 ? null : level;
     }
     /**
@@ -1332,8 +1332,8 @@ class SelectionRange {
     lines of different length.
     */
     get goalColumn() {
-        let value = this.flags >> 5 /* GoalColumnOffset */;
-        return value == 33554431 /* NoGoalColumn */ ? undefined : value;
+        let value = this.flags >> 5 /* RangeFlag.GoalColumnOffset */;
+        return value == 33554431 /* RangeFlag.NoGoalColumn */ ? undefined : value;
     }
     /**
     Map this range through a change, producing a valid range in the
@@ -1493,17 +1493,17 @@ class EditorSelection {
     safely ignore the optional arguments in most situations.
     */
     static cursor(pos, assoc = 0, bidiLevel, goalColumn) {
-        return SelectionRange.create(pos, pos, (assoc == 0 ? 0 : assoc < 0 ? 4 /* AssocBefore */ : 8 /* AssocAfter */) |
+        return SelectionRange.create(pos, pos, (assoc == 0 ? 0 : assoc < 0 ? 4 /* RangeFlag.AssocBefore */ : 8 /* RangeFlag.AssocAfter */) |
             (bidiLevel == null ? 3 : Math.min(2, bidiLevel)) |
-            ((goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* NoGoalColumn */) << 5 /* GoalColumnOffset */));
+            ((goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* RangeFlag.NoGoalColumn */) << 5 /* RangeFlag.GoalColumnOffset */));
     }
     /**
     Create a selection range.
     */
     static range(anchor, head, goalColumn) {
-        let goal = (goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* NoGoalColumn */) << 5 /* GoalColumnOffset */;
-        return head < anchor ? SelectionRange.create(head, anchor, 16 /* Inverted */ | goal | 8 /* AssocAfter */)
-            : SelectionRange.create(anchor, head, goal | (head > anchor ? 4 /* AssocBefore */ : 0));
+        let goal = (goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* RangeFlag.NoGoalColumn */) << 5 /* RangeFlag.GoalColumnOffset */;
+        return head < anchor ? SelectionRange.create(head, anchor, 16 /* RangeFlag.Inverted */ | goal | 8 /* RangeFlag.AssocAfter */)
+            : SelectionRange.create(anchor, head, goal | (head > anchor ? 4 /* RangeFlag.AssocBefore */ : 0));
     }
     /**
     @internal
@@ -1576,7 +1576,7 @@ class Facet {
     Returns an extension that adds the given value to this facet.
     */
     of(value) {
-        return new FacetProvider([], this, 0 /* Static */, value);
+        return new FacetProvider([], this, 0 /* Provider.Static */, value);
     }
     /**
     Create an extension that computes a value for the facet from a
@@ -1590,7 +1590,7 @@ class Facet {
     compute(deps, get) {
         if (this.isStatic)
             throw new Error("Can't compute a static facet");
-        return new FacetProvider(deps, this, 1 /* Single */, get);
+        return new FacetProvider(deps, this, 1 /* Provider.Single */, get);
     }
     /**
     Create an extension that computes zero or more values for this
@@ -1599,7 +1599,7 @@ class Facet {
     computeN(deps, get) {
         if (this.isStatic)
             throw new Error("Can't compute a static facet");
-        return new FacetProvider(deps, this, 2 /* Multi */, get);
+        return new FacetProvider(deps, this, 2 /* Provider.Multi */, get);
     }
     from(field, get) {
         if (!get)
@@ -1622,7 +1622,7 @@ class FacetProvider {
         var _a;
         let getter = this.value;
         let compare = this.facet.compareInput;
-        let id = this.id, idx = addresses[id] >> 1, multi = this.type == 2 /* Multi */;
+        let id = this.id, idx = addresses[id] >> 1, multi = this.type == 2 /* Provider.Multi */;
         let depDoc = false, depSel = false, depAddrs = [];
         for (let dep of this.dependencies) {
             if (dep == "doc")
@@ -1635,14 +1635,14 @@ class FacetProvider {
         return {
             create(state) {
                 state.values[idx] = getter(state);
-                return 1 /* Changed */;
+                return 1 /* SlotStatus.Changed */;
             },
             update(state, tr) {
                 if ((depDoc && tr.docChanged) || (depSel && (tr.docChanged || tr.selection)) || ensureAll(state, depAddrs)) {
                     let newVal = getter(state);
                     if (multi ? !compareArray(newVal, state.values[idx], compare) : !compare(newVal, state.values[idx])) {
                         state.values[idx] = newVal;
-                        return 1 /* Changed */;
+                        return 1 /* SlotStatus.Changed */;
                     }
                 }
                 return 0;
@@ -1661,7 +1661,7 @@ class FacetProvider {
                     }
                 }
                 state.values[idx] = newVal;
-                return 1 /* Changed */;
+                return 1 /* SlotStatus.Changed */;
             }
         };
     }
@@ -1677,7 +1677,7 @@ function compareArray(a, b, compare) {
 function ensureAll(state, addrs) {
     let changed = false;
     for (let addr of addrs)
-        if (ensureAddr(state, addr) & 1 /* Changed */)
+        if (ensureAddr(state, addr) & 1 /* SlotStatus.Changed */)
             changed = true;
     return changed;
 }
@@ -1690,7 +1690,7 @@ function dynamicFacetSlot(addresses, facet, providers) {
         let values = [];
         for (let i = 0; i < providerAddrs.length; i++) {
             let value = getAddr(state, providerAddrs[i]);
-            if (providerTypes[i] == 2 /* Multi */)
+            if (providerTypes[i] == 2 /* Provider.Multi */)
                 for (let val of value)
                     values.push(val);
             else
@@ -1703,7 +1703,7 @@ function dynamicFacetSlot(addresses, facet, providers) {
             for (let addr of providerAddrs)
                 ensureAddr(state, addr);
             state.values[idx] = get(state);
-            return 1 /* Changed */;
+            return 1 /* SlotStatus.Changed */;
         },
         update(state, tr) {
             if (!ensureAll(state, dynamic))
@@ -1712,7 +1712,7 @@ function dynamicFacetSlot(addresses, facet, providers) {
             if (facet.compare(value, state.values[idx]))
                 return 0;
             state.values[idx] = value;
-            return 1 /* Changed */;
+            return 1 /* SlotStatus.Changed */;
         },
         reconfigure(state, oldState) {
             let depChanged = ensureAll(state, providerAddrs);
@@ -1727,7 +1727,7 @@ function dynamicFacetSlot(addresses, facet, providers) {
                 return 0;
             }
             state.values[idx] = value;
-            return 1 /* Changed */;
+            return 1 /* SlotStatus.Changed */;
         }
     };
 }
@@ -1777,7 +1777,7 @@ class StateField {
         return {
             create: (state) => {
                 state.values[idx] = this.create(state);
-                return 1 /* Changed */;
+                return 1 /* SlotStatus.Changed */;
             },
             update: (state, tr) => {
                 let oldVal = state.values[idx];
@@ -1785,7 +1785,7 @@ class StateField {
                 if (this.compareF(oldVal, value))
                     return 0;
                 state.values[idx] = value;
-                return 1 /* Changed */;
+                return 1 /* SlotStatus.Changed */;
             },
             reconfigure: (state, oldState) => {
                 if (oldState.config.address[this.id] != null) {
@@ -1793,7 +1793,7 @@ class StateField {
                     return 0;
                 }
                 state.values[idx] = this.create(state);
-                return 1 /* Changed */;
+                return 1 /* SlotStatus.Changed */;
             }
         };
     }
@@ -1902,7 +1902,7 @@ class Configuration {
         this.facets = facets;
         this.statusTemplate = [];
         while (this.statusTemplate.length < dynamicSlots.length)
-            this.statusTemplate.push(0 /* Unresolved */);
+            this.statusTemplate.push(0 /* SlotStatus.Unresolved */);
     }
     staticFacet(facet) {
         let addr = this.address[facet.id];
@@ -1929,7 +1929,7 @@ class Configuration {
         for (let id in facets) {
             let providers = facets[id], facet = providers[0].facet;
             let oldProviders = oldFacets && oldFacets[id] || [];
-            if (providers.every(p => p.type == 0 /* Static */)) {
+            if (providers.every(p => p.type == 0 /* Provider.Static */)) {
                 address[facet.id] = (staticValues.length << 1) | 1;
                 if (sameArray$1(oldProviders, providers)) {
                     staticValues.push(oldState.facet(facet));
@@ -1941,7 +1941,7 @@ class Configuration {
             }
             else {
                 for (let p of providers) {
-                    if (p.type == 0 /* Static */) {
+                    if (p.type == 0 /* Provider.Static */) {
                         address[p.id] = (staticValues.length << 1) | 1;
                         staticValues.push(p.value);
                     }
@@ -2009,16 +2009,16 @@ function flatten(extension, compartments, newCompartments) {
 }
 function ensureAddr(state, addr) {
     if (addr & 1)
-        return 2 /* Computed */;
+        return 2 /* SlotStatus.Computed */;
     let idx = addr >> 1;
     let status = state.status[idx];
-    if (status == 4 /* Computing */)
+    if (status == 4 /* SlotStatus.Computing */)
         throw new Error("Cyclic dependency between fields and/or facets");
-    if (status & 2 /* Computed */)
+    if (status & 2 /* SlotStatus.Computed */)
         return status;
-    state.status[idx] = 4 /* Computing */;
+    state.status[idx] = 4 /* SlotStatus.Computing */;
     let changed = state.computeSlot(state, state.config.dynamicSlots[idx]);
-    return state.status[idx] = 2 /* Computed */ | changed;
+    return state.status[idx] = 2 /* SlotStatus.Computed */ | changed;
 }
 function getAddr(state, addr) {
     return addr & 1 ? state.config.staticValues[addr >> 1] : state.values[addr >> 1];
@@ -2455,7 +2455,7 @@ function extendTransaction(tr) {
     for (let i = extenders.length - 1; i >= 0; i--) {
         let extension = extenders[i](tr);
         if (extension && Object.keys(extension).length)
-            spec = mergeTransaction(tr, resolveTransactionInner(state, extension, tr.changes.newLength), true);
+            spec = mergeTransaction(spec, resolveTransactionInner(state, extension, tr.changes.newLength), true);
     }
     return spec == tr ? tr : Transaction.create(state, tr.changes, tr.selection, spec.effects, spec.annotations, spec.scrollIntoView);
 }
@@ -3064,7 +3064,7 @@ class Chunk {
         }
     }
     between(offset, from, to, f) {
-        for (let i = this.findIndex(from, -1000000000 /* Far */, true), e = this.findIndex(to, 1000000000 /* Far */, false, i); i < e; i++)
+        for (let i = this.findIndex(from, -1000000000 /* C.Far */, true), e = this.findIndex(to, 1000000000 /* C.Far */, false, i); i < e; i++)
             if (f(this.from[i] + offset, this.to[i] + offset, this.value[i]) === false)
                 return false;
     }
@@ -3297,7 +3297,7 @@ class RangeSet {
     */
     static eq(oldSets, newSets, from = 0, to) {
         if (to == null)
-            to = 1000000000 /* Far */;
+            to = 1000000000 /* C.Far */;
         let a = oldSets.filter(set => !set.isEmpty && newSets.indexOf(set) < 0);
         let b = newSets.filter(set => !set.isEmpty && oldSets.indexOf(set) < 0);
         if (a.length != b.length)
@@ -3392,8 +3392,8 @@ class RangeSetBuilder {
         this.chunkPos = [];
         this.chunkStart = -1;
         this.last = null;
-        this.lastFrom = -1000000000 /* Far */;
-        this.lastTo = -1000000000 /* Far */;
+        this.lastFrom = -1000000000 /* C.Far */;
+        this.lastTo = -1000000000 /* C.Far */;
         this.from = [];
         this.to = [];
         this.value = [];
@@ -3430,7 +3430,7 @@ class RangeSetBuilder {
             throw new Error("Ranges must be added sorted by `from` position and `startSide`");
         if (diff < 0)
             return false;
-        if (this.from.length == 250 /* ChunkSize */)
+        if (this.from.length == 250 /* C.ChunkSize */)
             this.finishChunk(true);
         if (this.chunkStart < 0)
             this.chunkStart = from;
@@ -3504,7 +3504,7 @@ class LayerCursor {
     }
     get startSide() { return this.value ? this.value.startSide : 0; }
     get endSide() { return this.value ? this.value.endSide : 0; }
-    goto(pos, side = -1000000000 /* Far */) {
+    goto(pos, side = -1000000000 /* C.Far */) {
         this.chunkIndex = this.rangeIndex = 0;
         this.gotoInner(pos, side, false);
         return this;
@@ -3533,7 +3533,7 @@ class LayerCursor {
     next() {
         for (;;) {
             if (this.chunkIndex == this.layer.chunk.length) {
-                this.from = this.to = 1000000000 /* Far */;
+                this.from = this.to = 1000000000 /* C.Far */;
                 this.value = null;
                 break;
             }
@@ -3587,7 +3587,7 @@ class HeapCursor {
         return heap.length == 1 ? heap[0] : new HeapCursor(heap);
     }
     get startSide() { return this.value ? this.value.startSide : 0; }
-    goto(pos, side = -1000000000 /* Far */) {
+    goto(pos, side = -1000000000 /* C.Far */) {
         for (let cur of this.heap)
             cur.goto(pos, side);
         for (let i = this.heap.length >> 1; i >= 0; i--)
@@ -3605,7 +3605,7 @@ class HeapCursor {
     }
     next() {
         if (this.heap.length == 0) {
-            this.from = this.to = 1000000000 /* Far */;
+            this.from = this.to = 1000000000 /* C.Far */;
             this.value = null;
             this.rank = -1;
         }
@@ -3649,12 +3649,12 @@ class SpanCursor {
         this.point = null;
         this.pointFrom = 0;
         this.pointRank = 0;
-        this.to = -1000000000 /* Far */;
+        this.to = -1000000000 /* C.Far */;
         this.endSide = 0;
         this.openStart = -1;
         this.cursor = HeapCursor.from(sets, skip, minPoint);
     }
-    goto(pos, side = -1000000000 /* Far */) {
+    goto(pos, side = -1000000000 /* C.Far */) {
         this.cursor.goto(pos, side);
         this.active.length = this.activeTo.length = this.activeRank.length = 0;
         this.minActive = -1;
@@ -3705,7 +3705,7 @@ class SpanCursor {
                     remove(trackOpen, a);
             }
             else if (!this.cursor.value) {
-                this.to = this.endSide = 1000000000 /* Far */;
+                this.to = this.endSide = 1000000000 /* C.Far */;
                 break;
             }
             else if (this.cursor.from > from) {
@@ -3810,7 +3810,7 @@ function insert(array, index, value) {
     array[index] = value;
 }
 function findMinIndex(value, array) {
-    let found = -1, foundPos = 1000000000 /* Far */;
+    let found = -1, foundPos = 1000000000 /* C.Far */;
     for (let i = 0; i < array.length; i++)
         if ((array[i] - foundPos || value[i].endSide - value[found].endSide) < 0) {
             found = i;
@@ -4230,7 +4230,7 @@ function windowRect(win) {
         top: 0, bottom: win.innerHeight };
 }
 function scrollRectIntoView(dom, rect, side, x, y, xMargin, yMargin, ltr) {
-    let doc = dom.ownerDocument, win = doc.defaultView;
+    let doc = dom.ownerDocument, win = doc.defaultView || window;
     for (let cur = dom; cur;) {
         if (cur.nodeType == 1) { // Element
             let bounding, top = cur == doc.body;
@@ -4239,7 +4239,7 @@ function scrollRectIntoView(dom, rect, side, x, y, xMargin, yMargin, ltr) {
             }
             else {
                 if (cur.scrollHeight <= cur.clientHeight && cur.scrollWidth <= cur.clientWidth) {
-                    cur = cur.parentNode;
+                    cur = cur.assignedSlot || cur.parentNode;
                     continue;
                 }
                 let rect = cur.getBoundingClientRect();
@@ -4290,24 +4290,28 @@ function scrollRectIntoView(dom, rect, side, x, y, xMargin, yMargin, ltr) {
                     win.scrollBy(moveX, moveY);
                 }
                 else {
+                    let movedX = 0, movedY = 0;
                     if (moveY) {
                         let start = cur.scrollTop;
                         cur.scrollTop += moveY;
-                        moveY = cur.scrollTop - start;
+                        movedY = cur.scrollTop - start;
                     }
                     if (moveX) {
                         let start = cur.scrollLeft;
                         cur.scrollLeft += moveX;
-                        moveX = cur.scrollLeft - start;
+                        movedX = cur.scrollLeft - start;
                     }
-                    rect = { left: rect.left - moveX, top: rect.top - moveY,
-                        right: rect.right - moveX, bottom: rect.bottom - moveY };
+                    rect = { left: rect.left - movedX, top: rect.top - movedY,
+                        right: rect.right - movedX, bottom: rect.bottom - movedY };
+                    if (movedX && Math.abs(movedX - moveX) < 1)
+                        x = "nearest";
+                    if (movedY && Math.abs(movedY - moveY) < 1)
+                        y = "nearest";
                 }
             }
             if (top)
                 break;
             cur = cur.assignedSlot || cur.parentNode;
-            x = y = "nearest";
         }
         else if (cur.nodeType == 11) { // A shadow root
             cur = cur.host;
@@ -4476,7 +4480,7 @@ class ContentView {
                 if (child.dirty) {
                     if (!child.dom && (next = prev ? prev.nextSibling : parent.firstChild)) {
                         let contentView = ContentView.get(next);
-                        if (!contentView || !contentView.parent && contentView.constructor == child.constructor)
+                        if (!contentView || !contentView.parent && contentView.canReuseDOM(child))
                             child.reuseDOM(next);
                     }
                     child.sync(track);
@@ -4634,6 +4638,7 @@ class ContentView {
         return false;
     }
     become(other) { return false; }
+    canReuseDOM(other) { return other.constructor == this.constructor; }
     // When this is a zero-length view with a side, this should return a
     // number <= 0 to indicate it is before its position, or a
     // number > 0 when after its position.
@@ -5000,7 +5005,7 @@ class WidgetView extends ContentView {
             if (pos > 0 ? i == 0 : i == rects.length - 1 || rect.top < rect.bottom)
                 break;
         }
-        return (pos == 0 && side > 0 || pos == this.length && side <= 0) ? rect : flattenRect(rect, pos == 0);
+        return flattenRect(rect, this.side > 0);
     }
     get isEditable() { return false; }
     destroy() {
@@ -5037,6 +5042,7 @@ class CompositionView extends WidgetView {
         (_a = this.widget.topView) === null || _a === void 0 ? void 0 : _a.destroy();
     }
     get isEditable() { return true; }
+    canReuseDOM() { return true; }
 }
 // Uses the old structure of a chunk of content view frozen for
 // composition to try and find a reasonable DOM location for the given
@@ -5152,7 +5158,6 @@ function inlineDOMAtPos(parent, pos) {
             break;
         off = end;
     }
-    //  if (i) return DOMPos.after(children[i - 1].dom!)
     for (let j = i; j > 0; j--) {
         let prev = children[j - 1];
         if (prev.dom.parentNode == dom)
@@ -5179,21 +5184,59 @@ function joinInlineInto(parent, view, open) {
     parent.length += view.length;
 }
 function coordsInChildren(view, pos, side) {
-    for (let off = 0, i = 0; i < view.children.length; i++) {
-        let child = view.children[i], end = off + child.length, next;
-        if ((side <= 0 || end == view.length || child.getSide() > 0 ? end >= pos : end > pos) &&
-            (pos < end || i + 1 == view.children.length || (next = view.children[i + 1]).length || next.getSide() > 0)) {
-            let flatten = 0;
-            if (end == off) {
-                if (child.getSide() <= 0)
-                    continue;
-                flatten = side = -child.getSide();
+    if (!view.children.length)
+        return fallbackRect(view);
+    return (side <= 0 ? coordsInChildrenBefore : coordsInChildrenAfter)(view, pos);
+}
+function coordsInChildrenBefore(view, pos) {
+    // Find the last leaf in the tree that touches pos and doesn't have getSide() > 0
+    let found = null, foundPos = -1;
+    function scan(view, pos) {
+        for (let i = 0, off = 0; i < view.children.length && off <= pos; i++) {
+            let child = view.children[i], end = off + child.length;
+            if (end >= pos) {
+                if (child.children.length) {
+                    if (scan(child, pos - off))
+                        return true;
+                }
+                else if (end >= pos) {
+                    if (end == pos && child.getSide() > 0)
+                        return true;
+                    found = child;
+                    foundPos = pos - off;
+                }
             }
-            let rect = child.coordsAt(Math.max(0, pos - off), side);
-            return flatten && rect ? flattenRect(rect, side < 0) : rect;
+            off = end;
         }
-        off = end;
     }
+    scan(view, pos);
+    return found ? found.coordsAt(Math.max(0, foundPos), -1) : coordsInChildrenAfter(view, pos);
+}
+function coordsInChildrenAfter(view, pos) {
+    // Find the first leaf in the tree that touches pos and doesn't have getSide() < 0
+    let found = null, foundPos = -1;
+    function scan(view, pos) {
+        for (let i = view.children.length - 1, off = view.length; i >= 0 && off >= pos; i--) {
+            let child = view.children[i];
+            off -= child.length;
+            if (off <= pos) {
+                if (child.children.length) {
+                    if (scan(child, pos - off))
+                        return true;
+                }
+                else if (off <= pos) {
+                    if (off == pos && child.getSide() < 0)
+                        return true;
+                    found = child;
+                    foundPos = pos - off;
+                }
+            }
+        }
+    }
+    scan(view, pos);
+    return found ? found.coordsAt(Math.max(0, foundPos), 1) : coordsInChildrenBefore(view, pos);
+}
+function fallbackRect(view) {
     let last = view.dom.lastChild;
     if (!last)
         return view.dom.getBoundingClientRect();
@@ -5811,7 +5854,7 @@ class ContentBuilder {
                 this.addBlockWidget(new BlockWidgetView(deco.widget || new NullWidget("div"), len, type));
             }
             else {
-                let view = WidgetView.create(deco.widget || new NullWidget("span"), len, deco.startSide);
+                let view = WidgetView.create(deco.widget || new NullWidget("span"), len, len ? 0 : deco.startSide);
                 let cursorBefore = this.atCursorPos && !view.isEditable && openStart <= active.length && (from < to || deco.startSide > 0);
                 let cursorAfter = !view.isEditable && (from < to || deco.startSide <= 0);
                 let line = this.getLine();
@@ -6763,7 +6806,13 @@ class DocView extends ContentView {
                     // (one where the focus is before the anchor), but not all
                     // browsers support it yet.
                     rawSel.collapse(anchor.node, anchor.offset);
-                    rawSel.extend(head.node, head.offset);
+                    // Safari will ignore the call above when the editor is
+                    // hidden, and then raise an error on the call to extend
+                    // (#940).
+                    try {
+                        rawSel.extend(head.node, head.offset);
+                    }
+                    catch (_) { }
                 }
                 else {
                     // Primitive (IE) way
@@ -7816,7 +7865,7 @@ handlers.touchmove = view => {
 handlerOptions.touchstart = handlerOptions.touchmove = { passive: true };
 handlers.mousedown = (view, event) => {
     view.observer.flush();
-    if (view.inputState.lastTouchTime > Date.now() - 2000 && getClickType(event) == 1)
+    if (view.inputState.lastTouchTime > Date.now() - 2000)
         return; // Ignore touch interaction
     let style = null;
     for (let makeStyle of view.state.facet(mouseSelectionStyle)) {
@@ -8786,10 +8835,10 @@ class DecorationComparator {
 
 function visiblePixelRange(dom, paddingTop) {
     let rect = dom.getBoundingClientRect();
-    let left = Math.max(0, rect.left), right = Math.min(innerWidth, rect.right);
-    let top = Math.max(0, rect.top), bottom = Math.min(innerHeight, rect.bottom);
-    let body = dom.ownerDocument.body;
-    for (let parent = dom.parentNode; parent && parent != body;) {
+    let doc = dom.ownerDocument, win = doc.defaultView || window;
+    let left = Math.max(0, rect.left), right = Math.min(win.innerWidth, rect.right);
+    let top = Math.max(0, rect.top), bottom = Math.min(win.innerHeight, rect.bottom);
+    for (let parent = dom.parentNode; parent && parent != doc.body;) {
         if (parent.nodeType == 1) {
             let elt = parent;
             let style = window.getComputedStyle(elt);
@@ -8942,7 +8991,7 @@ class ViewState {
         this.updateForViewport();
         if (updateLines)
             this.updateViewportLines();
-        if (this.lineGaps.length || this.viewport.to - this.viewport.from > 4000 /* LG.DoubleMargin */)
+        if (this.lineGaps.length || this.viewport.to - this.viewport.from > (2000 /* LG.Margin */ << 1))
             this.updateLineGaps(this.ensureLineGaps(this.mapLineGaps(this.lineGaps, update.changes)));
         update.flags |= this.computeVisibleRanges();
         if (scrollTarget)
@@ -8984,7 +9033,7 @@ class ViewState {
             if (inView)
                 measureContent = true;
         }
-        if (!this.inView)
+        if (!this.inView && !this.scrollTarget)
             return 0;
         let contentWidth = dom.clientWidth;
         if (this.contentDOMWidth != contentWidth || this.editorHeight != view.scrollDOM.clientHeight) {
@@ -8998,7 +9047,7 @@ class ViewState {
                 refresh = true;
             if (refresh || oracle.lineWrapping && Math.abs(contentWidth - this.contentDOMWidth) > oracle.charWidth) {
                 let { lineHeight, charWidth } = view.docView.measureTextSize();
-                refresh = oracle.refresh(whiteSpace, lineHeight, charWidth, contentWidth / charWidth, lineHeights);
+                refresh = lineHeight > 0 && oracle.refresh(whiteSpace, lineHeight, charWidth, contentWidth / charWidth, lineHeights);
                 if (refresh) {
                     view.docView.minWidth = 0;
                     result |= 8 /* UpdateFlag.Geometry */;
@@ -9023,8 +9072,8 @@ class ViewState {
         this.updateForViewport();
         if ((result & 2 /* UpdateFlag.Height */) || viewportChange)
             this.updateViewportLines();
-        if (this.lineGaps.length || this.viewport.to - this.viewport.from > 4000 /* LG.DoubleMargin */)
-            this.updateLineGaps(this.ensureLineGaps(refresh ? [] : this.lineGaps));
+        if (this.lineGaps.length || this.viewport.to - this.viewport.from > (2000 /* LG.Margin */ << 1))
+            this.updateLineGaps(this.ensureLineGaps(refresh ? [] : this.lineGaps, view));
         result |= this.computeVisibleRanges();
         if (this.mustEnforceCursorAssoc) {
             this.mustEnforceCursorAssoc = false;
@@ -9095,46 +9144,86 @@ class ViewState {
     // since actual DOM coordinates aren't always available and
     // predictable. Relies on generous margins (see LG.Margin) to hide
     // the artifacts this might produce from the user.
-    ensureLineGaps(current) {
+    ensureLineGaps(current, mayMeasure) {
+        let wrapping = this.heightOracle.lineWrapping;
+        let margin = wrapping ? 10000 /* LG.MarginWrap */ : 2000 /* LG.Margin */, halfMargin = margin >> 1, doubleMargin = margin << 1;
+        // The non-wrapping logic won't work at all in predominantly right-to-left text.
+        if (this.defaultTextDirection != Direction.LTR && !wrapping)
+            return [];
         let gaps = [];
-        // This won't work at all in predominantly right-to-left text.
-        if (this.defaultTextDirection != Direction.LTR)
-            return gaps;
+        let addGap = (from, to, line, structure) => {
+            if (to - from < halfMargin)
+                return;
+            let sel = this.state.selection.main, avoid = [sel.from];
+            if (!sel.empty)
+                avoid.push(sel.to);
+            for (let pos of avoid) {
+                if (pos > from && pos < to) {
+                    addGap(from, pos - 10 /* LG.SelectionMargin */, line, structure);
+                    addGap(pos + 10 /* LG.SelectionMargin */, to, line, structure);
+                    return;
+                }
+            }
+            let gap = find(current, gap => gap.from >= line.from && gap.to <= line.to &&
+                Math.abs(gap.from - from) < halfMargin && Math.abs(gap.to - to) < halfMargin &&
+                !avoid.some(pos => gap.from < pos && gap.to > pos));
+            if (!gap) {
+                // When scrolling down, snap gap ends to line starts to avoid shifts in wrapping
+                if (to < line.to && mayMeasure && wrapping &&
+                    mayMeasure.visibleRanges.some(r => r.from <= to && r.to >= to)) {
+                    let lineStart = mayMeasure.moveToLineBoundary(EditorSelection.cursor(to), false, true).head;
+                    if (lineStart > from)
+                        to = lineStart;
+                }
+                gap = new LineGap(from, to, this.gapSize(line, from, to, structure));
+            }
+            gaps.push(gap);
+        };
         for (let line of this.viewportLines) {
-            if (line.length < 4000 /* LG.DoubleMargin */)
+            if (line.length < doubleMargin)
                 continue;
             let structure = lineStructure(line.from, line.to, this.stateDeco);
-            if (structure.total < 4000 /* LG.DoubleMargin */)
+            if (structure.total < doubleMargin)
                 continue;
+            let target = this.scrollTarget ? this.scrollTarget.range.head : null;
             let viewFrom, viewTo;
-            if (this.heightOracle.lineWrapping) {
-                let marginHeight = (2000 /* LG.Margin */ / this.heightOracle.lineLength) * this.heightOracle.lineHeight;
-                viewFrom = findPosition(structure, (this.visibleTop - line.top - marginHeight) / line.height);
-                viewTo = findPosition(structure, (this.visibleBottom - line.top + marginHeight) / line.height);
+            if (wrapping) {
+                let marginHeight = (margin / this.heightOracle.lineLength) * this.heightOracle.lineHeight;
+                let top, bot;
+                if (target != null) {
+                    let targetFrac = findFraction(structure, target);
+                    let spaceFrac = ((this.visibleBottom - this.visibleTop) / 2 + marginHeight) / line.height;
+                    top = targetFrac - spaceFrac;
+                    bot = targetFrac + spaceFrac;
+                }
+                else {
+                    top = (this.visibleTop - line.top - marginHeight) / line.height;
+                    bot = (this.visibleBottom - line.top + marginHeight) / line.height;
+                }
+                viewFrom = findPosition(structure, top);
+                viewTo = findPosition(structure, bot);
             }
             else {
                 let totalWidth = structure.total * this.heightOracle.charWidth;
-                let marginWidth = 2000 /* LG.Margin */ * this.heightOracle.charWidth;
-                viewFrom = findPosition(structure, (this.pixelViewport.left - marginWidth) / totalWidth);
-                viewTo = findPosition(structure, (this.pixelViewport.right + marginWidth) / totalWidth);
-            }
-            let outside = [];
-            if (viewFrom > line.from)
-                outside.push({ from: line.from, to: viewFrom });
-            if (viewTo < line.to)
-                outside.push({ from: viewTo, to: line.to });
-            let sel = this.state.selection.main;
-            // Make sure the gaps don't cover a selection end
-            if (sel.from >= line.from && sel.from <= line.to)
-                cutRange(outside, sel.from - 10 /* LG.SelectionMargin */, sel.from + 10 /* LG.SelectionMargin */);
-            if (!sel.empty && sel.to >= line.from && sel.to <= line.to)
-                cutRange(outside, sel.to - 10 /* LG.SelectionMargin */, sel.to + 10 /* LG.SelectionMargin */);
-            for (let { from, to } of outside)
-                if (to - from > 1000 /* LG.HalfMargin */) {
-                    gaps.push(find(current, gap => gap.from >= line.from && gap.to <= line.to &&
-                        Math.abs(gap.from - from) < 1000 /* LG.HalfMargin */ && Math.abs(gap.to - to) < 1000 /* LG.HalfMargin */) ||
-                        new LineGap(from, to, this.gapSize(line, from, to, structure)));
+                let marginWidth = margin * this.heightOracle.charWidth;
+                let left, right;
+                if (target != null) {
+                    let targetFrac = findFraction(structure, target);
+                    let spaceFrac = ((this.pixelViewport.right - this.pixelViewport.left) / 2 + marginWidth) / totalWidth;
+                    left = targetFrac - spaceFrac;
+                    right = targetFrac + spaceFrac;
                 }
+                else {
+                    left = (this.pixelViewport.left - marginWidth) / totalWidth;
+                    right = (this.pixelViewport.right + marginWidth) / totalWidth;
+                }
+                viewFrom = findPosition(structure, left);
+                viewTo = findPosition(structure, right);
+            }
+            if (viewFrom > line.from)
+                addGap(line.from, viewFrom, line, structure);
+            if (viewTo < line.to)
+                addGap(viewTo, line.to, line, structure);
         }
         return gaps;
     }
@@ -9231,20 +9320,6 @@ function findFraction(structure, pos) {
         counted += to - from;
     }
     return counted / structure.total;
-}
-function cutRange(ranges, from, to) {
-    for (let i = 0; i < ranges.length; i++) {
-        let r = ranges[i];
-        if (r.from < to && r.to > from) {
-            let pieces = [];
-            if (r.from < from)
-                pieces.push({ from: r.from, to: from });
-            if (r.to > to)
-                pieces.push({ from: to, to: r.to });
-            ranges.splice(i, 1, ...pieces);
-            i += pieces.length - 1;
-        }
-    }
 }
 function find(array, f) {
     for (let val of array)
@@ -9428,8 +9503,8 @@ const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
     "&.cm-focused .cm-cursor": {
         display: "block"
     },
-    "&light .cm-activeLine": { backgroundColor: "#f3f9ff" },
-    "&dark .cm-activeLine": { backgroundColor: "#223039" },
+    "&light .cm-activeLine": { backgroundColor: "#cceeff44" },
+    "&dark .cm-activeLine": { backgroundColor: "#99eeff33" },
     "&light .cm-specialChar": { color: "red" },
     "&dark .cm-specialChar": { color: "#f78" },
     ".cm-gutters": {
@@ -9545,6 +9620,227 @@ const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
     }
 }, lightDarkIDs);
 
+class DOMChange {
+    constructor(view, start, end, typeOver) {
+        this.typeOver = typeOver;
+        this.bounds = null;
+        this.text = "";
+        let { impreciseHead: iHead, impreciseAnchor: iAnchor } = view.docView;
+        if (start > -1 && !view.state.readOnly && (this.bounds = view.docView.domBoundsAround(start, end, 0))) {
+            let selPoints = iHead || iAnchor ? [] : selectionPoints(view);
+            let reader = new DOMReader(selPoints, view.state);
+            reader.readRange(this.bounds.startDOM, this.bounds.endDOM);
+            this.text = reader.text;
+            this.newSel = selectionFromPoints(selPoints, this.bounds.from);
+        }
+        else {
+            let domSel = view.observer.selectionRange;
+            let head = iHead && iHead.node == domSel.focusNode && iHead.offset == domSel.focusOffset ||
+                !contains(view.contentDOM, domSel.focusNode)
+                ? view.state.selection.main.head
+                : view.docView.posFromDOM(domSel.focusNode, domSel.focusOffset);
+            let anchor = iAnchor && iAnchor.node == domSel.anchorNode && iAnchor.offset == domSel.anchorOffset ||
+                !contains(view.contentDOM, domSel.anchorNode)
+                ? view.state.selection.main.anchor
+                : view.docView.posFromDOM(domSel.anchorNode, domSel.anchorOffset);
+            this.newSel = EditorSelection.single(anchor, head);
+        }
+    }
+}
+function applyDOMChange(view, domChange) {
+    let change;
+    let { newSel } = domChange, sel = view.state.selection.main;
+    if (domChange.bounds) {
+        let { from, to } = domChange.bounds;
+        let preferredPos = sel.from, preferredSide = null;
+        // Prefer anchoring to end when Backspace is pressed (or, on
+        // Android, when something was deleted)
+        if (view.inputState.lastKeyCode === 8 && view.inputState.lastKeyTime > Date.now() - 100 ||
+            browser.android && domChange.text.length < to - from) {
+            preferredPos = sel.to;
+            preferredSide = "end";
+        }
+        let diff = findDiff(view.state.doc.sliceString(from, to, LineBreakPlaceholder), domChange.text, preferredPos - from, preferredSide);
+        if (diff) {
+            // Chrome inserts two newlines when pressing shift-enter at the
+            // end of a line. DomChange drops one of those.
+            if (browser.chrome && view.inputState.lastKeyCode == 13 &&
+                diff.toB == diff.from + 2 && domChange.text.slice(diff.from, diff.toB) == LineBreakPlaceholder + LineBreakPlaceholder)
+                diff.toB--;
+            change = { from: from + diff.from, to: from + diff.toA,
+                insert: Text.of(domChange.text.slice(diff.from, diff.toB).split(LineBreakPlaceholder)) };
+        }
+    }
+    else if (newSel && (!view.hasFocus || !view.state.facet(editable) || newSel.main.eq(sel))) {
+        newSel = null;
+    }
+    if (!change && !newSel)
+        return false;
+    if (!change && domChange.typeOver && !sel.empty && newSel && newSel.main.empty) {
+        // Heuristic to notice typing over a selected character
+        change = { from: sel.from, to: sel.to, insert: view.state.doc.slice(sel.from, sel.to) };
+    }
+    else if (change && change.from >= sel.from && change.to <= sel.to &&
+        (change.from != sel.from || change.to != sel.to) &&
+        (sel.to - sel.from) - (change.to - change.from) <= 4) {
+        // If the change is inside the selection and covers most of it,
+        // assume it is a selection replace (with identical characters at
+        // the start/end not included in the diff)
+        change = {
+            from: sel.from, to: sel.to,
+            insert: view.state.doc.slice(sel.from, change.from).append(change.insert).append(view.state.doc.slice(change.to, sel.to))
+        };
+    }
+    else if ((browser.mac || browser.android) && change && change.from == change.to && change.from == sel.head - 1 &&
+        /^\. ?$/.test(change.insert.toString())) {
+        // Detect insert-period-on-double-space Mac and Android behavior,
+        // and transform it into a regular space insert.
+        if (newSel && change.insert.length == 2)
+            newSel = EditorSelection.single(newSel.main.anchor - 1, newSel.main.head - 1);
+        change = { from: sel.from, to: sel.to, insert: Text.of([" "]) };
+    }
+    if (change) {
+        let startState = view.state;
+        if (browser.ios && view.inputState.flushIOSKey(view))
+            return true;
+        // Android browsers don't fire reasonable key events for enter,
+        // backspace, or delete. So this detects changes that look like
+        // they're caused by those keys, and reinterprets them as key
+        // events. (Some of these keys are also handled by beforeinput
+        // events and the pendingAndroidKey mechanism, but that's not
+        // reliable in all situations.)
+        if (browser.android &&
+            ((change.from == sel.from && change.to == sel.to &&
+                change.insert.length == 1 && change.insert.lines == 2 &&
+                dispatchKey(view.contentDOM, "Enter", 13)) ||
+                (change.from == sel.from - 1 && change.to == sel.to && change.insert.length == 0 &&
+                    dispatchKey(view.contentDOM, "Backspace", 8)) ||
+                (change.from == sel.from && change.to == sel.to + 1 && change.insert.length == 0 &&
+                    dispatchKey(view.contentDOM, "Delete", 46))))
+            return true;
+        let text = change.insert.toString();
+        if (view.state.facet(inputHandler).some(h => h(view, change.from, change.to, text)))
+            return true;
+        if (view.inputState.composing >= 0)
+            view.inputState.composing++;
+        let tr;
+        if (change.from >= sel.from && change.to <= sel.to && change.to - change.from >= (sel.to - sel.from) / 3 &&
+            (!newSel || newSel.main.empty && newSel.main.from == change.from + change.insert.length) &&
+            view.inputState.composing < 0) {
+            let before = sel.from < change.from ? startState.sliceDoc(sel.from, change.from) : "";
+            let after = sel.to > change.to ? startState.sliceDoc(change.to, sel.to) : "";
+            tr = startState.replaceSelection(view.state.toText(before + change.insert.sliceString(0, undefined, view.state.lineBreak) + after));
+        }
+        else {
+            let changes = startState.changes(change);
+            let mainSel = newSel && !startState.selection.main.eq(newSel.main) && newSel.main.to <= changes.newLength
+                ? newSel.main : undefined;
+            // Try to apply a composition change to all cursors
+            if (startState.selection.ranges.length > 1 && view.inputState.composing >= 0 &&
+                change.to <= sel.to && change.to >= sel.to - 10) {
+                let replaced = view.state.sliceDoc(change.from, change.to);
+                let compositionRange = compositionSurroundingNode(view) || view.state.doc.lineAt(sel.head);
+                let offset = sel.to - change.to, size = sel.to - sel.from;
+                tr = startState.changeByRange(range => {
+                    if (range.from == sel.from && range.to == sel.to)
+                        return { changes, range: mainSel || range.map(changes) };
+                    let to = range.to - offset, from = to - replaced.length;
+                    if (range.to - range.from != size || view.state.sliceDoc(from, to) != replaced ||
+                        // Unfortunately, there's no way to make multiple
+                        // changes in the same node work without aborting
+                        // composition, so cursors in the composition range are
+                        // ignored.
+                        compositionRange && range.to >= compositionRange.from && range.from <= compositionRange.to)
+                        return { range };
+                    let rangeChanges = startState.changes({ from, to, insert: change.insert }), selOff = range.to - sel.to;
+                    return {
+                        changes: rangeChanges,
+                        range: !mainSel ? range.map(rangeChanges) :
+                            EditorSelection.range(Math.max(0, mainSel.anchor + selOff), Math.max(0, mainSel.head + selOff))
+                    };
+                });
+            }
+            else {
+                tr = {
+                    changes,
+                    selection: mainSel && startState.selection.replaceRange(mainSel)
+                };
+            }
+        }
+        let userEvent = "input.type";
+        if (view.composing) {
+            userEvent += ".compose";
+            if (view.inputState.compositionFirstChange) {
+                userEvent += ".start";
+                view.inputState.compositionFirstChange = false;
+            }
+        }
+        view.dispatch(tr, { scrollIntoView: true, userEvent });
+        return true;
+    }
+    else if (newSel && !newSel.main.eq(sel)) {
+        let scrollIntoView = false, userEvent = "select";
+        if (view.inputState.lastSelectionTime > Date.now() - 50) {
+            if (view.inputState.lastSelectionOrigin == "select")
+                scrollIntoView = true;
+            userEvent = view.inputState.lastSelectionOrigin;
+        }
+        view.dispatch({ selection: newSel, scrollIntoView, userEvent });
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+function findDiff(a, b, preferredPos, preferredSide) {
+    let minLen = Math.min(a.length, b.length);
+    let from = 0;
+    while (from < minLen && a.charCodeAt(from) == b.charCodeAt(from))
+        from++;
+    if (from == minLen && a.length == b.length)
+        return null;
+    let toA = a.length, toB = b.length;
+    while (toA > 0 && toB > 0 && a.charCodeAt(toA - 1) == b.charCodeAt(toB - 1)) {
+        toA--;
+        toB--;
+    }
+    if (preferredSide == "end") {
+        let adjust = Math.max(0, from - Math.min(toA, toB));
+        preferredPos -= toA + adjust - from;
+    }
+    if (toA < from && a.length < b.length) {
+        let move = preferredPos <= from && preferredPos >= toA ? from - preferredPos : 0;
+        from -= move;
+        toB = from + (toB - toA);
+        toA = from;
+    }
+    else if (toB < from) {
+        let move = preferredPos <= from && preferredPos >= toB ? from - preferredPos : 0;
+        from -= move;
+        toA = from + (toA - toB);
+        toB = from;
+    }
+    return { from, toA, toB };
+}
+function selectionPoints(view) {
+    let result = [];
+    if (view.root.activeElement != view.contentDOM)
+        return result;
+    let { anchorNode, anchorOffset, focusNode, focusOffset } = view.observer.selectionRange;
+    if (anchorNode) {
+        result.push(new DOMPoint(anchorNode, anchorOffset));
+        if (focusNode != anchorNode || focusOffset != anchorOffset)
+            result.push(new DOMPoint(focusNode, focusOffset));
+    }
+    return result;
+}
+function selectionFromPoints(points, base) {
+    if (points.length == 0)
+        return null;
+    let anchor = points[0].pos, head = points.length == 2 ? points[1].pos : anchor;
+    return anchor > -1 && head > -1 ? EditorSelection.single(anchor + base, head + base) : null;
+}
+
 const observeOptions = {
     childList: true,
     characterData: true,
@@ -9556,10 +9852,8 @@ const observeOptions = {
 // DOMCharacterDataModified there
 const useCharData = browser.ie && browser.ie_version <= 11;
 class DOMObserver {
-    constructor(view, onChange, onScrollChanged) {
+    constructor(view) {
         this.view = view;
-        this.onChange = onChange;
-        this.onScrollChanged = onScrollChanged;
         this.active = false;
         // The known selection. Kept in our own object, as opposed to just
         // directly accessing the selection because:
@@ -9574,6 +9868,7 @@ class DOMObserver {
         this.resizeTimeout = -1;
         this.queue = [];
         this.delayedAndroidKey = null;
+        this.flushingAndroidKey = -1;
         this.lastChange = 0;
         this.scrollTargets = [];
         this.intersection = null;
@@ -9641,6 +9936,11 @@ class DOMObserver {
         }
         this.listenForScroll();
         this.readSelectionRange();
+    }
+    onScrollChanged(e) {
+        this.view.inputState.runScrollHandlers(this.view, e);
+        if (this.intersecting)
+            this.view.measure();
     }
     onScroll(e) {
         if (this.intersecting)
@@ -9801,14 +10101,17 @@ class DOMObserver {
     // them or, if that has no effect, dispatches the given key.
     delayAndroidKey(key, keyCode) {
         var _a;
-        if (!this.delayedAndroidKey)
-            this.view.win.requestAnimationFrame(() => {
+        if (!this.delayedAndroidKey) {
+            let flush = () => {
                 let key = this.delayedAndroidKey;
-                this.delayedAndroidKey = null;
-                this.delayedFlush = -1;
-                if (!this.flush() && key.force)
-                    dispatchKey(this.dom, key.key, key.keyCode);
-            });
+                if (key) {
+                    this.clearDelayedAndroidKey();
+                    if (!this.flush() && key.force)
+                        dispatchKey(this.dom, key.key, key.keyCode);
+                }
+            };
+            this.flushingAndroidKey = this.view.win.requestAnimationFrame(flush);
+        }
         // Since backspace beforeinput is sometimes signalled spuriously,
         // Enter always takes precedence.
         if (!this.delayedAndroidKey || key == "Enter")
@@ -9820,6 +10123,11 @@ class DOMObserver {
                 // be ignored if it returns the DOM to its previous state.
                 force: this.lastChange < Date.now() - 50 || !!((_a = this.delayedAndroidKey) === null || _a === void 0 ? void 0 : _a.force)
             };
+    }
+    clearDelayedAndroidKey() {
+        this.win.cancelAnimationFrame(this.flushingAndroidKey);
+        this.delayedAndroidKey = null;
+        this.flushingAndroidKey = -1;
     }
     flushSoon() {
         if (this.delayedFlush < 0)
@@ -9855,6 +10163,17 @@ class DOMObserver {
         }
         return { from, to, typeOver };
     }
+    readChange() {
+        let { from, to, typeOver } = this.processRecords();
+        let newSel = this.selectionChanged && hasSelection(this.dom, this.selectionRange);
+        if (from < 0 && !newSel)
+            return null;
+        if (from > -1)
+            this.lastChange = Date.now();
+        this.view.inputState.lastFocusTime = 0;
+        this.selectionChanged = false;
+        return new DOMChange(this.view, from, to, typeOver);
+    }
     // Apply pending changes, if any
     flush(readSelection = true) {
         // Completely hold off flushing when pending keys are set—the code
@@ -9864,16 +10183,11 @@ class DOMObserver {
             return false;
         if (readSelection)
             this.readSelectionRange();
-        let { from, to, typeOver } = this.processRecords();
-        let newSel = this.selectionChanged && hasSelection(this.dom, this.selectionRange);
-        if (from < 0 && !newSel)
+        let domChange = this.readChange();
+        if (!domChange)
             return false;
-        if (from > -1)
-            this.lastChange = Date.now();
-        this.view.inputState.lastFocusTime = 0;
-        this.selectionChanged = false;
         let startState = this.view.state;
-        let handled = this.onChange(from, to, typeOver);
+        let handled = applyDOMChange(this.view, domChange);
         // The view wasn't updated
         if (this.view.state == startState)
             this.view.update([]);
@@ -9929,6 +10243,8 @@ class DOMObserver {
         this.removeWindowListeners(this.win);
         clearTimeout(this.parentCheck);
         clearTimeout(this.resizeTimeout);
+        this.win.cancelAnimationFrame(this.delayedFlush);
+        this.win.cancelAnimationFrame(this.flushingAndroidKey);
     }
 }
 function findChild(cView, dom, dir) {
@@ -9968,213 +10284,6 @@ function safariSelectionRangeHack(view) {
     if (isEquivalentPosition(curAnchor.node, curAnchor.offset, focusNode, focusOffset))
         [anchorNode, anchorOffset, focusNode, focusOffset] = [focusNode, focusOffset, anchorNode, anchorOffset];
     return { anchorNode, anchorOffset, focusNode, focusOffset };
-}
-
-function applyDOMChange(view, start, end, typeOver) {
-    let change, newSel;
-    let sel = view.state.selection.main;
-    if (start > -1) {
-        let bounds = view.docView.domBoundsAround(start, end, 0);
-        if (!bounds || view.state.readOnly)
-            return false;
-        let { from, to } = bounds;
-        let selPoints = view.docView.impreciseHead || view.docView.impreciseAnchor ? [] : selectionPoints(view);
-        let reader = new DOMReader(selPoints, view.state);
-        reader.readRange(bounds.startDOM, bounds.endDOM);
-        let preferredPos = sel.from, preferredSide = null;
-        // Prefer anchoring to end when Backspace is pressed (or, on
-        // Android, when something was deleted)
-        if (view.inputState.lastKeyCode === 8 && view.inputState.lastKeyTime > Date.now() - 100 ||
-            browser.android && reader.text.length < to - from) {
-            preferredPos = sel.to;
-            preferredSide = "end";
-        }
-        let diff = findDiff(view.state.doc.sliceString(from, to, LineBreakPlaceholder), reader.text, preferredPos - from, preferredSide);
-        if (diff) {
-            // Chrome inserts two newlines when pressing shift-enter at the
-            // end of a line. This drops one of those.
-            if (browser.chrome && view.inputState.lastKeyCode == 13 &&
-                diff.toB == diff.from + 2 && reader.text.slice(diff.from, diff.toB) == LineBreakPlaceholder + LineBreakPlaceholder)
-                diff.toB--;
-            change = { from: from + diff.from, to: from + diff.toA,
-                insert: Text.of(reader.text.slice(diff.from, diff.toB).split(LineBreakPlaceholder)) };
-        }
-        newSel = selectionFromPoints(selPoints, from);
-    }
-    else if (view.hasFocus || !view.state.facet(editable)) {
-        let domSel = view.observer.selectionRange;
-        let { impreciseHead: iHead, impreciseAnchor: iAnchor } = view.docView;
-        let head = iHead && iHead.node == domSel.focusNode && iHead.offset == domSel.focusOffset ||
-            !contains(view.contentDOM, domSel.focusNode)
-            ? view.state.selection.main.head
-            : view.docView.posFromDOM(domSel.focusNode, domSel.focusOffset);
-        let anchor = iAnchor && iAnchor.node == domSel.anchorNode && iAnchor.offset == domSel.anchorOffset ||
-            !contains(view.contentDOM, domSel.anchorNode)
-            ? view.state.selection.main.anchor
-            : view.docView.posFromDOM(domSel.anchorNode, domSel.anchorOffset);
-        if (head != sel.head || anchor != sel.anchor)
-            newSel = EditorSelection.single(anchor, head);
-    }
-    if (!change && !newSel)
-        return false;
-    // Heuristic to notice typing over a selected character
-    if (!change && typeOver && !sel.empty && newSel && newSel.main.empty)
-        change = { from: sel.from, to: sel.to, insert: view.state.doc.slice(sel.from, sel.to) };
-    // If the change is inside the selection and covers most of it,
-    // assume it is a selection replace (with identical characters at
-    // the start/end not included in the diff)
-    else if (change && change.from >= sel.from && change.to <= sel.to &&
-        (change.from != sel.from || change.to != sel.to) &&
-        (sel.to - sel.from) - (change.to - change.from) <= 4)
-        change = {
-            from: sel.from, to: sel.to,
-            insert: view.state.doc.slice(sel.from, change.from).append(change.insert).append(view.state.doc.slice(change.to, sel.to))
-        };
-    // Detect insert-period-on-double-space Mac behavior, and transform
-    // it into a regular space insert.
-    else if ((browser.mac || browser.android) && change && change.from == change.to && change.from == sel.head - 1 &&
-        change.insert.toString() == ".")
-        change = { from: sel.from, to: sel.to, insert: Text.of([" "]) };
-    if (change) {
-        let startState = view.state;
-        if (browser.ios && view.inputState.flushIOSKey(view))
-            return true;
-        // Android browsers don't fire reasonable key events for enter,
-        // backspace, or delete. So this detects changes that look like
-        // they're caused by those keys, and reinterprets them as key
-        // events. (Some of these keys are also handled by beforeinput
-        // events and the pendingAndroidKey mechanism, but that's not
-        // reliable in all situations.)
-        if (browser.android &&
-            ((change.from == sel.from && change.to == sel.to &&
-                change.insert.length == 1 && change.insert.lines == 2 &&
-                dispatchKey(view.contentDOM, "Enter", 13)) ||
-                (change.from == sel.from - 1 && change.to == sel.to && change.insert.length == 0 &&
-                    dispatchKey(view.contentDOM, "Backspace", 8)) ||
-                (change.from == sel.from && change.to == sel.to + 1 && change.insert.length == 0 &&
-                    dispatchKey(view.contentDOM, "Delete", 46))))
-            return true;
-        let text = change.insert.toString();
-        if (view.state.facet(inputHandler).some(h => h(view, change.from, change.to, text)))
-            return true;
-        if (view.inputState.composing >= 0)
-            view.inputState.composing++;
-        let tr;
-        if (change.from >= sel.from && change.to <= sel.to && change.to - change.from >= (sel.to - sel.from) / 3 &&
-            (!newSel || newSel.main.empty && newSel.main.from == change.from + change.insert.length) &&
-            view.inputState.composing < 0) {
-            let before = sel.from < change.from ? startState.sliceDoc(sel.from, change.from) : "";
-            let after = sel.to > change.to ? startState.sliceDoc(change.to, sel.to) : "";
-            tr = startState.replaceSelection(view.state.toText(before + change.insert.sliceString(0, undefined, view.state.lineBreak) + after));
-        }
-        else {
-            let changes = startState.changes(change);
-            let mainSel = newSel && !startState.selection.main.eq(newSel.main) && newSel.main.to <= changes.newLength
-                ? newSel.main : undefined;
-            // Try to apply a composition change to all cursors
-            if (startState.selection.ranges.length > 1 && view.inputState.composing >= 0 &&
-                change.to <= sel.to && change.to >= sel.to - 10) {
-                let replaced = view.state.sliceDoc(change.from, change.to);
-                let compositionRange = compositionSurroundingNode(view) || view.state.doc.lineAt(sel.head);
-                let offset = sel.to - change.to, size = sel.to - sel.from;
-                tr = startState.changeByRange(range => {
-                    if (range.from == sel.from && range.to == sel.to)
-                        return { changes, range: mainSel || range.map(changes) };
-                    let to = range.to - offset, from = to - replaced.length;
-                    if (range.to - range.from != size || view.state.sliceDoc(from, to) != replaced ||
-                        // Unfortunately, there's no way to make multiple
-                        // changes in the same node work without aborting
-                        // composition, so cursors in the composition range are
-                        // ignored.
-                        compositionRange && range.to >= compositionRange.from && range.from <= compositionRange.to)
-                        return { range };
-                    let rangeChanges = startState.changes({ from, to, insert: change.insert }), selOff = range.to - sel.to;
-                    return {
-                        changes: rangeChanges,
-                        range: !mainSel ? range.map(rangeChanges) :
-                            EditorSelection.range(Math.max(0, mainSel.anchor + selOff), Math.max(0, mainSel.head + selOff))
-                    };
-                });
-            }
-            else {
-                tr = {
-                    changes,
-                    selection: mainSel && startState.selection.replaceRange(mainSel)
-                };
-            }
-        }
-        let userEvent = "input.type";
-        if (view.composing) {
-            userEvent += ".compose";
-            if (view.inputState.compositionFirstChange) {
-                userEvent += ".start";
-                view.inputState.compositionFirstChange = false;
-            }
-        }
-        view.dispatch(tr, { scrollIntoView: true, userEvent });
-        return true;
-    }
-    else if (newSel && !newSel.main.eq(sel)) {
-        let scrollIntoView = false, userEvent = "select";
-        if (view.inputState.lastSelectionTime > Date.now() - 50) {
-            if (view.inputState.lastSelectionOrigin == "select")
-                scrollIntoView = true;
-            userEvent = view.inputState.lastSelectionOrigin;
-        }
-        view.dispatch({ selection: newSel, scrollIntoView, userEvent });
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-function findDiff(a, b, preferredPos, preferredSide) {
-    let minLen = Math.min(a.length, b.length);
-    let from = 0;
-    while (from < minLen && a.charCodeAt(from) == b.charCodeAt(from))
-        from++;
-    if (from == minLen && a.length == b.length)
-        return null;
-    let toA = a.length, toB = b.length;
-    while (toA > 0 && toB > 0 && a.charCodeAt(toA - 1) == b.charCodeAt(toB - 1)) {
-        toA--;
-        toB--;
-    }
-    if (preferredSide == "end") {
-        let adjust = Math.max(0, from - Math.min(toA, toB));
-        preferredPos -= toA + adjust - from;
-    }
-    if (toA < from && a.length < b.length) {
-        let move = preferredPos <= from && preferredPos >= toA ? from - preferredPos : 0;
-        from -= move;
-        toB = from + (toB - toA);
-        toA = from;
-    }
-    else if (toB < from) {
-        let move = preferredPos <= from && preferredPos >= toB ? from - preferredPos : 0;
-        from -= move;
-        toA = from + (toA - toB);
-        toB = from;
-    }
-    return { from, toA, toB };
-}
-function selectionPoints(view) {
-    let result = [];
-    if (view.root.activeElement != view.contentDOM)
-        return result;
-    let { anchorNode, anchorOffset, focusNode, focusOffset } = view.observer.selectionRange;
-    if (anchorNode) {
-        result.push(new DOMPoint(anchorNode, anchorOffset));
-        if (focusNode != anchorNode || focusOffset != anchorOffset)
-            result.push(new DOMPoint(focusNode, focusOffset));
-    }
-    return result;
-}
-function selectionFromPoints(points, base) {
-    if (points.length == 0)
-        return null;
-    let anchor = points[0].pos, head = points.length == 2 ? points[1].pos : anchor;
-    return anchor > -1 && head > -1 ? EditorSelection.single(anchor + base, head + base) : null;
 }
 
 // The editor's update state machine looks something like this:
@@ -10239,13 +10348,7 @@ class EditorView {
         this.plugins = this.state.facet(viewPlugin).map(spec => new PluginInstance(spec));
         for (let plugin of this.plugins)
             plugin.update(this);
-        this.observer = new DOMObserver(this, (from, to, typeOver) => {
-            return applyDOMChange(this, from, to, typeOver);
-        }, event => {
-            this.inputState.runScrollHandlers(this, event);
-            if (this.observer.intersecting)
-                this.measure();
-        });
+        this.observer = new DOMObserver(this);
         this.inputState = new InputState(this);
         this.inputState.ensureHandlers(this, this.plugins);
         this.docView = new DocView(this);
@@ -10302,7 +10405,7 @@ class EditorView {
     /**
     @internal
     */
-    get win() { return this.dom.ownerDocument.defaultView; }
+    get win() { return this.dom.ownerDocument.defaultView || window; }
     dispatch(...input) {
         this._dispatch(input.length == 1 && input[0] instanceof Transaction ? input[0]
             : this.state.update(...input));
@@ -10329,7 +10432,20 @@ class EditorView {
             this.viewState.state = state;
             return;
         }
-        this.observer.clear();
+        // If there was a pending DOM change, eagerly read it and try to
+        // apply it after the given transactions.
+        let pendingKey = this.observer.delayedAndroidKey, domChange = null;
+        if (pendingKey) {
+            this.observer.clearDelayedAndroidKey();
+            domChange = this.observer.readChange();
+            // Only try to apply DOM changes if the transactions didn't
+            // change the doc or selection.
+            if (domChange && !this.state.doc.eq(state.doc) || !this.state.selection.eq(state.selection))
+                domChange = null;
+        }
+        else {
+            this.observer.clear();
+        }
         // When the phrases change, redraw the editor
         if (state.facet(EditorState.phrases) != this.state.facet(EditorState.phrases))
             return this.setState(state);
@@ -10371,6 +10487,10 @@ class EditorView {
         if (!update.empty)
             for (let listener of this.state.facet(updateListener))
                 listener(update);
+        if (domChange) {
+            if (!applyDOMChange(this, domChange) && pendingKey.force)
+                dispatchKey(this.contentDOM, pendingKey.key, pendingKey.keyCode);
+        }
     }
     /**
     Reset the view to the given state. (This will cause the entire
@@ -10861,7 +10981,7 @@ class EditorView {
     setRoot(root) {
         if (this._root != root) {
             this._root = root;
-            this.observer.setWindow((root.nodeType == 9 ? root : root.ownerDocument).defaultView);
+            this.observer.setWindow((root.nodeType == 9 ? root : root.ownerDocument).defaultView || window);
             this.mountStyles();
         }
     }
@@ -11200,6 +11320,7 @@ function buildKeymap(bindings, platform = currentPlatform) {
             throw new Error("Key binding " + name + " is used both as a regular binding and as a multi-stroke prefix");
     };
     let add = (scope, key, command, preventDefault) => {
+        var _a, _b;
         let scopeObj = bound[scope] || (bound[scope] = Object.create(null));
         let parts = key.split(/ (?!$)/).map(k => normalizeKeyName(k, platform));
         for (let i = 1; i < parts.length; i++) {
@@ -11208,7 +11329,7 @@ function buildKeymap(bindings, platform = currentPlatform) {
             if (!scopeObj[prefix])
                 scopeObj[prefix] = {
                     preventDefault: true,
-                    commands: [(view) => {
+                    run: [(view) => {
                             let ourObj = storedPrefix = { view, prefix, scope };
                             setTimeout(() => { if (storedPrefix == ourObj)
                                 storedPrefix = null; }, PrefixTimeout);
@@ -11218,16 +11339,26 @@ function buildKeymap(bindings, platform = currentPlatform) {
         }
         let full = parts.join(" ");
         checkPrefix(full, false);
-        let binding = scopeObj[full] || (scopeObj[full] = { preventDefault: false, commands: [] });
-        binding.commands.push(command);
+        let binding = scopeObj[full] || (scopeObj[full] = { preventDefault: false, run: ((_b = (_a = scopeObj._any) === null || _a === void 0 ? void 0 : _a.run) === null || _b === void 0 ? void 0 : _b.slice()) || [] });
+        if (command)
+            binding.run.push(command);
         if (preventDefault)
             binding.preventDefault = true;
     };
     for (let b of bindings) {
+        let scopes = b.scope ? b.scope.split(" ") : ["editor"];
+        if (b.any)
+            for (let scope of scopes) {
+                let scopeObj = bound[scope] || (bound[scope] = Object.create(null));
+                if (!scopeObj._any)
+                    scopeObj._any = { preventDefault: false, run: [] };
+                for (let key in scopeObj)
+                    scopeObj[key].run.push(b.any);
+            }
         let name = b[platform] || b.key;
         if (!name)
             continue;
-        for (let scope of b.scope ? b.scope.split(" ") : ["editor"]) {
+        for (let scope of scopes) {
             add(scope, name, b.run, b.preventDefault);
             if (b.shift)
                 add(scope, "Shift-" + name, b.shift, b.preventDefault);
@@ -11244,11 +11375,15 @@ function runHandlers(map, event, view, scope) {
         if (fallthrough = modifierCodes.indexOf(event.keyCode) < 0)
             storedPrefix = null;
     }
+    let ran = new Set;
     let runFor = (binding) => {
         if (binding) {
-            for (let cmd of binding.commands)
-                if (cmd(view))
-                    return true;
+            for (let cmd of binding.run)
+                if (!ran.has(cmd)) {
+                    ran.add(cmd);
+                    if (cmd(view, event))
+                        return true;
+                }
             if (binding.preventDefault)
                 fallthrough = true;
         }
@@ -11270,6 +11405,8 @@ function runHandlers(map, event, view, scope) {
             if (runFor(scopeObj[prefix + modifiers(name, event, true)]))
                 return true;
         }
+        if (runFor(scopeObj._any))
+            return true;
     }
     return fallthrough;
 }
@@ -11566,9 +11703,15 @@ class MatchDecorator {
         if (decorate) {
             this.addMatch = (match, view, from, add) => decorate(add, from, from + match[0].length, match, view);
         }
+        else if (typeof decoration == "function") {
+            this.addMatch = (match, view, from, add) => {
+                let deco = decoration(match, view, from);
+                if (deco)
+                    add(from, from + match[0].length, deco);
+            };
+        }
         else if (decoration) {
-            let getDeco = typeof decoration == "function" ? decoration : () => decoration;
-            this.addMatch = (match, view, from, add) => add(from, from + match[0].length, getDeco(match, view, from));
+            this.addMatch = (match, _view, from, add) => add(from, from + match[0].length, decoration);
         }
         else {
             throw new RangeError("Either 'decorate' or 'decoration' should be provided to MatchDecorator");
@@ -11809,8 +11952,6 @@ const activeLineHighlighter = /*@__PURE__*/ViewPlugin.fromClass(class {
     getDeco(view) {
         let lastLineStart = -1, deco = [];
         for (let r of view.state.selection.ranges) {
-            if (!r.empty)
-                return Decoration.none;
             let line = view.lineBlockAt(r.head);
             if (line.from > lastLineStart) {
                 deco.push(lineDeco.range(line.from));
@@ -12225,14 +12366,13 @@ const activeLineGutterMarker = /*@__PURE__*/new class extends GutterMarker {
 };
 const activeLineGutterHighlighter = /*@__PURE__*/gutterLineClass.compute(["selection"], state => {
     let marks = [], last = -1;
-    for (let range of state.selection.ranges)
-        if (range.empty) {
-            let linePos = state.doc.lineAt(range.head).from;
-            if (linePos > last) {
-                last = linePos;
-                marks.push(activeLineGutterMarker.range(linePos));
-            }
+    for (let range of state.selection.ranges) {
+        let linePos = state.doc.lineAt(range.head).from;
+        if (linePos > last) {
+            last = linePos;
+            marks.push(activeLineGutterMarker.range(linePos));
         }
+    }
     return RangeSet.of(marks);
 });
 /**
@@ -13765,6 +13905,8 @@ class Rule {
         this.context = context;
         this.next = next;
     }
+    get opaque() { return this.mode == 0 /* Opaque */; }
+    get inherit() { return this.mode == 1 /* Inherit */; }
     sort(other) {
         if (!other || other.depth < this.depth) {
             this.next = other;
@@ -13775,6 +13917,7 @@ class Rule {
     }
     get depth() { return this.context ? this.context.length : 0; }
 }
+Rule.empty = new Rule([], 2 /* Normal */, null);
 /// Define a [highlighter](#highlight.Highlighter) from an array of
 /// tag/class pairs. Classes associated with more specific tags will
 /// take precedence.
@@ -13802,7 +13945,7 @@ function tagHighlighter(tags, options) {
             }
             return cls;
         },
-        scope: scope
+        scope
     };
 }
 function highlightTags(highlighters, tags) {
@@ -13855,25 +13998,17 @@ class HighlightBuilder {
         if (type.isTop)
             highlighters = this.highlighters.filter(h => !h.scope || h.scope(type));
         let cls = inheritedClass;
-        let rule = type.prop(ruleNodeProp), opaque = false;
-        while (rule) {
-            if (!rule.context || cursor.matchContext(rule.context)) {
-                let tagCls = highlightTags(highlighters, rule.tags);
-                if (tagCls) {
-                    if (cls)
-                        cls += " ";
-                    cls += tagCls;
-                    if (rule.mode == 1 /* Inherit */)
-                        inheritedClass += (inheritedClass ? " " : "") + tagCls;
-                    else if (rule.mode == 0 /* Opaque */)
-                        opaque = true;
-                }
-                break;
-            }
-            rule = rule.next;
+        let rule = getStyleTags(cursor) || Rule.empty;
+        let tagCls = highlightTags(highlighters, rule.tags);
+        if (tagCls) {
+            if (cls)
+                cls += " ";
+            cls += tagCls;
+            if (rule.mode == 1 /* Inherit */)
+                inheritedClass += (inheritedClass ? " " : "") + tagCls;
         }
         this.startSpan(cursor.from, cls);
-        if (opaque)
+        if (rule.opaque)
             return;
         let mounted = cursor.tree && cursor.tree.prop(NodeProp.mounted);
         if (mounted && mounted.overlay) {
@@ -13915,6 +14050,15 @@ class HighlightBuilder {
             cursor.parent();
         }
     }
+}
+/// Match a syntax node's [highlight rules](#highlight.styleTags). If
+/// there's a match, return its set of tags, and whether it is
+/// opaque (uses a `!`) or applies to all child nodes (`/...`).
+function getStyleTags(node) {
+    let rule = node.type.prop(ruleNodeProp);
+    while (rule && rule.context && !node.matchContext(rule.context))
+        rule = rule.next;
+    return rule || null;
 }
 const t = Tag.define;
 const comment = t(), name = t(), typeName = t(name), propertyName = t(name), literal = t(), string = t(literal), number = t(literal), content = t(), heading = t(content), keyword = t(), operator = t(), punctuation = t(), bracket = t(punctuation), meta = t();
@@ -14016,7 +14160,7 @@ const tags = {
     moduleKeyword: t(keyword),
     /// An operator.
     operator,
-    /// An [operator](#highlight.tags.operator) that defines something.
+    /// An [operator](#highlight.tags.operator) that dereferences something.
     derefOperator: t(operator),
     /// Arithmetic-related [operator](#highlight.tags.operator).
     arithmeticOperator: t(operator),
@@ -15352,19 +15496,19 @@ The line comment syntax is taken from the
 [`commentTokens`](https://codemirror.net/6/docs/ref/#commands.CommentTokens) [language
 data](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt).
 */
-const toggleLineComment = /*@__PURE__*/command(changeLineComment, 0 /* Toggle */);
+const toggleLineComment = /*@__PURE__*/command(changeLineComment, 0 /* CommentOption.Toggle */);
 /**
 Comment or uncomment the current selection using block comments.
 The block comment syntax is taken from the
 [`commentTokens`](https://codemirror.net/6/docs/ref/#commands.CommentTokens) [language
 data](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt).
 */
-const toggleBlockComment = /*@__PURE__*/command(changeBlockComment, 0 /* Toggle */);
+const toggleBlockComment = /*@__PURE__*/command(changeBlockComment, 0 /* CommentOption.Toggle */);
 /**
 Comment or uncomment the lines around the current selection using
 block comments.
 */
-const toggleBlockCommentByLine = /*@__PURE__*/command((o, s) => changeBlockComment(o, s, selectedLineRanges(s)), 0 /* Toggle */);
+const toggleBlockCommentByLine = /*@__PURE__*/command((o, s) => changeBlockComment(o, s, selectedLineRanges(s)), 0 /* CommentOption.Toggle */);
 function getConfig(state, pos = state.selection.main.head) {
     let data = state.languageDataAt("commentTokens", pos);
     return data.length ? data[0] : {};
@@ -15423,14 +15567,14 @@ function changeBlockComment(option, state, ranges = state.selection.ranges) {
     if (!tokens.every(c => c))
         return null;
     let comments = ranges.map((r, i) => findBlockComment(state, tokens[i], r.from, r.to));
-    if (option != 2 /* Uncomment */ && !comments.every(c => c)) {
+    if (option != 2 /* CommentOption.Uncomment */ && !comments.every(c => c)) {
         return { changes: state.changes(ranges.map((range, i) => {
                 if (comments[i])
                     return [];
                 return [{ from: range.from, insert: tokens[i].open + " " }, { from: range.to, insert: " " + tokens[i].close }];
             })) };
     }
-    else if (option != 1 /* Comment */ && comments.some(c => c)) {
+    else if (option != 1 /* CommentOption.Comment */ && comments.some(c => c)) {
         let changes = [];
         for (let i = 0, comment; i < comments.length; i++)
             if (comment = comments[i]) {
@@ -15470,7 +15614,7 @@ function changeLineComment(option, state, ranges = state.selection.ranges) {
         if (lines.length == startI + 1)
             lines[startI].single = true;
     }
-    if (option != 2 /* Uncomment */ && lines.some(l => l.comment < 0 && (!l.empty || l.single))) {
+    if (option != 2 /* CommentOption.Uncomment */ && lines.some(l => l.comment < 0 && (!l.empty || l.single))) {
         let changes = [];
         for (let { line, token, indent, empty, single } of lines)
             if (single || !empty)
@@ -15478,7 +15622,7 @@ function changeLineComment(option, state, ranges = state.selection.ranges) {
         let changeSet = state.changes(changes);
         return { changes: changeSet, selection: state.selection.map(changeSet, 1) };
     }
-    else if (option != 1 /* Comment */ && lines.some(l => l.comment >= 0)) {
+    else if (option != 1 /* CommentOption.Comment */ && lines.some(l => l.comment >= 0)) {
         let changes = [];
         for (let { line, comment, token } of lines)
             if (comment >= 0) {
@@ -15532,12 +15676,12 @@ const historyField_ = /*@__PURE__*/StateField.define({
         if (fromHist) {
             let selection = tr.docChanged ? EditorSelection.single(changeEnd(tr.changes)) : undefined;
             let item = HistEvent.fromTransaction(tr, selection), from = fromHist.side;
-            let other = from == 0 /* Done */ ? state.undone : state.done;
+            let other = from == 0 /* BranchName.Done */ ? state.undone : state.done;
             if (item)
                 other = updateBranch(other, other.length, config.minDepth, item);
             else
                 other = addSelection(other, tr.startState.selection);
-            return new HistoryState(from == 0 /* Done */ ? fromHist.rest : other, from == 0 /* Done */ ? other : fromHist.rest);
+            return new HistoryState(from == 0 /* BranchName.Done */ ? fromHist.rest : other, from == 0 /* BranchName.Done */ ? other : fromHist.rest);
         }
         let isolate = tr.annotation(isolateHistory);
         if (isolate == "full" || isolate == "before")
@@ -15597,20 +15741,20 @@ function cmd(side, selection) {
 Undo a single group of history events. Returns false if no group
 was available.
 */
-const undo = /*@__PURE__*/cmd(0 /* Done */, false);
+const undo = /*@__PURE__*/cmd(0 /* BranchName.Done */, false);
 /**
 Redo a group of history events. Returns false if no group was
 available.
 */
-const redo = /*@__PURE__*/cmd(1 /* Undone */, false);
+const redo = /*@__PURE__*/cmd(1 /* BranchName.Undone */, false);
 /**
 Undo a change or selection change.
 */
-const undoSelection = /*@__PURE__*/cmd(0 /* Done */, true);
+const undoSelection = /*@__PURE__*/cmd(0 /* BranchName.Done */, true);
 /**
 Redo a change or selection change.
 */
-const redoSelection = /*@__PURE__*/cmd(1 /* Undone */, true);
+const redoSelection = /*@__PURE__*/cmd(1 /* BranchName.Undone */, true);
 // History events store groups of changes or effects that need to be
 // undone/redone together.
 class HistEvent {
@@ -15788,7 +15932,7 @@ class HistoryState {
         return new HistoryState(addMappingToBranch(this.done, mapping), addMappingToBranch(this.undone, mapping), this.prevTime, this.prevUserEvent);
     }
     pop(side, state, selection) {
-        let branch = side == 0 /* Done */ ? this.done : this.undone;
+        let branch = side == 0 /* BranchName.Done */ ? this.done : this.undone;
         if (branch.length == 0)
             return null;
         let event = branch[branch.length - 1];
@@ -15796,7 +15940,7 @@ class HistoryState {
             return state.update({
                 selection: event.selectionsAfter[event.selectionsAfter.length - 1],
                 annotations: fromHistory.of({ side, rest: popSelection(branch) }),
-                userEvent: side == 0 /* Done */ ? "select.undo" : "select.redo",
+                userEvent: side == 0 /* BranchName.Done */ ? "select.undo" : "select.redo",
                 scrollIntoView: true
             });
         }
@@ -15813,7 +15957,7 @@ class HistoryState {
                 effects: event.effects,
                 annotations: fromHistory.of({ side, rest }),
                 filter: false,
-                userEvent: side == 0 /* Done */ ? "undo" : "redo",
+                userEvent: side == 0 /* BranchName.Done */ ? "undo" : "redo",
                 scrollIntoView: true
             });
         }
@@ -16183,26 +16327,34 @@ const simplifySelection = ({ state, dispatch }) => {
     dispatch(setSel(state, selection));
     return true;
 };
-function deleteBy({ state, dispatch }, by) {
-    if (state.readOnly)
+function deleteBy(target, by) {
+    if (target.state.readOnly)
         return false;
-    let event = "delete.selection";
+    let event = "delete.selection", { state } = target;
     let changes = state.changeByRange(range => {
         let { from, to } = range;
         if (from == to) {
             let towards = by(from);
-            if (towards < from)
+            if (towards < from) {
                 event = "delete.backward";
-            else if (towards > from)
+                towards = skipAtomic(target, towards, false);
+            }
+            else if (towards > from) {
                 event = "delete.forward";
+                towards = skipAtomic(target, towards, true);
+            }
             from = Math.min(from, towards);
             to = Math.max(to, towards);
+        }
+        else {
+            from = skipAtomic(target, from, false);
+            to = skipAtomic(target, to, true);
         }
         return from == to ? { range } : { changes: { from, to }, range: EditorSelection.cursor(from) };
     });
     if (changes.changes.empty)
         return false;
-    dispatch(state.update(changes, {
+    target.dispatch(state.update(changes, {
         scrollIntoView: true,
         userEvent: event,
         effects: event == "delete.selection" ? EditorView.announce.of(state.phrase("Selection deleted")) : undefined
@@ -16234,7 +16386,7 @@ const deleteByChar = (target, forward) => deleteBy(target, pos => {
         if (targetPos == pos && line.number != (forward ? state.doc.lines : 1))
             targetPos += forward ? 1 : -1;
     }
-    return skipAtomic(target, targetPos, forward);
+    return targetPos;
 });
 /**
 Delete the selection, or, for cursor selections, the character
@@ -16263,7 +16415,7 @@ const deleteByGroup = (target, forward) => deleteBy(target, start => {
             cat = nextCat;
         pos = next;
     }
-    return skipAtomic(target, pos, forward);
+    return pos;
 });
 /**
 Delete the selection or backward until the end of the next
@@ -16282,7 +16434,7 @@ line, delete the line break after it.
 */
 const deleteToLineEnd = view => deleteBy(view, pos => {
     let lineEnd = view.lineBlockAt(pos).to;
-    return skipAtomic(view, pos < lineEnd ? lineEnd : Math.min(view.state.doc.length, pos + 1), true);
+    return pos < lineEnd ? lineEnd : Math.min(view.state.doc.length, pos + 1);
 });
 /**
 Delete the selection, or, if it is a cursor selection, delete to
@@ -16291,7 +16443,7 @@ line, delete the line break before it.
 */
 const deleteToLineStart = view => deleteBy(view, pos => {
     let lineStart = view.lineBlockAt(pos).from;
-    return skipAtomic(view, pos > lineStart ? lineStart : Math.max(0, pos - 1), false);
+    return pos > lineStart ? lineStart : Math.max(0, pos - 1);
 });
 /**
 Replace each selection range with a line break, leaving the cursor

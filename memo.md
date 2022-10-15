@@ -6,10 +6,7 @@
 
 [How to remove a decoration mark from state - discuss.CodeMirror](https://discuss.codemirror.net/t/how-to-remove-a-decoration-mark-from-state/3809)
 
-
 [How to check if a selection contains a mark decoration? - v6 - discuss.CodeMirror](https://discuss.codemirror.net/t/how-to-check-if-a-selection-contains-a-mark-decoration/3931/3)
-
-
 
 # 📝 2022/09/09
 
