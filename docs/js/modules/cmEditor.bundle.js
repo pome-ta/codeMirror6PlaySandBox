@@ -5184,57 +5184,31 @@ function joinInlineInto(parent, view, open) {
     parent.length += view.length;
 }
 function coordsInChildren(view, pos, side) {
-    if (!view.children.length)
-        return fallbackRect(view);
-    return (side <= 0 ? coordsInChildrenBefore : coordsInChildrenAfter)(view, pos);
-}
-function coordsInChildrenBefore(view, pos) {
-    // Find the last leaf in the tree that touches pos and doesn't have getSide() > 0
-    let found = null, foundPos = -1;
+    let before = null, beforePos = -1, after = null, afterPos = -1;
     function scan(view, pos) {
         for (let i = 0, off = 0; i < view.children.length && off <= pos; i++) {
             let child = view.children[i], end = off + child.length;
             if (end >= pos) {
                 if (child.children.length) {
-                    if (scan(child, pos - off))
-                        return true;
+                    scan(child, pos - off);
                 }
-                else if (end >= pos) {
-                    if (end == pos && child.getSide() > 0)
-                        return true;
-                    found = child;
-                    foundPos = pos - off;
+                else if (!after && (end > pos || off == end && child.getSide() > 0)) {
+                    after = child;
+                    afterPos = pos - off;
+                }
+                else if (off < pos || (off == end && child.getSide() < 0)) {
+                    before = child;
+                    beforePos = pos - off;
                 }
             }
             off = end;
         }
     }
     scan(view, pos);
-    return found ? found.coordsAt(Math.max(0, foundPos), -1) : coordsInChildrenAfter(view, pos);
-}
-function coordsInChildrenAfter(view, pos) {
-    // Find the first leaf in the tree that touches pos and doesn't have getSide() < 0
-    let found = null, foundPos = -1;
-    function scan(view, pos) {
-        for (let i = view.children.length - 1, off = view.length; i >= 0 && off >= pos; i--) {
-            let child = view.children[i];
-            off -= child.length;
-            if (off <= pos) {
-                if (child.children.length) {
-                    if (scan(child, pos - off))
-                        return true;
-                }
-                else if (off <= pos) {
-                    if (off == pos && child.getSide() < 0)
-                        return true;
-                    found = child;
-                    foundPos = pos - off;
-                }
-            }
-        }
-    }
-    scan(view, pos);
-    return found ? found.coordsAt(Math.max(0, foundPos), 1) : coordsInChildrenBefore(view, pos);
+    let target = (side < 0 ? before : after) || before || after;
+    if (target)
+        return target.coordsAt(Math.max(0, target == before ? beforePos : afterPos), side);
+    return fallbackRect(view);
 }
 function fallbackRect(view) {
     let last = view.dom.lastChild;
@@ -9699,6 +9673,15 @@ function applyDOMChange(view, domChange) {
             newSel = EditorSelection.single(newSel.main.anchor - 1, newSel.main.head - 1);
         change = { from: sel.from, to: sel.to, insert: Text.of([" "]) };
     }
+    else if (browser.chrome && change && change.from == change.to && change.from == sel.head &&
+        change.insert.toString() == "\n " && view.lineWrapping) {
+        // In Chrome, if you insert a space at the start of a wrapped
+        // line, it will actually insert a newline and a space, causing a
+        // bogus new line to be created in CodeMirror (#968)
+        if (newSel)
+            newSel = EditorSelection.single(newSel.main.anchor - 1, newSel.main.head - 1);
+        change = { from: sel.from, to: sel.to, insert: Text.of([" "]) };
+    }
     if (change) {
         let startState = view.state;
         if (browser.ios && view.inputState.flushIOSKey(view))
@@ -10623,16 +10606,18 @@ class EditorView {
                             logException(this.state, e);
                         }
                     }
-                if (this.viewState.scrollTarget) {
-                    this.docView.scrollIntoView(this.viewState.scrollTarget);
-                    this.viewState.scrollTarget = null;
-                    scrolled = true;
-                }
-                else {
-                    let diff = this.viewState.lineBlockAt(refBlock.from).top - refBlock.top;
-                    if (diff > 1 || diff < -1) {
-                        this.scrollDOM.scrollTop += diff;
+                if (this.viewState.editorHeight) {
+                    if (this.viewState.scrollTarget) {
+                        this.docView.scrollIntoView(this.viewState.scrollTarget);
+                        this.viewState.scrollTarget = null;
                         scrolled = true;
+                    }
+                    else {
+                        let diff = this.viewState.lineBlockAt(refBlock.from).top - refBlock.top;
+                        if (diff > 1 || diff < -1) {
+                            this.scrollDOM.scrollTop += diff;
+                            scrolled = true;
+                        }
                     }
                 }
                 if (redrawn)
@@ -13791,23 +13776,25 @@ class Modifier {
         let set = [], tag = new Tag(set, base, mods);
         for (let m of mods)
             m.instances.push(tag);
-        let configs = permute(mods);
+        let configs = powerSet(mods);
         for (let parent of base.set)
-            for (let config of configs)
-                set.push(Modifier.get(parent, config));
+            if (!parent.modified.length)
+                for (let config of configs)
+                    set.push(Modifier.get(parent, config));
         return tag;
     }
 }
 function sameArray(a, b) {
     return a.length == b.length && a.every((x, i) => x == b[i]);
 }
-function permute(array) {
-    let result = [array];
+function powerSet(array) {
+    let sets = [[]];
     for (let i = 0; i < array.length; i++) {
-        for (let a of permute(array.slice(0, i).concat(array.slice(i + 1))))
-            result.push(a);
+        for (let j = 0, e = sets.length; j < e; j++) {
+            sets.push(sets[j].concat(array[i]));
+        }
     }
-    return result;
+    return sets.sort((a, b) => b.length - a.length);
 }
 /// This function is used to add a set of tags to a language syntax
 /// via [`NodeSet.extend`](#common.NodeSet.extend) or
