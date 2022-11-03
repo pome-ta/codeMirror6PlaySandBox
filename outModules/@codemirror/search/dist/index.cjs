@@ -200,7 +200,7 @@ class RegExpCursor {
             if (match) {
                 let from = this.curLineStart + match.index, to = from + match[0].length;
                 this.matchPos = toCharEnd(this.text, to + (from == to ? 1 : 0));
-                if (from == this.curLine.length)
+                if (from == this.curLineStart + this.curLine.length)
                     this.nextLine();
                 if ((from < to || from > this.value.to) && (!this.test || this.test(from, to, match))) {
                     this.value = { from, to, match };
@@ -256,7 +256,7 @@ class MultilineRegExpCursor {
         this.matchPos = toCharEnd(text, from);
         this.re = new RegExp(query, baseFlags + ((options === null || options === void 0 ? void 0 : options.ignoreCase) ? "i" : ""));
         this.test = options === null || options === void 0 ? void 0 : options.test;
-        this.flat = FlattenedDoc.get(text, from, this.chunkEnd(from + 5000 /* Base */));
+        this.flat = FlattenedDoc.get(text, from, this.chunkEnd(from + 5000 /* Chunk.Base */));
     }
     chunkEnd(pos) {
         return pos >= this.to ? this.to : this.text.lineAt(pos).to;
@@ -594,8 +594,15 @@ class SearchQuery {
         this.regexp = !!config.regexp;
         this.replace = config.replace || "";
         this.valid = !!this.search && (!this.regexp || validRegExp(this.search));
-        this.unquoted = this.literal ? this.search : this.search.replace(/\\([nrt\\])/g, (_, ch) => ch == "n" ? "\n" : ch == "r" ? "\r" : ch == "t" ? "\t" : "\\");
+        this.unquoted = this.unquote(this.search);
         this.wholeWord = !!config.wholeWord;
+    }
+    /**
+    @internal
+    */
+    unquote(text) {
+        return this.literal ? text :
+            text.replace(/\\([nrt\\])/g, (_, ch) => ch == "n" ? "\n" : ch == "r" ? "\r" : ch == "t" ? "\t" : "\\");
     }
     /**
     Compare this query to another query.
@@ -636,10 +643,10 @@ function stringWordTest(doc, categorizer) {
             bufPos = Math.max(0, from - 2);
             buf = doc.sliceString(bufPos, Math.min(doc.length, to + 2));
         }
-        return categorizer(charAfter(buf, from - bufPos)) != state.CharCategory.Word ||
-            categorizer(charBefore(buf, to - bufPos)) != state.CharCategory.Word ||
-            (categorizer(charBefore(buf, from - bufPos)) != state.CharCategory.Word &&
-                categorizer(charAfter(buf, to - bufPos)) != state.CharCategory.Word);
+        return (categorizer(charBefore(buf, from - bufPos)) != state.CharCategory.Word ||
+            categorizer(charAfter(buf, from - bufPos)) != state.CharCategory.Word) &&
+            (categorizer(charAfter(buf, to - bufPos)) != state.CharCategory.Word ||
+                categorizer(charBefore(buf, to - bufPos)) != state.CharCategory.Word);
     };
 }
 class StringQuery extends QueryType {
@@ -656,7 +663,7 @@ class StringQuery extends QueryType {
     // cursor, done by scanning chunk after chunk forward.
     prevMatchInRange(state, from, to) {
         for (let pos = to;;) {
-            let start = Math.max(from, pos - 10000 /* ChunkSize */ - this.spec.unquoted.length);
+            let start = Math.max(from, pos - 10000 /* FindPrev.ChunkSize */ - this.spec.unquoted.length);
             let cursor = stringCursor(this.spec, state, start, pos), range = null;
             while (!cursor.nextOverlapping().done)
                 range = cursor.value;
@@ -664,14 +671,14 @@ class StringQuery extends QueryType {
                 return range;
             if (start == from)
                 return null;
-            pos -= 10000 /* ChunkSize */;
+            pos -= 10000 /* FindPrev.ChunkSize */;
         }
     }
     prevMatch(state, curFrom, curTo) {
         return this.prevMatchInRange(state, 0, curFrom) ||
             this.prevMatchInRange(state, curTo, state.doc.length);
     }
-    getReplacement(_result) { return this.spec.replace; }
+    getReplacement(_result) { return this.spec.unquote(this.spec.replace); }
     matchAll(state, limit) {
         let cursor = stringCursor(this.spec, state, 0, state.doc.length), ranges = [];
         while (!cursor.next().done) {
@@ -701,10 +708,10 @@ function charAfter(str, index) {
 }
 function regexpWordTest(categorizer) {
     return (_from, _to, match) => !match[0].length ||
-        categorizer(charAfter(match.input, match.index)) != state.CharCategory.Word ||
-        categorizer(charBefore(match.input, match.index + match[0].length)) != state.CharCategory.Word ||
-        (categorizer(charBefore(match.input, match.index)) != state.CharCategory.Word &&
-            categorizer(charAfter(match.input, match.index + match[0].length)) != state.CharCategory.Word);
+        (categorizer(charBefore(match.input, match.index)) != state.CharCategory.Word ||
+            categorizer(charAfter(match.input, match.index)) != state.CharCategory.Word) &&
+            (categorizer(charAfter(match.input, match.index + match[0].length)) != state.CharCategory.Word ||
+                categorizer(charBefore(match.input, match.index + match[0].length)) != state.CharCategory.Word);
 }
 class RegExpQuery extends QueryType {
     nextMatch(state, curFrom, curTo) {
@@ -715,7 +722,7 @@ class RegExpQuery extends QueryType {
     }
     prevMatchInRange(state, from, to) {
         for (let size = 1;; size++) {
-            let start = Math.max(from, to - size * 10000 /* ChunkSize */);
+            let start = Math.max(from, to - size * 10000 /* FindPrev.ChunkSize */);
             let cursor = regexpCursor(this.spec, state, start, to), range = null;
             while (!cursor.next().done)
                 range = cursor.value;
@@ -730,10 +737,10 @@ class RegExpQuery extends QueryType {
             this.prevMatchInRange(state, curTo, state.doc.length);
     }
     getReplacement(result) {
-        return this.spec.replace.replace(/\$([$&\d+])/g, (m, i) => i == "$" ? "$"
+        return this.spec.unquote(this.spec.replace.replace(/\$([$&\d+])/g, (m, i) => i == "$" ? "$"
             : i == "&" ? result.match[0]
                 : i != "0" && +i < result.match.length ? result.match[i]
-                    : m);
+                    : m));
     }
     matchAll(state, limit) {
         let cursor = regexpCursor(this.spec, state, 0, state.doc.length), ranges = [];
@@ -745,7 +752,7 @@ class RegExpQuery extends QueryType {
         return ranges;
     }
     highlight(state, from, to, add) {
-        let cursor = regexpCursor(this.spec, state, Math.max(0, from - 250 /* HighlightMargin */), Math.min(to + 250 /* HighlightMargin */, state.doc.length));
+        let cursor = regexpCursor(this.spec, state, Math.max(0, from - 250 /* RegExp.HighlightMargin */), Math.min(to + 250 /* RegExp.HighlightMargin */, state.doc.length));
         while (!cursor.next().done)
             add(cursor.value.from, cursor.value.to);
     }
@@ -812,7 +819,7 @@ const searchHighlighter = view.ViewPlugin.fromClass(class {
         let builder = new state.RangeSetBuilder();
         for (let i = 0, ranges = view$1.visibleRanges, l = ranges.length; i < l; i++) {
             let { from, to } = ranges[i];
-            while (i < l - 1 && to > ranges[i + 1].from - 2 * 250 /* HighlightMargin */)
+            while (i < l - 1 && to > ranges[i + 1].from - 2 * 250 /* RegExp.HighlightMargin */)
                 to = ranges[++i].to;
             query.highlight(view$1.state, from, to, (from, to) => {
                 let selected = view$1.state.selection.ranges.some(r => r.from == from && r.to == to);
@@ -1039,6 +1046,7 @@ class SearchPanel {
             "aria-label": phrase(view, "Find"),
             class: "cm-textfield",
             name: "search",
+            form: "",
             "main-field": "true",
             onchange: this.commit,
             onkeyup: this.commit
@@ -1049,24 +1057,28 @@ class SearchPanel {
             "aria-label": phrase(view, "Replace"),
             class: "cm-textfield",
             name: "replace",
+            form: "",
             onchange: this.commit,
             onkeyup: this.commit
         });
         this.caseField = elt__default["default"]("input", {
             type: "checkbox",
             name: "case",
+            form: "",
             checked: query.caseSensitive,
             onchange: this.commit
         });
         this.reField = elt__default["default"]("input", {
             type: "checkbox",
             name: "re",
+            form: "",
             checked: query.regexp,
             onchange: this.commit
         });
         this.wordField = elt__default["default"]("input", {
             type: "checkbox",
             name: "word",
+            form: "",
             checked: query.wholeWord,
             onchange: this.commit
         });

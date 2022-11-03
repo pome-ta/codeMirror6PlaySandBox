@@ -1,3 +1,23 @@
+## 6.3.0 (2022-09-22)
+
+### New features
+
+Close bracket configuration now supports a `stringPrefixes` property that can be used to allow autoclosing of prefixed strings.
+
+## 6.2.0 (2022-09-13)
+
+### New features
+
+Autocompletion now takes an `interactionDelay` option that can be used to control the delay between the time where completion opens and the time where commands like `acceptCompletion` affect it.
+
+## 6.1.1 (2022-09-08)
+
+### Bug fixes
+
+Fix a bug that prevented transactions produced by `deleteBracketPair` from being marked as deletion user events.
+
+Improve positioning of completion info tooltips so they are less likely to stick out of the screen on small displays.
+
 ## 6.1.0 (2022-07-19)
 
 ### New features
