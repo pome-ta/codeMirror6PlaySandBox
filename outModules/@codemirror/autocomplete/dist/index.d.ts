@@ -66,7 +66,8 @@ interface CompletionConfig {
     completion, and should produce a DOM node to show. `position`
     determines where in the DOM the result appears, relative to
     other added widgets and the standard content. The default icons
-    have position 20, the label position 50, and the detail position 70.
+    have position 20, the label position 50, and the detail position
+    80.
     */
     addToOptions?: {
         render: (completion: Completion, state: EditorState) => Node | null;
@@ -78,6 +79,13 @@ interface CompletionConfig {
     [`localeCompare`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare).
     */
     compareCompletions?: (a: Completion, b: Completion) => number;
+    /**
+    By default, commands relating to an open completion only take
+    effect 75 milliseconds after the completion opened, so that key
+    presses made before the user is aware of the tooltip don't go to
+    the tooltip. This option can be used to configure that delay.
+    */
+    interactionDelay?: number;
 }
 
 /**
@@ -397,6 +405,11 @@ interface CloseBracketConfig {
     whitespace. Defaults to `")]}:;>"`.
     */
     before?: string;
+    /**
+    When determining whether a given node may be a string, recognize
+    these prefixes before the opening quote.
+    */
+    stringPrefixes?: string[];
 }
 /**
 Extension to enable bracket-closing behavior. When a closeable

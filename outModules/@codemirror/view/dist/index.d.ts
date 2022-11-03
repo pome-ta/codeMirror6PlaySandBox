@@ -736,7 +736,7 @@ declare class EditorView {
     know you registered a given plugin, it is recommended to check
     the return value of this method.
     */
-    plugin<T>(plugin: ViewPlugin<T>): T | null;
+    plugin<T extends PluginValue>(plugin: ViewPlugin<T>): T | null;
     /**
     The top position of the document, in screen coordinates. This
     may be negative when the editor is scrolled down. Points
@@ -1054,6 +1054,11 @@ declare class EditorView {
     functions are called _after_ the new viewport has been computed,
     and thus **must not** introduce block widgets or replacing
     decorations that cover line breaks.
+    
+    If you want decorated ranges to behave like atomic units for
+    cursor motion and deletion purposes, also provide the range set
+    containing the decorations to
+    [`EditorView.atomicRanges`](https://codemirror.net/6/docs/ref/#view.EditorView^atomicRanges).
     */
     static decorations: Facet<DecorationSet | ((view: EditorView) => DecorationSet), readonly (DecorationSet | ((view: EditorView) => DecorationSet))[]>;
     /**
@@ -1214,13 +1219,18 @@ interface KeyBinding {
     command function returns `false`, further bindings will be tried
     for the key.
     */
-    run: Command;
+    run?: Command;
     /**
     When given, this defines a second binding, using the (possibly
     platform-specific) key name prefixed with `Shift-` to activate
     this command.
     */
     shift?: Command;
+    /**
+    When this property is present, the function is called for every
+    key that is not a multi-stroke prefix.
+    */
+    any?: (view: EditorView, event: KeyboardEvent) => boolean;
     /**
     By default, key bindings apply when focus is on the editor
     content (the `"editor"` scope). Some extensions, mostly those
@@ -1381,7 +1391,7 @@ declare class MatchDecorator {
         The decoration to apply to matches, either directly or as a
         function of the match.
         */
-        decoration?: Decoration | ((match: RegExpExecArray, view: EditorView, pos: number) => Decoration);
+        decoration?: Decoration | ((match: RegExpExecArray, view: EditorView, pos: number) => Decoration | null);
         /**
         Customize the way decorations are added for matches. This
         function, when given, will be called for matches and should
@@ -1568,6 +1578,11 @@ interface TooltipView {
     Update the DOM element for a change in the view's state.
     */
     update?(update: ViewUpdate): void;
+    /**
+    Called when the tooltip is removed from the editor or the editor
+    is destroyed.
+    */
+    destroy?(): void;
     /**
     Called when the tooltip has been (re)positioned.
     */

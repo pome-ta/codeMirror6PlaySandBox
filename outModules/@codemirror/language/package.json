@@ -1,41 +1,30 @@
 {
-  "_from": "@codemirror/language@^6.0.0",
-  "_id": "@codemirror/language@6.2.1",
-  "_inBundle": false,
-  "_integrity": "sha512-MC3svxuvIj0MRpFlGHxLS6vPyIdbTr2KKPEW46kCoCXw2ktb4NTkpkPBI/lSP/FoNXLCBJ0mrnUi1OoZxtpW1Q==",
-  "_location": "/@codemirror/language",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "range",
-    "registry": true,
-    "raw": "@codemirror/language@^6.0.0",
-    "name": "@codemirror/language",
-    "escapedName": "@codemirror%2flanguage",
-    "scope": "@codemirror",
-    "rawSpec": "^6.0.0",
-    "saveSpec": null,
-    "fetchSpec": "^6.0.0"
+  "name": "@codemirror/language",
+  "version": "6.3.0",
+  "description": "Language support infrastructure for the CodeMirror code editor",
+  "scripts": {
+    "test": "cm-runtests",
+    "prepare": "cm-buildhelper src/index.ts"
   },
-  "_requiredBy": [
-    "/@codemirror/autocomplete",
-    "/@codemirror/commands",
-    "/@codemirror/lang-javascript",
-    "/@codemirror/theme-one-dark",
-    "/codemirror"
+  "keywords": [
+    "editor",
+    "code"
   ],
-  "_resolved": "https://registry.npmjs.org/@codemirror/language/-/language-6.2.1.tgz",
-  "_shasum": "cb10cd785a76e50ecd2fe2dc59ff66af8a41b87a",
-  "_spec": "@codemirror/language@^6.0.0",
-  "_where": "/private/var/mobile/Containers/Shared/AppGroup/CD0D241D-A767-4CE7-823D-680C601C49D6/File Provider Storage/Repositories/codeMirror6PlaySandBox/node_modules/@codemirror/lang-javascript",
   "author": {
     "name": "Marijn Haverbeke",
     "email": "marijnh@gmail.com",
     "url": "http://marijnhaverbeke.nl"
   },
-  "bugs": {
-    "url": "https://github.com/codemirror/language/issues"
+  "type": "module",
+  "main": "dist/index.cjs",
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
   },
-  "bundleDependencies": false,
+  "types": "dist/index.d.ts",
+  "module": "dist/index.js",
+  "sideEffects": false,
+  "license": "MIT",
   "dependencies": {
     "@codemirror/state": "^6.0.0",
     "@codemirror/view": "^6.0.0",
@@ -44,35 +33,12 @@
     "@lezer/lr": "^1.0.0",
     "style-mod": "^4.0.0"
   },
-  "deprecated": false,
-  "description": "Language support infrastructure for the CodeMirror code editor",
   "devDependencies": {
     "@codemirror/buildhelper": "^0.1.5",
     "@lezer/javascript": "^1.0.0"
   },
-  "exports": {
-    "import": "./dist/index.js",
-    "require": "./dist/index.cjs"
-  },
-  "homepage": "https://github.com/codemirror/language#readme",
-  "keywords": [
-    "editor",
-    "code"
-  ],
-  "license": "MIT",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "name": "@codemirror/language",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codemirror/language.git"
-  },
-  "scripts": {
-    "prepare": "cm-buildhelper src/index.ts",
-    "test": "cm-runtests"
-  },
-  "sideEffects": false,
-  "type": "module",
-  "types": "dist/index.d.ts",
-  "version": "6.2.1"
+    "url": "https://github.com/codemirror/language.git"
+  }
 }

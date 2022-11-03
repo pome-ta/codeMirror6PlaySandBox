@@ -1,78 +1,47 @@
 {
-  "_from": "@codemirror/autocomplete@^6.0.0",
-  "_id": "@codemirror/autocomplete@6.1.0",
-  "_inBundle": false,
-  "_integrity": "sha512-wtO4O5WDyXhhCd4q4utDIDZxnQfmJ++3dGBCG9LMtI79+92OcA1DVk/n7BEupKmjIr8AzvptDz7YQ9ud6OkU+A==",
-  "_location": "/@codemirror/autocomplete",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "range",
-    "registry": true,
-    "raw": "@codemirror/autocomplete@^6.0.0",
-    "name": "@codemirror/autocomplete",
-    "escapedName": "@codemirror%2fautocomplete",
-    "scope": "@codemirror",
-    "rawSpec": "^6.0.0",
-    "saveSpec": null,
-    "fetchSpec": "^6.0.0"
+  "name": "@codemirror/autocomplete",
+  "version": "6.3.0",
+  "description": "Autocompletion for the CodeMirror code editor",
+  "scripts": {
+    "test": "cm-runtests",
+    "prepare": "cm-buildhelper src/index.ts"
   },
-  "_requiredBy": [
-    "/@codemirror/lang-javascript",
-    "/codemirror"
+  "keywords": [
+    "editor",
+    "code"
   ],
-  "_resolved": "https://registry.npmjs.org/@codemirror/autocomplete/-/autocomplete-6.1.0.tgz",
-  "_shasum": "7d3ca6d49e3a71cfd366c0af16172f5c128376eb",
-  "_spec": "@codemirror/autocomplete@^6.0.0",
-  "_where": "/private/var/mobile/Containers/Shared/AppGroup/CD0D241D-A767-4CE7-823D-680C601C49D6/File Provider Storage/Repositories/codeMirror6PlaySandBox/node_modules/@codemirror/lang-javascript",
   "author": {
     "name": "Marijn Haverbeke",
     "email": "marijnh@gmail.com",
     "url": "http://marijnhaverbeke.nl"
   },
-  "bugs": {
-    "url": "https://github.com/codemirror/autocomplete/issues"
+  "type": "module",
+  "main": "dist/index.cjs",
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
   },
-  "bundleDependencies": false,
+  "types": "dist/index.d.ts",
+  "module": "dist/index.js",
+  "sideEffects": false,
+  "license": "MIT",
   "dependencies": {
     "@codemirror/language": "^6.0.0",
     "@codemirror/state": "^6.0.0",
     "@codemirror/view": "^6.0.0",
     "@lezer/common": "^1.0.0"
   },
-  "deprecated": false,
-  "description": "Autocompletion for the CodeMirror code editor",
-  "devDependencies": {
-    "@codemirror/buildhelper": "^0.1.5"
-  },
-  "exports": {
-    "import": "./dist/index.js",
-    "require": "./dist/index.cjs"
-  },
-  "homepage": "https://github.com/codemirror/autocomplete#readme",
-  "keywords": [
-    "editor",
-    "code"
-  ],
-  "license": "MIT",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "name": "@codemirror/autocomplete",
   "peerDependencies": {
     "@codemirror/language": "^6.0.0",
     "@codemirror/state": "^6.0.0",
     "@codemirror/view": "^6.0.0",
     "@lezer/common": "^1.0.0"
   },
+  "devDependencies": {
+    "@codemirror/buildhelper": "^0.1.5"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codemirror/autocomplete.git"
-  },
-  "scripts": {
-    "prepare": "cm-buildhelper src/index.ts",
-    "test": "cm-runtests"
-  },
-  "sideEffects": false,
-  "type": "module",
-  "types": "dist/index.d.ts",
-  "version": "6.1.0"
+    "url": "https://github.com/codemirror/autocomplete.git"
+  }
 }

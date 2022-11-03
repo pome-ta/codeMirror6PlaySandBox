@@ -229,7 +229,7 @@ class FuzzyMatcher {
         if (chars.length == 1) {
             let first = codePointAt(word, 0);
             return first == chars[0] ? [0, 0, codePointSize(first)]
-                : first == folded[0] ? [-200 /* CaseFold */, 0, codePointSize(first)] : null;
+                : first == folded[0] ? [-200 /* Penalty.CaseFold */, 0, codePointSize(first)] : null;
         }
         let direct = word.indexOf(this.pattern);
         if (direct == 0)
@@ -257,7 +257,7 @@ class FuzzyMatcher {
         let adjacentTo = 0, adjacentStart = -1, adjacentEnd = -1;
         let hasLower = /[a-z]/.test(word), wordAdjacent = true;
         // Go over the option's text, scanning for the various kinds of matches
-        for (let i = 0, e = Math.min(word.length, 200), prevType = 0 /* NonWord */; i < e && byWordTo < len;) {
+        for (let i = 0, e = Math.min(word.length, 200), prevType = 0 /* Tp.NonWord */; i < e && byWordTo < len;) {
             let next = codePointAt(word, i);
             if (direct < 0) {
                 if (preciseTo < len && next == chars[preciseTo])
@@ -275,9 +275,9 @@ class FuzzyMatcher {
                 }
             }
             let ch, type = next < 0xff
-                ? (next >= 48 && next <= 57 || next >= 97 && next <= 122 ? 2 /* Lower */ : next >= 65 && next <= 90 ? 1 /* Upper */ : 0 /* NonWord */)
-                : ((ch = fromCodePoint(next)) != ch.toLowerCase() ? 1 /* Upper */ : ch != ch.toUpperCase() ? 2 /* Lower */ : 0 /* NonWord */);
-            if (!i || type == 1 /* Upper */ && hasLower || prevType == 0 /* NonWord */ && type != 0 /* NonWord */) {
+                ? (next >= 48 && next <= 57 || next >= 97 && next <= 122 ? 2 /* Tp.Lower */ : next >= 65 && next <= 90 ? 1 /* Tp.Upper */ : 0 /* Tp.NonWord */)
+                : ((ch = fromCodePoint(next)) != ch.toLowerCase() ? 1 /* Tp.Upper */ : ch != ch.toUpperCase() ? 2 /* Tp.Lower */ : 0 /* Tp.NonWord */);
+            if (!i || type == 1 /* Tp.Upper */ && hasLower || prevType == 0 /* Tp.NonWord */ && type != 0 /* Tp.NonWord */) {
                 if (chars[byWordTo] == next || (folded[byWordTo] == next && (byWordFolded = true)))
                     byWord[byWordTo++] = i;
                 else if (byWord.length)
@@ -287,17 +287,17 @@ class FuzzyMatcher {
             i += codePointSize(next);
         }
         if (byWordTo == len && byWord[0] == 0 && wordAdjacent)
-            return this.result(-100 /* ByWord */ + (byWordFolded ? -200 /* CaseFold */ : 0), byWord, word);
+            return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0), byWord, word);
         if (adjacentTo == len && adjacentStart == 0)
-            return [-200 /* CaseFold */ - word.length, 0, adjacentEnd];
+            return [-200 /* Penalty.CaseFold */ - word.length, 0, adjacentEnd];
         if (direct > -1)
-            return [-700 /* NotStart */ - word.length, direct, direct + this.pattern.length];
+            return [-700 /* Penalty.NotStart */ - word.length, direct, direct + this.pattern.length];
         if (adjacentTo == len)
-            return [-200 /* CaseFold */ + -700 /* NotStart */ - word.length, adjacentStart, adjacentEnd];
+            return [-200 /* Penalty.CaseFold */ + -700 /* Penalty.NotStart */ - word.length, adjacentStart, adjacentEnd];
         if (byWordTo == len)
-            return this.result(-100 /* ByWord */ + (byWordFolded ? -200 /* CaseFold */ : 0) + -700 /* NotStart */ +
-                (wordAdjacent ? 0 : -1100 /* Gap */), byWord, word);
-        return chars.length == 2 ? null : this.result((any[0] ? -700 /* NotStart */ : 0) + -200 /* CaseFold */ + -1100 /* Gap */, any, word);
+            return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0) + -700 /* Penalty.NotStart */ +
+                (wordAdjacent ? 0 : -1100 /* Penalty.Gap */), byWord, word);
+        return chars.length == 2 ? null : this.result((any[0] ? -700 /* Penalty.NotStart */ : 0) + -200 /* Penalty.CaseFold */ + -1100 /* Penalty.Gap */, any, word);
     }
     result(score, positions, word) {
         let result = [score - word.length], i = 1;
@@ -327,7 +327,8 @@ const completionConfig = /*@__PURE__*/Facet.define({
             aboveCursor: false,
             icons: true,
             addToOptions: [],
-            compareCompletions: (a, b) => a.label.localeCompare(b.label)
+            compareCompletions: (a, b) => a.label.localeCompare(b.label),
+            interactionDelay: 75
         }, {
             defaultKeymap: (a, b) => a && b,
             closeOnBlur: (a, b) => a && b,
@@ -443,7 +444,7 @@ class CompletionTooltip {
     }
     updateSel() {
         let cState = this.view.state.field(this.stateField), open = cState.open;
-        if (open.selected < this.range.from || open.selected >= this.range.to) {
+        if (open.selected > -1 && open.selected < this.range.from || open.selected >= this.range.to) {
             this.range = rangeAroundSelected(open.options.length, open.selected, this.view.state.facet(completionConfig).maxRenderedOptions);
             this.list.remove();
             this.list = this.dom.appendChild(this.createListBox(open.options, cState.id, this.range));
@@ -504,26 +505,47 @@ class CompletionTooltip {
         let sel = this.dom.querySelector("[aria-selected]");
         if (!sel || !this.info)
             return null;
+        let win = this.dom.ownerDocument.defaultView || window;
         let listRect = this.dom.getBoundingClientRect();
         let infoRect = this.info.getBoundingClientRect();
         let selRect = sel.getBoundingClientRect();
-        if (selRect.top > Math.min(innerHeight, listRect.bottom) - 10 || selRect.bottom < Math.max(0, listRect.top) + 10)
+        if (selRect.top > Math.min(win.innerHeight, listRect.bottom) - 10 || selRect.bottom < Math.max(0, listRect.top) + 10)
             return null;
-        let top = Math.max(0, Math.min(selRect.top, innerHeight - infoRect.height)) - listRect.top;
-        let left = this.view.textDirection == Direction.RTL;
-        let spaceLeft = listRect.left, spaceRight = innerWidth - listRect.right;
+        let rtl = this.view.textDirection == Direction.RTL, left = rtl, narrow = false, maxWidth;
+        let top = "", bottom = "";
+        let spaceLeft = listRect.left, spaceRight = win.innerWidth - listRect.right;
         if (left && spaceLeft < Math.min(infoRect.width, spaceRight))
             left = false;
         else if (!left && spaceRight < Math.min(infoRect.width, spaceLeft))
             left = true;
-        return { top, left };
+        if (infoRect.width <= (left ? spaceLeft : spaceRight)) {
+            top = (Math.max(0, Math.min(selRect.top, win.innerHeight - infoRect.height)) - listRect.top) + "px";
+            maxWidth = Math.min(400 /* Info.Width */, left ? spaceLeft : spaceRight) + "px";
+        }
+        else {
+            narrow = true;
+            maxWidth = Math.min(400 /* Info.Width */, (rtl ? listRect.right : win.innerWidth - listRect.left) - 30 /* Info.Margin */) + "px";
+            let spaceBelow = win.innerHeight - listRect.bottom;
+            if (spaceBelow >= infoRect.height || spaceBelow > listRect.top) // Below the completion
+                top = (selRect.bottom - listRect.top) + "px";
+            else // Above it
+                bottom = (listRect.bottom - selRect.top) + "px";
+        }
+        return {
+            top, bottom, maxWidth,
+            class: narrow ? (rtl ? "left-narrow" : "right-narrow") : left ? "left" : "right",
+        };
     }
     positionInfo(pos) {
         if (this.info) {
-            this.info.style.top = (pos ? pos.top : -1e6) + "px";
             if (pos) {
-                this.info.classList.toggle("cm-completionInfo-left", pos.left);
-                this.info.classList.toggle("cm-completionInfo-right", !pos.left);
+                this.info.style.top = pos.top;
+                this.info.style.bottom = pos.bottom;
+                this.info.style.maxWidth = pos.maxWidth;
+                this.info.className = "cm-tooltip cm-completionInfo cm-completionInfo-" + pos.class;
+            }
+            else {
+                this.info.style.top = "-1e6px";
             }
         }
     }
@@ -661,7 +683,7 @@ class CompletionState {
             state.languageDataAt("autocomplete", cur(state)).map(asSource);
         let active = sources.map(source => {
             let value = this.active.find(s => s.source == source) ||
-                new ActiveSource(source, this.active.some(a => a.state != 0 /* Inactive */) ? 1 /* Pending */ : 0 /* Inactive */);
+                new ActiveSource(source, this.active.some(a => a.state != 0 /* State.Inactive */) ? 1 /* State.Pending */ : 0 /* State.Inactive */);
             return value.update(tr, conf);
         });
         if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
@@ -669,8 +691,8 @@ class CompletionState {
         let open = tr.selection || active.some(a => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) ||
             !sameResults(active, this.active) ? CompletionDialog.build(active, state, this.id, this.open, conf)
             : this.open && tr.docChanged ? this.open.map(tr.changes) : this.open;
-        if (!open && active.every(a => a.state != 1 /* Pending */) && active.some(a => a.hasResult()))
-            active = active.map(a => a.hasResult() ? new ActiveSource(a.source, 0 /* Inactive */) : a);
+        if (!open && active.every(a => a.state != 1 /* State.Pending */) && active.some(a => a.hasResult()))
+            active = active.map(a => a.hasResult() ? new ActiveSource(a.source, 0 /* State.Inactive */) : a);
         for (let effect of tr.effects)
             if (effect.is(setSelectedEffect))
                 open = open && open.setSelected(effect.value, this.id);
@@ -724,13 +746,13 @@ class ActiveSource {
             value = value.handleUserEvent(tr, event, conf);
         else if (tr.docChanged)
             value = value.handleChange(tr);
-        else if (tr.selection && value.state != 0 /* Inactive */)
-            value = new ActiveSource(value.source, 0 /* Inactive */);
+        else if (tr.selection && value.state != 0 /* State.Inactive */)
+            value = new ActiveSource(value.source, 0 /* State.Inactive */);
         for (let effect of tr.effects) {
             if (effect.is(startCompletionEffect))
-                value = new ActiveSource(value.source, 1 /* Pending */, effect.value ? cur(tr.state) : -1);
+                value = new ActiveSource(value.source, 1 /* State.Pending */, effect.value ? cur(tr.state) : -1);
             else if (effect.is(closeCompletionEffect))
-                value = new ActiveSource(value.source, 0 /* Inactive */);
+                value = new ActiveSource(value.source, 0 /* State.Inactive */);
             else if (effect.is(setActiveEffect))
                 for (let active of effect.value)
                     if (active.source == value.source)
@@ -739,10 +761,10 @@ class ActiveSource {
         return value;
     }
     handleUserEvent(tr, type, conf) {
-        return type == "delete" || !conf.activateOnTyping ? this.map(tr.changes) : new ActiveSource(this.source, 1 /* Pending */);
+        return type == "delete" || !conf.activateOnTyping ? this.map(tr.changes) : new ActiveSource(this.source, 1 /* State.Pending */);
     }
     handleChange(tr) {
-        return tr.changes.touchesRange(cur(tr.startState)) ? new ActiveSource(this.source, 0 /* Inactive */) : this.map(tr.changes);
+        return tr.changes.touchesRange(cur(tr.startState)) ? new ActiveSource(this.source, 0 /* State.Inactive */) : this.map(tr.changes);
     }
     map(changes) {
         return changes.empty || this.explicitPos < 0 ? this : new ActiveSource(this.source, this.state, changes.mapPos(this.explicitPos));
@@ -750,7 +772,7 @@ class ActiveSource {
 }
 class ActiveResult extends ActiveSource {
     constructor(source, explicitPos, result, from, to) {
-        super(source, 2 /* Result */, explicitPos);
+        super(source, 2 /* State.Result */, explicitPos);
         this.result = result;
         this.from = from;
         this.to = to;
@@ -763,17 +785,17 @@ class ActiveResult extends ActiveSource {
         if ((this.explicitPos < 0 ? pos <= from : pos < this.from) ||
             pos > to ||
             type == "delete" && cur(tr.startState) == this.from)
-            return new ActiveSource(this.source, type == "input" && conf.activateOnTyping ? 1 /* Pending */ : 0 /* Inactive */);
+            return new ActiveSource(this.source, type == "input" && conf.activateOnTyping ? 1 /* State.Pending */ : 0 /* State.Inactive */);
         let explicitPos = this.explicitPos < 0 ? -1 : tr.changes.mapPos(this.explicitPos), updated;
         if (checkValid(this.result.validFor, tr.state, from, to))
             return new ActiveResult(this.source, explicitPos, this.result, from, to);
         if (this.result.update &&
             (updated = this.result.update(this.result, from, to, new CompletionContext(tr.state, pos, explicitPos >= 0))))
             return new ActiveResult(this.source, explicitPos, updated, updated.from, (_a = updated.to) !== null && _a !== void 0 ? _a : cur(tr.state));
-        return new ActiveSource(this.source, 1 /* Pending */, explicitPos);
+        return new ActiveSource(this.source, 1 /* State.Pending */, explicitPos);
     }
     handleChange(tr) {
-        return tr.changes.touchesRange(this.from, this.to) ? new ActiveSource(this.source, 0 /* Inactive */) : this.map(tr.changes);
+        return tr.changes.touchesRange(this.from, this.to) ? new ActiveSource(this.source, 0 /* State.Inactive */) : this.map(tr.changes);
     }
     map(mapping) {
         return mapping.empty ? this :
@@ -801,7 +823,6 @@ const completionState = /*@__PURE__*/StateField.define({
     ]
 });
 
-const CompletionInteractMargin = 75;
 /**
 Returns a command that moves the completion selection forward or
 backward by the given amount.
@@ -809,7 +830,8 @@ backward by the given amount.
 function moveCompletionSelection(forward, by = "option") {
     return (view) => {
         let cState = view.state.field(completionState, false);
-        if (!cState || !cState.open || Date.now() - cState.open.timestamp < CompletionInteractMargin)
+        if (!cState || !cState.open ||
+            Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
             return false;
         let step = 1, tooltip;
         if (by == "page" && (tooltip = getTooltip(view, cState.open.tooltip)))
@@ -830,8 +852,8 @@ Accept the current completion.
 */
 const acceptCompletion = (view) => {
     let cState = view.state.field(completionState, false);
-    if (view.state.readOnly || !cState || !cState.open || Date.now() - cState.open.timestamp < CompletionInteractMargin ||
-        cState.open.selected < 0)
+    if (view.state.readOnly || !cState || !cState.open || cState.open.selected < 0 ||
+        Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
         return false;
     applyCompletion(view, cState.open.options[cState.open.selected]);
     return true;
@@ -851,7 +873,7 @@ Close the currently active completion.
 */
 const closeCompletion = (view) => {
     let cState = view.state.field(completionState, false);
-    if (!cState || !cState.active.some(a => a.state != 0 /* Inactive */))
+    if (!cState || !cState.active.some(a => a.state != 0 /* State.Inactive */))
         return false;
     view.dispatch({ effects: closeCompletionEffect.of(null) });
     return true;
@@ -874,9 +896,9 @@ const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
         this.debounceUpdate = -1;
         this.running = [];
         this.debounceAccept = -1;
-        this.composing = 0 /* None */;
+        this.composing = 0 /* CompositionState.None */;
         for (let active of view.state.field(completionState).active)
-            if (active.state == 1 /* Pending */)
+            if (active.state == 1 /* State.Pending */)
                 this.startQuery(active);
     }
     update(update) {
@@ -907,21 +929,21 @@ const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
         }
         if (this.debounceUpdate > -1)
             clearTimeout(this.debounceUpdate);
-        this.debounceUpdate = cState.active.some(a => a.state == 1 /* Pending */ && !this.running.some(q => q.active.source == a.source))
+        this.debounceUpdate = cState.active.some(a => a.state == 1 /* State.Pending */ && !this.running.some(q => q.active.source == a.source))
             ? setTimeout(() => this.startUpdate(), DebounceTime) : -1;
-        if (this.composing != 0 /* None */)
+        if (this.composing != 0 /* CompositionState.None */)
             for (let tr of update.transactions) {
                 if (getUserEvent(tr) == "input")
-                    this.composing = 2 /* Changed */;
-                else if (this.composing == 2 /* Changed */ && tr.selection)
-                    this.composing = 3 /* ChangedAndMoved */;
+                    this.composing = 2 /* CompositionState.Changed */;
+                else if (this.composing == 2 /* CompositionState.Changed */ && tr.selection)
+                    this.composing = 3 /* CompositionState.ChangedAndMoved */;
             }
     }
     startUpdate() {
         this.debounceUpdate = -1;
         let { state } = this.view, cState = state.field(completionState);
         for (let active of cState.active) {
-            if (active.state == 1 /* Pending */ && !this.running.some(r => r.active.source == active.source))
+            if (active.state == 1 /* State.Pending */ && !this.running.some(r => r.active.source == active.source))
                 this.startQuery(active);
         }
     }
@@ -972,14 +994,14 @@ const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
                 }
             }
             let current = this.view.state.field(completionState).active.find(a => a.source == query.active.source);
-            if (current && current.state == 1 /* Pending */) {
+            if (current && current.state == 1 /* State.Pending */) {
                 if (query.done == null) {
                     // Explicitly failed. Should clear the pending status if it
                     // hasn't been re-set in the meantime.
-                    let active = new ActiveSource(query.active.source, 0 /* Inactive */);
+                    let active = new ActiveSource(query.active.source, 0 /* State.Inactive */);
                     for (let tr of query.updates)
                         active = active.update(tr, conf);
-                    if (active.state != 1 /* Pending */)
+                    if (active.state != 1 /* State.Pending */)
                         updated.push(active);
                 }
                 else {
@@ -999,15 +1021,15 @@ const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
                 this.view.dispatch({ effects: closeCompletionEffect.of(null) });
         },
         compositionstart() {
-            this.composing = 1 /* Started */;
+            this.composing = 1 /* CompositionState.Started */;
         },
         compositionend() {
-            if (this.composing == 3 /* ChangedAndMoved */) {
+            if (this.composing == 3 /* CompositionState.ChangedAndMoved */) {
                 // Safari fires compositionend events synchronously, possibly
                 // from inside an update, so dispatch asynchronously to avoid reentrancy
                 setTimeout(() => this.view.dispatch({ effects: startCompletionEffect.of(false) }), 20);
             }
-            this.composing = 0 /* None */;
+            this.composing = 0 /* CompositionState.None */;
         }
     }
 });
@@ -1052,16 +1074,20 @@ const baseTheme = /*@__PURE__*/EditorView.baseTheme({
         position: "absolute",
         padding: "3px 9px",
         width: "max-content",
-        maxWidth: "300px",
+        maxWidth: `${400 /* Info.Width */}px`,
+        boxSizing: "border-box"
     },
     ".cm-completionInfo.cm-completionInfo-left": { right: "100%" },
     ".cm-completionInfo.cm-completionInfo-right": { left: "100%" },
+    ".cm-completionInfo.cm-completionInfo-left-narrow": { right: `${30 /* Info.Margin */}px` },
+    ".cm-completionInfo.cm-completionInfo-right-narrow": { left: `${30 /* Info.Margin */}px` },
     "&light .cm-snippetField": { backgroundColor: "#00000022" },
     "&dark .cm-snippetField": { backgroundColor: "#ffffff22" },
     ".cm-snippetFieldPosition": {
         verticalAlign: "text-top",
         width: 0,
         height: "1.15em",
+        display: "inline-block",
         margin: "0 -0.7px -.7em",
         borderLeft: "1.4px dotted #888"
     },
@@ -1390,7 +1416,7 @@ function storeWords(doc, wordRE, result, seen, ignoreAt) {
             if (!seen[m[0]] && pos + m.index != ignoreAt) {
                 result.push({ type: "text", label: m[0] });
                 seen[m[0]] = true;
-                if (result.length >= 2000 /* MaxList */)
+                if (result.length >= 2000 /* C.MaxList */)
                     return;
             }
         }
@@ -1398,7 +1424,7 @@ function storeWords(doc, wordRE, result, seen, ignoreAt) {
     }
 }
 function collectWords(doc, cache, wordRE, to, ignoreAt) {
-    let big = doc.length >= 1000 /* MinCacheLen */;
+    let big = doc.length >= 1000 /* C.MinCacheLen */;
     let cached = big && cache.get(doc);
     if (cached)
         return cached;
@@ -1406,7 +1432,7 @@ function collectWords(doc, cache, wordRE, to, ignoreAt) {
     if (doc.children) {
         let pos = 0;
         for (let ch of doc.children) {
-            if (ch.length >= 1000 /* MinCacheLen */) {
+            if (ch.length >= 1000 /* C.MinCacheLen */) {
                 for (let c of collectWords(ch, cache, wordRE, to - pos, ignoreAt - pos)) {
                     if (!seen[c.label]) {
                         seen[c.label] = true;
@@ -1423,7 +1449,7 @@ function collectWords(doc, cache, wordRE, to, ignoreAt) {
     else {
         storeWords(doc, wordRE, result, seen, ignoreAt);
     }
-    if (big && result.length < 2000 /* MaxList */)
+    if (big && result.length < 2000 /* C.MaxList */)
         cache.set(doc, result);
     return result;
 }
@@ -1439,13 +1465,14 @@ const completeAnyWord = context => {
     if (!token && !context.explicit)
         return null;
     let from = token ? token.from : context.pos;
-    let options = collectWords(context.state.doc, wordCache(wordChars), re, 50000 /* Range */, from);
+    let options = collectWords(context.state.doc, wordCache(wordChars), re, 50000 /* C.Range */, from);
     return { from, options, validFor: mapRE(re, s => "^" + s) };
 };
 
 const defaults = {
     brackets: ["(", "[", "{", "'", '"'],
-    before: ")]}:;>"
+    before: ")]}:;>",
+    stringPrefixes: []
 };
 const closeBracketEffect = /*@__PURE__*/StateEffect.define({
     map(value, mapping) {
@@ -1528,14 +1555,13 @@ const deleteBracketPair = ({ state, dispatch }) => {
             for (let token of tokens) {
                 if (token == before && nextChar(state.doc, range.head) == closing(codePointAt(token, 0)))
                     return { changes: { from: range.head - token.length, to: range.head + token.length },
-                        range: EditorSelection.cursor(range.head - token.length),
-                        userEvent: "delete.backward" };
+                        range: EditorSelection.cursor(range.head - token.length) };
             }
         }
         return { range: dont = range };
     });
     if (!dont)
-        dispatch(state.update(changes, { scrollIntoView: true }));
+        dispatch(state.update(changes, { scrollIntoView: true, userEvent: "delete.backward" }));
     return !dont;
 };
 /**
@@ -1562,7 +1588,7 @@ function insertBracket(state, bracket) {
     for (let tok of tokens) {
         let closed = closing(codePointAt(tok, 0));
         if (bracket == tok)
-            return closed == tok ? handleSame(state, tok, tokens.indexOf(tok + tok + tok) > -1)
+            return closed == tok ? handleSame(state, tok, tokens.indexOf(tok + tok + tok) > -1, conf)
                 : handleOpen(state, tok, closed, conf.before || defaults.before);
         if (bracket == closed && closedBracketAt(state, state.selection.main.from))
             return handleClose(state, tok, closed);
@@ -1617,13 +1643,14 @@ function handleClose(state, _open, close) {
 }
 // Handles cases where the open and close token are the same, and
 // possibly triple quotes (as in `"""abc"""`-style quoting).
-function handleSame(state, token, allowTriple) {
+function handleSame(state, token, allowTriple, config) {
+    let stringPrefixes = config.stringPrefixes || defaults.stringPrefixes;
     let dont = null, changes = state.changeByRange(range => {
         if (!range.empty)
             return { changes: [{ insert: token, from: range.from }, { insert: token, from: range.to }],
                 effects: closeBracketEffect.of(range.to + token.length),
                 range: EditorSelection.range(range.anchor + token.length, range.head + token.length) };
-        let pos = range.head, next = nextChar(state.doc, pos);
+        let pos = range.head, next = nextChar(state.doc, pos), start;
         if (next == token) {
             if (nodeStart(state, pos)) {
                 return { changes: { insert: token + token, from: pos },
@@ -1637,14 +1664,14 @@ function handleSame(state, token, allowTriple) {
             }
         }
         else if (allowTriple && state.sliceDoc(pos - 2 * token.length, pos) == token + token &&
-            nodeStart(state, pos - 2 * token.length)) {
+            (start = canStartStringAt(state, pos - 2 * token.length, stringPrefixes)) > -1 &&
+            nodeStart(state, start)) {
             return { changes: { insert: token + token + token + token, from: pos },
                 effects: closeBracketEffect.of(pos + token.length),
                 range: EditorSelection.cursor(pos + token.length) };
         }
         else if (state.charCategorizer(pos)(next) != CharCategory.Word) {
-            let prev = state.sliceDoc(pos - 1, pos);
-            if (prev != token && state.charCategorizer(pos)(prev) != CharCategory.Word && !probablyInString(state, pos, token))
+            if (canStartStringAt(state, pos, stringPrefixes) > -1 && !probablyInString(state, pos, token, stringPrefixes))
                 return { changes: { insert: token + token, from: pos },
                     effects: closeBracketEffect.of(pos + token.length),
                     range: EditorSelection.cursor(pos + token.length) };
@@ -1660,12 +1687,15 @@ function nodeStart(state, pos) {
     let tree = syntaxTree(state).resolveInner(pos + 1);
     return tree.parent && tree.from == pos;
 }
-function probablyInString(state, pos, quoteToken) {
+function probablyInString(state, pos, quoteToken, prefixes) {
     let node = syntaxTree(state).resolveInner(pos, -1);
+    let maxPrefix = prefixes.reduce((m, p) => Math.max(m, p.length), 0);
     for (let i = 0; i < 5; i++) {
-        if (state.sliceDoc(node.from, node.from + quoteToken.length) == quoteToken) {
+        let start = state.sliceDoc(node.from, Math.min(node.to, node.from + quoteToken.length + maxPrefix));
+        let quotePos = start.indexOf(quoteToken);
+        if (!quotePos || quotePos > -1 && prefixes.indexOf(start.slice(0, quotePos)) > -1) {
             let first = node.firstChild;
-            while (first && first.from == node.from && first.to - first.from > quoteToken.length) {
+            while (first && first.from == node.from && first.to - first.from > quoteToken.length + quotePos) {
                 if (state.sliceDoc(first.to - quoteToken.length, first.to) == quoteToken)
                     return false;
                 first = first.firstChild;
@@ -1678,6 +1708,17 @@ function probablyInString(state, pos, quoteToken) {
         node = parent;
     }
     return false;
+}
+function canStartStringAt(state, pos, prefixes) {
+    let charCat = state.charCategorizer(pos);
+    if (charCat(state.sliceDoc(pos - 1, pos)) != CharCategory.Word)
+        return pos;
+    for (let prefix of prefixes) {
+        let start = pos - prefix.length;
+        if (state.sliceDoc(start, pos) == prefix && charCat(state.sliceDoc(start - 1, start)) != CharCategory.Word)
+            return start;
+    }
+    return -1;
 }
 
 /**
@@ -1721,8 +1762,8 @@ returns `null`.
 */
 function completionStatus(state) {
     let cState = state.field(completionState, false);
-    return cState && cState.active.some(a => a.state == 1 /* Pending */) ? "pending"
-        : cState && cState.active.some(a => a.state != 0 /* Inactive */) ? "active" : null;
+    return cState && cState.active.some(a => a.state == 1 /* State.Pending */) ? "pending"
+        : cState && cState.active.some(a => a.state != 0 /* State.Inactive */) ? "active" : null;
 }
 const completionArrayCache = /*@__PURE__*/new WeakMap;
 /**

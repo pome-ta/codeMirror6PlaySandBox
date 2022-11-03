@@ -1,3 +1,79 @@
+## 6.4.0 (2022-10-18)
+
+### Bug fixes
+
+Avoid an issue where `scrollPastEnd` makes a single-line editor have a vertical scrollbar.
+
+Work around a Chrome bug where it inserts a newline when you press space at the start of a wrapped line.
+
+Align `rectangularSelection`'s behavior with other popular editors by making it create cursors at the end of lines that are too short to touch the rectangle.
+
+Fix an issue where coordinates on mark decoration boundaries were sometimes taken from the wrong side of the position.
+
+Prevent scrolling artifacts caused by attempts to scroll stuff into view when the editor isn't being displayed.
+
+### New features
+
+`TooltipView` objects can now provide a `destroy` method to be called when the tooltip is removed.
+
+## 6.3.1 (2022-10-10)
+
+### Bug fixes
+
+Fix a crash when trying to scroll something into view in an editor that wasn't in the visible DOM.
+
+Fix an issue where `coordsAtPos` returned the coordinates on the wrong side of a widget decoration wrapped in a mark decoration.
+
+Fix an issue where content on long wrapped lines could fail to properly scroll into view.
+
+Fix an issue where DOM change reading on Chrome Android could get confused when a transaction came in right after a beforeinput event for backspace, enter, or delete.
+
+## 6.3.0 (2022-09-28)
+
+### Bug fixes
+
+Reduce the amount of wrap-point jittering when scrolling through a very long wrapped line.
+
+Fix an issue where scrolling to content that wasn't currently drawn due to being on a very long line would often fail to scroll to the right position.
+
+Suppress double-space-adds-period behavior on Chrome Mac when it behaves weirdly next to widget.
+
+### New features
+
+Key binding objects with an `any` property will now add handlers that are called for any key, within the ordering of the keybindings.
+
+## 6.2.5 (2022-09-24)
+
+### Bug fixes
+
+Don't override double/triple tap behavior on touch screen devices, so that the mobile selection menu pops up properly.
+
+Fix an issue where updating the selection could crash on Safari when the editor was hidden.
+
+## 6.2.4 (2022-09-16)
+
+### Bug fixes
+
+Highlight the active line even when there is a selection. Prevent the active line background from obscuring the selection backdrop.
+
+Fix an issue where elements with negative margins would confuse the editor's scrolling-into-view logic.
+
+Fix scrolling to a specific position in an editor that has not been in view yet.
+
+## 6.2.3 (2022-09-08)
+
+### Bug fixes
+
+Fix a bug where cursor motion, when starting from a non-empty selection range, could get stuck on atomic ranges in some circumstances.
+
+Avoid triggering Chrome Android's text-duplication issue when a period is typed in the middle of a word.
+
+## 6.2.2 (2022-08-31)
+
+### Bug fixes
+
+Don't reset the selection for selection change events that were suppressed by a node view.
+
 ## 6.2.1 (2022-08-25)
 
 ### Bug fixes

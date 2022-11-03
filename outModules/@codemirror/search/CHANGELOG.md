@@ -1,3 +1,19 @@
+## 6.2.2 (2022-10-18)
+
+### Bug fixes
+
+When `literal` is off, \n, \r, and \t escapes are now also supported in replacement text.
+
+Make sure search dialog inputs don't get treated as form fields when the editor is created inside a form.
+
+Fix a bug in `RegExpCursor` that would cause it to stop matching in the middle of a line when its current match position was equal to the length of the line.
+
+## 6.2.1 (2022-09-26)
+
+### Bug fixes
+
+By-word search queries will now skip any result that had word characters both before and after a match boundary.
+
 ## 6.2.0 (2022-08-25)
 
 ### New features
@@ -14,7 +30,7 @@ Fix an infinite loop when the match position of a `RegExpCursor` ended up in the
 
 ### New features
 
-The `literal` search option can now be set to make literal queries the default. Move out of surrogate pairs when tracking match position in RegExpCursor
+The `literal` search option can now be set to make literal queries the default.
 
 The new `searchPanelOpen` function can be used to find out whether the search panel is open for a given state.
 
