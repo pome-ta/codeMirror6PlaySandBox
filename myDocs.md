@@ -1,4 +1,4 @@
-# 私的なDocumentation
+# 私的な Documentation
 
 ## 整理
 
