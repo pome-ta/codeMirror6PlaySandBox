@@ -191,6 +191,26 @@ function scrollRectIntoView(dom, rect, side, x, y, xMargin, yMargin, ltr) {
         }
     }
 }
+function scrollableParent(dom) {
+    let doc = dom.ownerDocument;
+    for (let cur = dom.parentNode; cur;) {
+        if (cur == doc.body) {
+            break;
+        }
+        else if (cur.nodeType == 1) {
+            if (cur.scrollHeight > cur.clientHeight || cur.scrollWidth > cur.clientWidth)
+                return cur;
+            cur = cur.assignedSlot || cur.parentNode;
+        }
+        else if (cur.nodeType == 11) {
+            cur = cur.host;
+        }
+        else {
+            break;
+        }
+    }
+    return null;
+}
 class DOMSelectionState {
     constructor() {
         this.anchorNode = null;
@@ -875,7 +895,7 @@ class WidgetView extends ContentView {
             if (pos > 0 ? i == 0 : i == rects.length - 1 || rect.top < rect.bottom)
                 break;
         }
-        return flattenRect(rect, this.side > 0);
+        return this.length ? rect : flattenRect(rect, this.side > 0);
     }
     get isEditable() { return false; }
     destroy() {
@@ -1603,6 +1623,7 @@ class ContentBuilder {
         this.curLine = null;
         this.breakAtStart = 0;
         this.pendingBuffer = 0 /* Buf.No */;
+        this.bufferMarks = [];
         // Set to false directly after a widget that covers the position after it
         this.atCursorPos = true;
         this.openStart = -1;
@@ -1625,20 +1646,20 @@ class ContentBuilder {
         }
         return this.curLine;
     }
-    flushBuffer(active) {
+    flushBuffer(active = this.bufferMarks) {
         if (this.pendingBuffer) {
             this.curLine.append(wrapMarks(new WidgetBufferView(-1), active), active.length);
             this.pendingBuffer = 0 /* Buf.No */;
         }
     }
     addBlockWidget(view) {
-        this.flushBuffer([]);
+        this.flushBuffer();
         this.curLine = null;
         this.content.push(view);
     }
     finish(openEnd) {
-        if (!openEnd)
-            this.flushBuffer([]);
+        if (this.pendingBuffer && openEnd <= this.bufferMarks.length)
+            this.flushBuffer();
         else
             this.pendingBuffer = 0 /* Buf.No */;
         if (!this.posCovered())
@@ -1658,8 +1679,9 @@ class ContentBuilder {
                         this.content[this.content.length - 1].breakAfter = 1;
                     else
                         this.breakAtStart = 1;
-                    this.flushBuffer([]);
+                    this.flushBuffer();
                     this.curLine = null;
+                    this.atCursorPos = true;
                     length--;
                     continue;
                 }
@@ -1669,7 +1691,7 @@ class ContentBuilder {
                 }
             }
             let take = Math.min(this.text.length - this.textOff, length, 512 /* T.Chunk */);
-            this.flushBuffer(active.slice(0, openStart));
+            this.flushBuffer(active.slice(active.length - openStart));
             this.getLine().append(wrapMarks(new TextView(this.text.slice(this.textOff, this.textOff + take)), active), openStart);
             this.atCursorPos = true;
             this.textOff += take;
@@ -1701,7 +1723,7 @@ class ContentBuilder {
             else {
                 let view = WidgetView.create(deco.widget || new NullWidget("span"), len, len ? 0 : deco.startSide);
                 let cursorBefore = this.atCursorPos && !view.isEditable && openStart <= active.length && (from < to || deco.startSide > 0);
-                let cursorAfter = !view.isEditable && (from < to || deco.startSide <= 0);
+                let cursorAfter = !view.isEditable && (from < to || openStart > active.length || deco.startSide <= 0);
                 let line = this.getLine();
                 if (this.pendingBuffer == 2 /* Buf.IfCursor */ && !cursorBefore)
                     this.pendingBuffer = 0 /* Buf.No */;
@@ -1712,7 +1734,9 @@ class ContentBuilder {
                 }
                 line.append(wrapMarks(view, active), openStart);
                 this.atCursorPos = cursorAfter;
-                this.pendingBuffer = !cursorAfter ? 0 /* Buf.No */ : from < to ? 1 /* Buf.Yes */ : 2 /* Buf.IfCursor */;
+                this.pendingBuffer = !cursorAfter ? 0 /* Buf.No */ : from < to || openStart > active.length ? 1 /* Buf.Yes */ : 2 /* Buf.IfCursor */;
+                if (this.pendingBuffer)
+                    this.bufferMarks = active.slice();
             }
         }
         else if (this.doc.lineAt(this.pos).from == this.pos) { // Line decoration
@@ -1764,6 +1788,9 @@ const exceptionSink = state.Facet.define();
 const updateListener = state.Facet.define();
 const inputHandler = state.Facet.define();
 const perLineTextDirection = state.Facet.define({
+    combine: values => values.some(x => x)
+});
+const nativeSelectionHidden = state.Facet.define({
     combine: values => values.some(x => x)
 });
 class ScrollTarget {
@@ -2679,8 +2706,9 @@ class DocView extends ContentView {
     enforceCursorAssoc() {
         if (this.compositionDeco.size)
             return;
-        let cursor = this.view.state.selection.main;
-        let sel = getSelection(this.view.root);
+        let { view } = this, cursor = view.state.selection.main;
+        let sel = getSelection(view.root);
+        let { anchorNode, anchorOffset } = view.observer.selectionRange;
         if (!sel || !cursor.empty || !cursor.assoc || !sel.modify)
             return;
         let line = LineView.find(this, cursor.head);
@@ -2695,6 +2723,12 @@ class DocView extends ContentView {
         let dom = this.domAtPos(cursor.head + cursor.assoc);
         sel.collapse(dom.node, dom.offset);
         sel.modify("move", cursor.assoc < 0 ? "forward" : "backward", "lineboundary");
+        // This can go wrong in corner cases like single-character lines,
+        // so check and reset if necessary.
+        view.observer.readSelectionRange();
+        let newRange = view.observer.selectionRange;
+        if (view.docView.posFromDOM(newRange.anchorNode, newRange.anchorOffset) != cursor.from)
+            sel.collapse(anchorNode, anchorOffset);
     }
     mayControlSelection() {
         let active = this.view.root.activeElement;
@@ -3377,22 +3411,30 @@ class InputState {
         this.compositionFirstChange = null;
         this.compositionEndedAt = 0;
         this.mouseSelection = null;
+        let handleEvent = (handler, event) => {
+            if (this.ignoreDuringComposition(event))
+                return;
+            if (event.type == "keydown" && this.keydown(view, event))
+                return;
+            if (this.mustFlushObserver(event))
+                view.observer.forceFlush();
+            if (this.runCustomHandlers(event.type, view, event))
+                event.preventDefault();
+            else
+                handler(view, event);
+        };
         for (let type in handlers) {
             let handler = handlers[type];
-            view.contentDOM.addEventListener(type, (event) => {
-                if (!eventBelongsToEditor(view, event) || this.ignoreDuringComposition(event))
-                    return;
-                if (type == "keydown" && this.keydown(view, event))
-                    return;
-                if (this.mustFlushObserver(event))
-                    view.observer.forceFlush();
-                if (this.runCustomHandlers(type, view, event))
-                    event.preventDefault();
-                else
-                    handler(view, event);
+            view.contentDOM.addEventListener(type, event => {
+                if (eventBelongsToEditor(view, event))
+                    handleEvent(handler, event);
             }, handlerOptions[type]);
             this.registeredEvents.push(type);
         }
+        view.scrollDOM.addEventListener("mousedown", (event) => {
+            if (event.target == view.scrollDOM)
+                handleEvent(handlers.mousedown, event);
+        });
         if (browser.chrome && browser.chrome_version == 102) { // FIXME remove at some point
             // On Chrome 102, viewport updates somehow stop wheel-based
             // scrolling. Turning off pointer events during the scroll seems
@@ -3549,12 +3591,18 @@ const PendingKeys = [
 const EmacsyPendingKeys = "dthko";
 // Key codes for modifier keys
 const modifierCodes = [16, 17, 18, 20, 91, 92, 224, 225];
+function dragScrollSpeed(dist) {
+    return dist * 0.7 + 8;
+}
 class MouseSelection {
     constructor(view, startEvent, style, mustSelect) {
         this.view = view;
         this.style = style;
         this.mustSelect = mustSelect;
+        this.scrollSpeed = { x: 0, y: 0 };
+        this.scrolling = -1;
         this.lastEvent = startEvent;
+        this.scrollParent = scrollableParent(view.contentDOM);
         let doc = view.contentDOM.ownerDocument;
         doc.addEventListener("mousemove", this.move = this.move.bind(this));
         doc.addEventListener("mouseup", this.up = this.up.bind(this));
@@ -3570,11 +3618,24 @@ class MouseSelection {
         }
     }
     move(event) {
+        var _a;
         if (event.buttons == 0)
             return this.destroy();
         if (this.dragging !== false)
             return;
         this.select(this.lastEvent = event);
+        let sx = 0, sy = 0;
+        let rect = ((_a = this.scrollParent) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect())
+            || { left: 0, top: 0, right: this.view.win.innerWidth, bottom: this.view.win.innerHeight };
+        if (event.clientX <= rect.left)
+            sx = -dragScrollSpeed(rect.left - event.clientX);
+        else if (event.clientX >= rect.right)
+            sx = dragScrollSpeed(event.clientX - rect.right);
+        if (event.clientY <= rect.top)
+            sy = -dragScrollSpeed(rect.top - event.clientY);
+        else if (event.clientY >= rect.bottom)
+            sy = dragScrollSpeed(event.clientY - rect.bottom);
+        this.setScrollSpeed(sx, sy);
     }
     up(event) {
         if (this.dragging == null)
@@ -3584,10 +3645,33 @@ class MouseSelection {
         this.destroy();
     }
     destroy() {
+        this.setScrollSpeed(0, 0);
         let doc = this.view.contentDOM.ownerDocument;
         doc.removeEventListener("mousemove", this.move);
         doc.removeEventListener("mouseup", this.up);
         this.view.inputState.mouseSelection = null;
+    }
+    setScrollSpeed(sx, sy) {
+        this.scrollSpeed = { x: sx, y: sy };
+        if (sx || sy) {
+            if (this.scrolling < 0)
+                this.scrolling = setInterval(() => this.scroll(), 50);
+        }
+        else if (this.scrolling > -1) {
+            clearInterval(this.scrolling);
+            this.scrolling = -1;
+        }
+    }
+    scroll() {
+        if (this.scrollParent) {
+            this.scrollParent.scrollLeft += this.scrollSpeed.x;
+            this.scrollParent.scrollTop += this.scrollSpeed.y;
+        }
+        else {
+            this.view.win.scrollBy(this.scrollSpeed.x, this.scrollSpeed.y);
+        }
+        if (this.dragging === false)
+            this.select(this.lastEvent);
     }
     select(event) {
         let selection = this.style.get(event, this.extend, this.multiple);
@@ -3595,8 +3679,7 @@ class MouseSelection {
             selection.main.assoc != this.view.state.selection.main.assoc)
             this.view.dispatch({
                 selection,
-                userEvent: "select.pointer",
-                scrollIntoView: true
+                userEvent: "select.pointer"
             });
         this.mustSelect = false;
     }
@@ -3787,23 +3870,15 @@ function getClickType(event) {
 function basicMouseSelection(view, event) {
     let start = queryPos(view, event), type = getClickType(event);
     let startSel = view.state.selection;
-    let last = start, lastEvent = event;
     return {
         update(update) {
             if (update.docChanged) {
                 start.pos = update.changes.mapPos(start.pos);
                 startSel = startSel.map(update.changes);
-                lastEvent = null;
             }
         },
         get(event, extend, multiple) {
-            let cur;
-            if (lastEvent && event.clientX == lastEvent.clientX && event.clientY == lastEvent.clientY)
-                cur = last;
-            else {
-                cur = last = queryPos(view, event);
-                lastEvent = event;
-            }
+            let cur = queryPos(view, event);
             let range = rangeForClick(view, cur.pos, cur.bias, type);
             if (start.pos != cur.pos && !extend) {
                 let startRange = rangeForClick(view, start.pos, start.bias, type);
@@ -4028,9 +4103,9 @@ handlers.beforeinput = (view, event) => {
 
 const wrappingWhiteSpace = ["pre-wrap", "normal", "pre-line", "break-spaces"];
 class HeightOracle {
-    constructor() {
+    constructor(lineWrapping) {
+        this.lineWrapping = lineWrapping;
         this.doc = state.Text.empty;
-        this.lineWrapping = false;
         this.heightSamples = {};
         this.lineHeight = 14;
         this.charWidth = 7;
@@ -4770,7 +4845,6 @@ class ViewState {
         this.contentDOMHeight = 0;
         this.editorHeight = 0;
         this.editorWidth = 0;
-        this.heightOracle = new HeightOracle;
         // See VP.MaxDOMHeight
         this.scaler = IdScaler;
         this.scrollTarget = null;
@@ -4779,7 +4853,7 @@ class ViewState {
         // Flag set when editor content was redrawn, so that the next
         // measure stage knows it must read DOM layout
         this.mustMeasureContent = true;
-        this.defaultTextDirection = exports.Direction.RTL;
+        this.defaultTextDirection = exports.Direction.LTR;
         this.visibleRanges = [];
         // Cursor 'assoc' is only significant when the cursor is on a line
         // wrap point, where it must stick to the character that it is
@@ -4790,6 +4864,8 @@ class ViewState {
         // boundary and, if so, reset it to make sure it is positioned in
         // the right place.
         this.mustEnforceCursorAssoc = false;
+        let guessWrapping = state$1.facet(contentAttributes).some(v => typeof v != "function" && v.class == "cm-lineWrapping");
+        this.heightOracle = new HeightOracle(guessWrapping);
         this.stateDeco = state$1.facet(decorations).filter(d => typeof d != "function");
         this.heightMap = HeightMap.empty().applyChanges(this.stateDeco, state.Text.empty, this.heightOracle.setDoc(state$1.doc), [new ChangedRange(0, 0, 0, state$1.doc.length)]);
         this.viewport = this.getViewport(0, null);
@@ -4844,7 +4920,8 @@ class ViewState {
         if (scrollTarget)
             this.scrollTarget = scrollTarget;
         if (!this.mustEnforceCursorAssoc && update.selectionSet && update.view.lineWrapping &&
-            update.state.selection.main.empty && update.state.selection.main.assoc)
+            update.state.selection.main.empty && update.state.selection.main.assoc &&
+            !update.state.facet(nativeSelectionHidden))
             this.mustEnforceCursorAssoc = true;
     }
     measure(view) {
@@ -4907,7 +4984,7 @@ class ViewState {
             oracle.heightChanged = false;
             for (let vp of this.viewports) {
                 let heights = vp.from == this.viewport.from ? lineHeights : view.docView.measureVisibleLineHeights(vp);
-                this.heightMap = this.heightMap.updateHeight(oracle, 0, refresh, new MeasuredHeights(vp.from, heights));
+                this.heightMap = (refresh ? HeightMap.empty().applyChanges(this.stateDeco, state.Text.empty, this.heightOracle, [new ChangedRange(0, 0, 0, view.state.doc.length)]) : this.heightMap).updateHeight(oracle, 0, refresh, new MeasuredHeights(vp.from, heights));
             }
             if (oracle.heightChanged)
                 result |= 2 /* UpdateFlag.Height */;
@@ -5279,7 +5356,6 @@ const baseTheme$1 = buildTheme("." + baseThemeID, {
         margin: 0,
         flexGrow: 2,
         flexShrink: 0,
-        minHeight: "100%",
         display: "block",
         whiteSpace: "pre",
         wordWrap: "normal",
@@ -5301,14 +5377,13 @@ const baseTheme$1 = buildTheme("." + baseThemeID, {
     "&dark .cm-content": { caretColor: "white" },
     ".cm-line": {
         display: "block",
-        padding: "0 2px 0 4px"
+        padding: "0 2px 0 6px"
     },
-    ".cm-selectionLayer": {
-        zIndex: -1,
-        contain: "size style"
-    },
-    ".cm-selectionBackground": {
-        position: "absolute",
+    ".cm-layer": {
+        contain: "size style",
+        "& > *": {
+            position: "absolute"
+        }
     },
     "&light .cm-selectionBackground": {
         background: "#d9d9d9"
@@ -5323,8 +5398,6 @@ const baseTheme$1 = buildTheme("." + baseThemeID, {
         background: "#233"
     },
     ".cm-cursorLayer": {
-        zIndex: 100,
-        contain: "size style",
         pointerEvents: "none"
     },
     "&.cm-focused .cm-cursorLayer": {
@@ -5336,7 +5409,6 @@ const baseTheme$1 = buildTheme("." + baseThemeID, {
     "@keyframes cm-blink": { "0%": {}, "50%": { opacity: 0 }, "100%": {} },
     "@keyframes cm-blink2": { "0%": {}, "50%": { opacity: 0 }, "100%": {} },
     ".cm-cursor, .cm-dropCursor": {
-        position: "absolute",
         borderLeft: "1.2px solid black",
         marginLeft: "-0.6px",
         pointerEvents: "none",
@@ -5430,6 +5502,21 @@ const baseTheme$1 = buildTheme("." + baseThemeID, {
         display: "inline-block",
         verticalAlign: "top",
     },
+    ".cm-highlightSpace:before": {
+        content: "attr(data-display)",
+        position: "absolute",
+        pointerEvents: "none",
+        color: "#888"
+    },
+    ".cm-highlightTab": {
+        backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="20"><path stroke="%23888" stroke-width="1" fill="none" d="M1 10H196L190 5M190 15L196 10M197 4L197 16"/></svg>')`,
+        backgroundSize: "auto 100%",
+        backgroundPosition: "right 90%",
+        backgroundRepeat: "no-repeat"
+    },
+    ".cm-trailingSpace": {
+        backgroundColor: "#ff332255"
+    },
     ".cm-button": {
         verticalAlign: "middle",
         color: "inherit",
@@ -5473,7 +5560,11 @@ class DOMChange {
         this.bounds = null;
         this.text = "";
         let { impreciseHead: iHead, impreciseAnchor: iAnchor } = view.docView;
-        if (start > -1 && !view.state.readOnly && (this.bounds = view.docView.domBoundsAround(start, end, 0))) {
+        if (view.state.readOnly && start > -1) {
+            // Ignore changes when the editor is read-only
+            this.newSel = null;
+        }
+        else if (start > -1 && (this.bounds = view.docView.domBoundsAround(start, end, 0))) {
             let selPoints = iHead || iAnchor ? [] : selectionPoints(view);
             let reader = new DOMReader(selPoints, view.state);
             reader.readRange(this.bounds.startDOM, this.bounds.endDOM);
@@ -5728,7 +5819,8 @@ class DOMObserver {
         this.lastChange = 0;
         this.scrollTargets = [];
         this.intersection = null;
-        this.resize = null;
+        this.resizeScroll = null;
+        this.resizeContent = null;
         this.intersecting = false;
         this.gapIntersection = null;
         this.gaps = [];
@@ -5766,11 +5858,14 @@ class DOMObserver {
         this.onPrint = this.onPrint.bind(this);
         this.onScroll = this.onScroll.bind(this);
         if (typeof ResizeObserver == "function") {
-            this.resize = new ResizeObserver(() => {
-                if (this.view.docView.lastUpdate < Date.now() - 75)
+            this.resizeScroll = new ResizeObserver(() => {
+                var _a;
+                if (((_a = this.view.docView) === null || _a === void 0 ? void 0 : _a.lastUpdate) < Date.now() - 75)
                     this.onResize();
             });
-            this.resize.observe(view.scrollDOM);
+            this.resizeScroll.observe(view.scrollDOM);
+            this.resizeContent = new ResizeObserver(() => this.view.requestMeasure());
+            this.resizeContent.observe(view.contentDOM);
         }
         this.addWindowListeners(this.win = view.win);
         this.start();
@@ -6089,11 +6184,12 @@ class DOMObserver {
         win.document.removeEventListener("selectionchange", this.onSelectionChange);
     }
     destroy() {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         this.stop();
         (_a = this.intersection) === null || _a === void 0 ? void 0 : _a.disconnect();
         (_b = this.gapIntersection) === null || _b === void 0 ? void 0 : _b.disconnect();
-        (_c = this.resize) === null || _c === void 0 ? void 0 : _c.disconnect();
+        (_c = this.resizeScroll) === null || _c === void 0 ? void 0 : _c.disconnect();
+        (_d = this.resizeContent) === null || _d === void 0 ? void 0 : _d.disconnect();
         for (let dom of this.scrollTargets)
             dom.removeEventListener("scroll", this.onScroll);
         this.removeWindowListeners(this.win);
@@ -6192,7 +6288,7 @@ class EditorView {
         this.scrollDOM.className = "cm-scroller";
         this.scrollDOM.appendChild(this.contentDOM);
         this.announceDOM = document.createElement("div");
-        this.announceDOM.style.cssText = "position: absolute; top: -10000px";
+        this.announceDOM.style.cssText = "position: fixed; top: -10000px";
         this.announceDOM.setAttribute("aria-live", "polite");
         this.dom = document.createElement("div");
         this.dom.appendChild(this.announceDOM);
@@ -7259,7 +7355,7 @@ function runHandlers(map, event, view, scope) {
     if (scopeObj) {
         if (runFor(scopeObj[prefix + modifiers(name, event, !isChar)]))
             return true;
-        if (isChar && (event.shiftKey || event.altKey || event.metaKey || charCode > 127) &&
+        if (isChar && (event.altKey || event.metaKey || event.ctrlKey) &&
             (baseName = w3cKeyname.base[event.keyCode]) && baseName != name) {
             if (runFor(scopeObj[prefix + modifiers(baseName, event, true)]))
                 return true;
@@ -7277,50 +7373,21 @@ function runHandlers(map, event, view, scope) {
     return fallthrough;
 }
 
-const CanHidePrimary = !browser.ios; // FIXME test IE
-const selectionConfig = state.Facet.define({
-    combine(configs) {
-        return state.combineConfig(configs, {
-            cursorBlinkRate: 1200,
-            drawRangeCursor: true
-        }, {
-            cursorBlinkRate: (a, b) => Math.min(a, b),
-            drawRangeCursor: (a, b) => a || b
-        });
-    }
-});
 /**
-Returns an extension that hides the browser's native selection and
-cursor, replacing the selection with a background behind the text
-(with the `cm-selectionBackground` class), and the
-cursors with elements overlaid over the code (using
-`cm-cursor-primary` and `cm-cursor-secondary`).
-
-This allows the editor to display secondary selection ranges, and
-tends to produce a type of selection more in line with that users
-expect in a text editor (the native selection styling will often
-leave gaps between lines and won't fill the horizontal space after
-a line when the selection continues past it).
-
-It does have a performance cost, in that it requires an extra DOM
-layout cycle for many updates (the selection is drawn based on DOM
-layout information that's only available after laying out the
-content).
+Implementation of [`LayerMarker`](https://codemirror.net/6/docs/ref/#view.LayerMarker) that creates
+a rectangle at a given set of coordinates.
 */
-function drawSelection(config = {}) {
-    return [
-        selectionConfig.of(config),
-        drawSelectionPlugin,
-        hideNativeSelection
-    ];
-}
-class Piece {
-    constructor(left, top, width, height, className) {
+class RectangleMarker {
+    /**
+    Create a marker with the given class and dimensions. If `width`
+    is null, the DOM element will get no width style.
+    */
+    constructor(className, left, top, width, height) {
+        this.className = className;
         this.left = left;
         this.top = top;
         this.width = width;
         this.height = height;
-        this.className = className;
     }
     draw() {
         let elt = document.createElement("div");
@@ -7328,10 +7395,16 @@ class Piece {
         this.adjust(elt);
         return elt;
     }
+    update(elt, prev) {
+        if (prev.className != this.className)
+            return false;
+        this.adjust(elt);
+        return true;
+    }
     adjust(elt) {
         elt.style.left = this.left + "px";
         elt.style.top = this.top + "px";
-        if (this.width >= 0)
+        if (this.width != null)
             elt.style.width = this.width + "px";
         elt.style.height = this.height + "px";
     }
@@ -7339,82 +7412,26 @@ class Piece {
         return this.left == p.left && this.top == p.top && this.width == p.width && this.height == p.height &&
             this.className == p.className;
     }
+    /**
+    Create a set of rectangles for the given selection range,
+    assigning them theclass`className`. Will create a single
+    rectangle for empty ranges, and a set of selection-style
+    rectangles covering the range's content (in a bidi-aware
+    way) for non-empty ones.
+    */
+    static forRange(view, className, range) {
+        if (range.empty) {
+            let pos = view.coordsAtPos(range.head, range.assoc || 1);
+            if (!pos)
+                return [];
+            let base = getBase(view);
+            return [new RectangleMarker(className, pos.left - base.left, pos.top - base.top, null, pos.bottom - pos.top)];
+        }
+        else {
+            return rectanglesForRange(view, className, range);
+        }
+    }
 }
-const drawSelectionPlugin = ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.view = view;
-        this.rangePieces = [];
-        this.cursors = [];
-        this.measureReq = { read: this.readPos.bind(this), write: this.drawSel.bind(this) };
-        this.selectionLayer = view.scrollDOM.appendChild(document.createElement("div"));
-        this.selectionLayer.className = "cm-selectionLayer";
-        this.selectionLayer.setAttribute("aria-hidden", "true");
-        this.cursorLayer = view.scrollDOM.appendChild(document.createElement("div"));
-        this.cursorLayer.className = "cm-cursorLayer";
-        this.cursorLayer.setAttribute("aria-hidden", "true");
-        view.requestMeasure(this.measureReq);
-        this.setBlinkRate();
-    }
-    setBlinkRate() {
-        this.cursorLayer.style.animationDuration = this.view.state.facet(selectionConfig).cursorBlinkRate + "ms";
-    }
-    update(update) {
-        let confChanged = update.startState.facet(selectionConfig) != update.state.facet(selectionConfig);
-        if (confChanged || update.selectionSet || update.geometryChanged || update.viewportChanged)
-            this.view.requestMeasure(this.measureReq);
-        if (update.transactions.some(tr => tr.scrollIntoView))
-            this.cursorLayer.style.animationName = this.cursorLayer.style.animationName == "cm-blink" ? "cm-blink2" : "cm-blink";
-        if (confChanged)
-            this.setBlinkRate();
-    }
-    readPos() {
-        let { state } = this.view, conf = state.facet(selectionConfig);
-        let rangePieces = state.selection.ranges.map(r => r.empty ? [] : measureRange(this.view, r)).reduce((a, b) => a.concat(b));
-        let cursors = [];
-        for (let r of state.selection.ranges) {
-            let prim = r == state.selection.main;
-            if (r.empty ? !prim || CanHidePrimary : conf.drawRangeCursor) {
-                let piece = measureCursor(this.view, r, prim);
-                if (piece)
-                    cursors.push(piece);
-            }
-        }
-        return { rangePieces, cursors };
-    }
-    drawSel({ rangePieces, cursors }) {
-        if (rangePieces.length != this.rangePieces.length || rangePieces.some((p, i) => !p.eq(this.rangePieces[i]))) {
-            this.selectionLayer.textContent = "";
-            for (let p of rangePieces)
-                this.selectionLayer.appendChild(p.draw());
-            this.rangePieces = rangePieces;
-        }
-        if (cursors.length != this.cursors.length || cursors.some((c, i) => !c.eq(this.cursors[i]))) {
-            let oldCursors = this.cursorLayer.children;
-            if (oldCursors.length !== cursors.length) {
-                this.cursorLayer.textContent = "";
-                for (const c of cursors)
-                    this.cursorLayer.appendChild(c.draw());
-            }
-            else {
-                cursors.forEach((c, idx) => c.adjust(oldCursors[idx]));
-            }
-            this.cursors = cursors;
-        }
-    }
-    destroy() {
-        this.selectionLayer.remove();
-        this.cursorLayer.remove();
-    }
-});
-const themeSpec = {
-    ".cm-line": {
-        "& ::selection": { backgroundColor: "transparent !important" },
-        "&::selection": { backgroundColor: "transparent !important" }
-    }
-};
-if (CanHidePrimary)
-    themeSpec[".cm-line"].caretColor = "transparent !important";
-const hideNativeSelection = state.Prec.highest(EditorView.theme(themeSpec));
 function getBase(view) {
     let rect = view.scrollDOM.getBoundingClientRect();
     let left = view.textDirection == exports.Direction.LTR ? rect.left : rect.right - view.scrollDOM.clientWidth;
@@ -7435,7 +7452,7 @@ function blockAt(view, pos) {
         }
     return line;
 }
-function measureRange(view, range) {
+function rectanglesForRange(view, className, range) {
     if (range.to <= view.viewport.from || range.from >= view.viewport.to)
         return [];
     let from = Math.max(range.from, view.viewport.from), to = Math.min(range.to, view.viewport.to);
@@ -7467,7 +7484,7 @@ function measureRange(view, range) {
         return pieces(top).concat(between).concat(pieces(bottom));
     }
     function piece(left, top, right, bottom) {
-        return new Piece(left - base.left, top - base.top - 0.01 /* C.Epsilon */, right - left, bottom - top + 0.01 /* C.Epsilon */, "cm-selectionBackground");
+        return new RectangleMarker(className, left - base.left, top - base.top - 0.01 /* C.Epsilon */, right - left, bottom - top + 0.01 /* C.Epsilon */);
     }
     function pieces({ top, bottom, horizontal }) {
         let pieces = [];
@@ -7519,13 +7536,174 @@ function measureRange(view, range) {
         return { top: y, bottom: y, horizontal: [] };
     }
 }
-function measureCursor(view, cursor, primary) {
-    let pos = view.coordsAtPos(cursor.head, cursor.assoc || 1);
-    if (!pos)
-        return null;
-    let base = getBase(view);
-    return new Piece(pos.left - base.left, pos.top - base.top, -1, pos.bottom - pos.top, primary ? "cm-cursor cm-cursor-primary" : "cm-cursor cm-cursor-secondary");
+function sameMarker(a, b) {
+    return a.constructor == b.constructor && a.eq(b);
 }
+class LayerView {
+    constructor(view, layer) {
+        this.view = view;
+        this.layer = layer;
+        this.drawn = [];
+        this.measureReq = { read: this.measure.bind(this), write: this.draw.bind(this) };
+        this.dom = view.scrollDOM.appendChild(document.createElement("div"));
+        this.dom.classList.add("cm-layer");
+        if (layer.above)
+            this.dom.classList.add("cm-layer-above");
+        if (layer.class)
+            this.dom.classList.add(layer.class);
+        this.dom.setAttribute("aria-hidden", "true");
+        this.setOrder(view.state);
+        view.requestMeasure(this.measureReq);
+        if (layer.mount)
+            layer.mount(this.dom, view);
+    }
+    update(update) {
+        if (update.startState.facet(layerOrder) != update.state.facet(layerOrder))
+            this.setOrder(update.state);
+        if (this.layer.update(update, this.dom) || update.geometryChanged)
+            update.view.requestMeasure(this.measureReq);
+    }
+    setOrder(state) {
+        let pos = 0, order = state.facet(layerOrder);
+        while (pos < order.length && order[pos] != this.layer)
+            pos++;
+        this.dom.style.zIndex = String((this.layer.above ? 150 : -1) - pos);
+    }
+    measure() {
+        return this.layer.markers(this.view);
+    }
+    draw(markers) {
+        if (markers.length != this.drawn.length || markers.some((p, i) => !sameMarker(p, this.drawn[i]))) {
+            let old = this.dom.firstChild, oldI = 0;
+            for (let marker of markers) {
+                if (marker.update && old && marker.constructor && this.drawn[oldI].constructor &&
+                    marker.update(old, this.drawn[oldI])) {
+                    old = old.nextSibling;
+                    oldI++;
+                }
+                else {
+                    this.dom.insertBefore(marker.draw(), old);
+                }
+            }
+            while (old) {
+                let next = old.nextSibling;
+                old.remove();
+                old = next;
+            }
+            this.drawn = markers;
+        }
+    }
+    destroy() {
+        if (this.layer.destroy)
+            this.layer.destroy(this.dom, this.view);
+        this.dom.remove();
+    }
+}
+const layerOrder = state.Facet.define();
+/**
+Define a layer.
+*/
+function layer(config) {
+    return [
+        ViewPlugin.define(v => new LayerView(v, config)),
+        layerOrder.of(config)
+    ];
+}
+
+const CanHidePrimary = !browser.ios; // FIXME test IE
+const selectionConfig = state.Facet.define({
+    combine(configs) {
+        return state.combineConfig(configs, {
+            cursorBlinkRate: 1200,
+            drawRangeCursor: true
+        }, {
+            cursorBlinkRate: (a, b) => Math.min(a, b),
+            drawRangeCursor: (a, b) => a || b
+        });
+    }
+});
+/**
+Returns an extension that hides the browser's native selection and
+cursor, replacing the selection with a background behind the text
+(with the `cm-selectionBackground` class), and the
+cursors with elements overlaid over the code (using
+`cm-cursor-primary` and `cm-cursor-secondary`).
+
+This allows the editor to display secondary selection ranges, and
+tends to produce a type of selection more in line with that users
+expect in a text editor (the native selection styling will often
+leave gaps between lines and won't fill the horizontal space after
+a line when the selection continues past it).
+
+It does have a performance cost, in that it requires an extra DOM
+layout cycle for many updates (the selection is drawn based on DOM
+layout information that's only available after laying out the
+content).
+*/
+function drawSelection(config = {}) {
+    return [
+        selectionConfig.of(config),
+        cursorLayer,
+        selectionLayer,
+        hideNativeSelection,
+        nativeSelectionHidden.of(true)
+    ];
+}
+function configChanged(update) {
+    return update.startState.facet(selectionConfig) != update.startState.facet(selectionConfig);
+}
+const cursorLayer = layer({
+    above: true,
+    markers(view) {
+        let { state: state$1 } = view, conf = state$1.facet(selectionConfig);
+        let cursors = [];
+        for (let r of state$1.selection.ranges) {
+            let prim = r == state$1.selection.main;
+            if (r.empty ? !prim || CanHidePrimary : conf.drawRangeCursor) {
+                let className = prim ? "cm-cursor cm-cursor-primary" : "cm-cursor cm-cursor-secondary";
+                let cursor = r.empty ? r : state.EditorSelection.cursor(r.head, r.head > r.anchor ? -1 : 1);
+                for (let piece of RectangleMarker.forRange(view, className, cursor))
+                    cursors.push(piece);
+            }
+        }
+        return cursors;
+    },
+    update(update, dom) {
+        if (update.transactions.some(tr => tr.scrollIntoView))
+            dom.style.animationName = dom.style.animationName == "cm-blink" ? "cm-blink2" : "cm-blink";
+        let confChange = configChanged(update);
+        if (confChange)
+            setBlinkRate(update.state, dom);
+        return update.docChanged || update.selectionSet || confChange;
+    },
+    mount(dom, view) {
+        setBlinkRate(view.state, dom);
+    },
+    class: "cm-cursorLayer"
+});
+function setBlinkRate(state, dom) {
+    dom.style.animationDuration = state.facet(selectionConfig).cursorBlinkRate + "ms";
+}
+const selectionLayer = layer({
+    above: false,
+    markers(view) {
+        return view.state.selection.ranges.map(r => r.empty ? [] : RectangleMarker.forRange(view, "cm-selectionBackground", r))
+            .reduce((a, b) => a.concat(b));
+    },
+    update(update, dom) {
+        return update.docChanged || update.selectionSet || update.viewportChanged || configChanged(update);
+    },
+    class: "cm-selectionLayer"
+});
+const themeSpec = {
+    ".cm-line": {
+        "& ::selection": { backgroundColor: "transparent !important" },
+        "&::selection": { backgroundColor: "transparent !important" }
+    }
+};
+if (CanHidePrimary)
+    themeSpec[".cm-line"].caretColor = "transparent !important";
+const hideNativeSelection = state.Prec.highest(EditorView.theme(themeSpec));
 
 const setDropCursorPos = state.StateEffect.define({
     map(pos, mapping) { return pos == null ? null : mapping.mapPos(pos); }
@@ -8096,6 +8274,9 @@ function crosshairCursor(options = {}) {
             keyup(e) {
                 if (e.keyCode == code || !getter(e))
                     this.set(false);
+            },
+            mousemove(e) {
+                this.set(getter(e));
             }
         }
     });
@@ -8315,6 +8496,17 @@ const tooltipPlugin = ViewPlugin.fromClass(class {
                 : pos.bottom + (size.bottom - size.top) + offset.y > space.bottom) &&
                 above == (space.bottom - pos.bottom > pos.top - space.top))
                 above = !above;
+            let spaceVert = (above ? pos.top - space.top : space.bottom - pos.bottom) - arrowHeight;
+            if (spaceVert < height && tView.resize !== false) {
+                if (spaceVert < this.view.defaultLineHeight) {
+                    dom.style.top = Outside;
+                    continue;
+                }
+                dom.style.height = (height = spaceVert) + "px";
+            }
+            else if (dom.style.height) {
+                dom.style.height = "";
+            }
             let top = above ? pos.top - height - arrowHeight - offset.y : pos.bottom + arrowHeight + offset.y;
             let right = left + width;
             if (tView.overlap !== true)
@@ -8336,7 +8528,7 @@ const tooltipPlugin = ViewPlugin.fromClass(class {
             dom.classList.toggle("cm-tooltip-above", above);
             dom.classList.toggle("cm-tooltip-below", !above);
             if (tView.positioned)
-                tView.positioned();
+                tView.positioned(measured.space);
         }
     }
     maybeMeasure() {
@@ -8358,7 +8550,8 @@ const tooltipPlugin = ViewPlugin.fromClass(class {
 });
 const baseTheme = EditorView.baseTheme({
     ".cm-tooltip": {
-        zIndex: 100
+        zIndex: 100,
+        boxSizing: "border-box"
     },
     "&light .cm-tooltip": {
         border: "1px solid #bbb",
@@ -8452,10 +8645,10 @@ class HoverTooltipHost {
         }
         this.mounted = true;
     }
-    positioned() {
+    positioned(space) {
         for (let hostedView of this.manager.tooltipViews) {
             if (hostedView.positioned)
-                hostedView.positioned();
+                hostedView.positioned(space);
         }
     }
     update(update) {
@@ -8552,10 +8745,10 @@ class HoverPlugin {
             }
         }
     }
-    mouseleave() {
+    mouseleave(e) {
         clearTimeout(this.hoverTimeout);
         this.hoverTimeout = -1;
-        if (this.active)
+        if (this.active && !isInTooltip(e.relatedTarget))
             this.view.dispatch({ effects: this.setHover.of(null) });
     }
     destroy() {
@@ -9277,6 +9470,57 @@ function highlightActiveLineGutter() {
     return activeLineGutterHighlighter;
 }
 
+const WhitespaceDeco = new Map();
+function getWhitespaceDeco(space) {
+    let deco = WhitespaceDeco.get(space);
+    if (!deco)
+        WhitespaceDeco.set(space, deco = Decoration.mark({
+            attributes: space === "\t" ? {
+                class: "cm-highlightTab",
+            } : {
+                class: "cm-highlightSpace",
+                "data-display": space.replace(/ /g, "·")
+            }
+        }));
+    return deco;
+}
+function matcher(decorator) {
+    return ViewPlugin.define(view => ({
+        decorations: decorator.createDeco(view),
+        update(u) {
+            this.decorations = decorator.updateDeco(u, this.decorations);
+        },
+    }), {
+        decorations: v => v.decorations
+    });
+}
+const whitespaceHighlighter = matcher(new MatchDecorator({
+    regexp: /\t| +/g,
+    decoration: match => getWhitespaceDeco(match[0]),
+    boundary: /\S/,
+}));
+/**
+Returns an extension that highlights whitespace, adding a
+`cm-highlightSpace` class to stretches of spaces, and a
+`cm-highlightTab` class to individual tab characters. By default,
+the former are shown as faint dots, and the latter as arrows.
+*/
+function highlightWhitespace() {
+    return whitespaceHighlighter;
+}
+const trailingHighlighter = matcher(new MatchDecorator({
+    regexp: /\s+$/g,
+    decoration: Decoration.mark({ class: "cm-trailingSpace" }),
+    boundary: /\S/,
+}));
+/**
+Returns an extension that adds a `cm-trailingSpace` class to all
+trailing whitespace.
+*/
+function highlightTrailingWhitespace() {
+    return trailingHighlighter;
+}
+
 /**
 @internal
 */
@@ -9288,6 +9532,7 @@ exports.Decoration = Decoration;
 exports.EditorView = EditorView;
 exports.GutterMarker = GutterMarker;
 exports.MatchDecorator = MatchDecorator;
+exports.RectangleMarker = RectangleMarker;
 exports.ViewPlugin = ViewPlugin;
 exports.ViewUpdate = ViewUpdate;
 exports.WidgetType = WidgetType;
@@ -9305,8 +9550,11 @@ exports.hasHoverTooltips = hasHoverTooltips;
 exports.highlightActiveLine = highlightActiveLine;
 exports.highlightActiveLineGutter = highlightActiveLineGutter;
 exports.highlightSpecialChars = highlightSpecialChars;
+exports.highlightTrailingWhitespace = highlightTrailingWhitespace;
+exports.highlightWhitespace = highlightWhitespace;
 exports.hoverTooltip = hoverTooltip;
 exports.keymap = keymap;
+exports.layer = layer;
 exports.lineNumberMarkers = lineNumberMarkers;
 exports.lineNumbers = lineNumbers;
 exports.logException = logException;

@@ -183,7 +183,13 @@ up to that point if the tree isn't already available.
 function ensureSyntaxTree(state, upto, timeout = 50) {
     var _a;
     let parse = (_a = state.field(Language.state, false)) === null || _a === void 0 ? void 0 : _a.context;
-    return !parse ? null : parse.isDone(upto) || parse.work(timeout, upto) ? parse.tree : null;
+    if (!parse)
+        return null;
+    let oldVieport = parse.viewport;
+    parse.updateViewport({ from: 0, to: upto });
+    let result = parse.isDone(upto) || parse.work(timeout, upto) ? parse.tree : null;
+    parse.updateViewport(oldVieport);
+    return result;
 }
 /**
 Queries whether there is a full syntax tree available up to the
@@ -767,8 +773,10 @@ class LanguageDescription {
 Facet that defines a way to provide a function that computes the
 appropriate indentation depth, as a column number (see
 [`indentString`](https://codemirror.net/6/docs/ref/#language.indentString)), at the start of a given
-line, or `null` to indicate no appropriate indentation could be
-determined.
+line. A return value of `null` indicates no indentation can be
+determined, and the line should inherit the indentation of the one
+above it. A return value of `undefined` defers to the next indent
+service.
 */
 const indentService = state.Facet.define();
 /**
@@ -826,7 +834,7 @@ function getIndentation(context, pos) {
         context = new IndentContext(context);
     for (let service of context.state.facet(indentService)) {
         let result = service(context, pos);
-        if (result != null)
+        if (result !== undefined)
             return result;
     }
     let tree = syntaxTree(context.state);
@@ -1187,7 +1195,7 @@ function syntaxFolding(state, start, end) {
     let tree = syntaxTree(state);
     if (tree.length < end)
         return null;
-    let inner = tree.resolveInner(end);
+    let inner = tree.resolveInner(end, 1);
     let found = null;
     for (let cur = inner; cur; cur = cur.parent) {
         if (cur.to <= end || cur.from > end)
@@ -1680,7 +1688,7 @@ A default highlight style (works well with light themes).
 */
 const defaultHighlightStyle = HighlightStyle.define([
     { tag: highlight.tags.meta,
-        color: "#7a757a" },
+        color: "#404740" },
     { tag: highlight.tags.link,
         textDecoration: "underline" },
     { tag: highlight.tags.heading,

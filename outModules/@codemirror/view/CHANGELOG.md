@@ -1,3 +1,75 @@
+## 6.7.1 (2022-12-12)
+
+### Bug fixes
+
+Make the editor properly scroll when moving the pointer out of it during drag selection.
+
+Fix a regression where clicking below the content element in an editor with its own height didn't focus the editor.
+
+## 6.7.0 (2022-12-07)
+
+### Bug fixes
+
+Make the editor notice widget height changes to automatically adjust its height information.
+
+Fix an issue where widget buffers could be incorrectly omitted after empty lines.
+
+Fix an issue in content redrawing that could cause `coordsAtPos` to return incorrect results.
+
+### New features
+
+The static `RectangleMarker.forRange` method exposes the logic used by the editor to draw rectangles covering a selection range.
+
+Layers can now provide a `destroy` function to be called when the layer is removed.
+
+The new `highlightWhitespace` extension makes spaces and tabs in the editor visible.
+
+The `highlightTrailingWhitespace` extension can be used to make trailing whitespace stand out.
+
+## 6.6.0 (2022-11-24)
+
+### New features
+
+The `layer` function can now be used to define extensions that draw DOM elements over or below the document text.
+
+Tooltips that are bigger than the available vertical space for them will now have their height set so that they don't stick out of the window. The new `resize` property on `TooltipView` can be used to opt out of this behavior.
+
+## 6.5.1 (2022-11-15)
+
+### Bug fixes
+
+Fix a bug that caused marked unnecessary splitting of mark decoration DOM elements in some cases.
+
+## 6.5.0 (2022-11-14)
+
+### Bug fixes
+
+Fix an issue where key bindings were activated for the wrong key in some situations with non-US keyboards.
+
+### New features
+
+A tooltip's `positioned` callback is now passed the available space for tooltips.
+
+## 6.4.2 (2022-11-10)
+
+### Bug fixes
+
+Typing into a read-only editor no longer moves the cursor.
+
+Fix an issue where hover tooltips were closed when the mouse was moved over them if they had a custom parent element.
+
+Fix an issue where the editor could end up displaying incorrect height measurements (typically after initializing).
+
+## 6.4.1 (2022-11-07)
+
+### Bug fixes
+
+Fix an issue where coordinates next to replaced widgets were returned incorrectly, causing the cursor to be drawn in the wrong place.
+
+Update the `crosshairCursor` state on every mousemove event.
+
+Avoid an issue in the way that the editor enforces cursor associativity that could cause the cursor to get stuck on single-character wrapped lines.
+
 ## 6.4.0 (2022-10-18)
 
 ### Bug fixes

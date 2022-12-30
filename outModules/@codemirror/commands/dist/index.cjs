@@ -811,7 +811,7 @@ const selectMatchingBracket = ({ state, dispatch }) => toMatchingBracket(state, 
 function extendSel(view, how) {
     let selection = updateSel(view.state.selection, range => {
         let head = how(range);
-        return state.EditorSelection.range(range.anchor, head.head, head.goalColumn);
+        return state.EditorSelection.range(range.anchor, head.head, head.goalColumn, head.bidiLevel || undefined);
     });
     if (selection.eq(view.state.selection))
         return false;

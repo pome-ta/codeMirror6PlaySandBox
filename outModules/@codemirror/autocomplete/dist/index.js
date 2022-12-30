@@ -175,7 +175,7 @@ function applyCompletion(view, option) {
     const apply = option.completion.apply || option.completion.label;
     let result = option.source;
     if (typeof apply == "string")
-        view.dispatch(insertCompletionText(view.state, apply, result.from, result.to));
+        view.dispatch(Object.assign(Object.assign({}, insertCompletionText(view.state, apply, result.from, result.to)), { annotations: pickedCompletion.of(option.completion) }));
     else
         apply(view, option.completion, result.from, result.to);
 }
@@ -323,6 +323,7 @@ const completionConfig = /*@__PURE__*/Facet.define({
             closeOnBlur: true,
             maxRenderedOptions: 100,
             defaultKeymap: true,
+            tooltipClass: () => "",
             optionClass: () => "",
             aboveCursor: false,
             icons: true,
@@ -333,6 +334,7 @@ const completionConfig = /*@__PURE__*/Facet.define({
             defaultKeymap: (a, b) => a && b,
             closeOnBlur: (a, b) => a && b,
             icons: (a, b) => a && b,
+            tooltipClass: (a, b) => c => joinClass(a(c), b(c)),
             optionClass: (a, b) => c => joinClass(a(c), b(c)),
             addToOptions: (a, b) => a.concat(b)
         });
@@ -410,14 +412,18 @@ class CompletionTooltip {
             write: (pos) => this.positionInfo(pos),
             key: this
         };
+        this.space = null;
+        this.currentClass = "";
         let cState = view.state.field(stateField);
         let { options, selected } = cState.open;
         let config = view.state.facet(completionConfig);
         this.optionContent = optionContent(config);
         this.optionClass = config.optionClass;
+        this.tooltipClass = config.tooltipClass;
         this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
         this.dom = document.createElement("div");
         this.dom.className = "cm-tooltip-autocomplete";
+        this.updateTooltipClass(view.state);
         this.dom.addEventListener("mousedown", (e) => {
             for (let dom = e.target, match; dom && dom != this.dom; dom = dom.parentNode) {
                 if (dom.nodeName == "LI" && (match = /-(\d+)$/.exec(dom.id)) && +match[1] < options.length) {
@@ -435,10 +441,30 @@ class CompletionTooltip {
     }
     mount() { this.updateSel(); }
     update(update) {
-        if (update.state.field(this.stateField) != update.startState.field(this.stateField))
+        var _a, _b, _c;
+        let cState = update.state.field(this.stateField);
+        let prevState = update.startState.field(this.stateField);
+        this.updateTooltipClass(update.state);
+        if (cState != prevState) {
             this.updateSel();
+            if (((_a = cState.open) === null || _a === void 0 ? void 0 : _a.disabled) != ((_b = prevState.open) === null || _b === void 0 ? void 0 : _b.disabled))
+                this.dom.classList.toggle("cm-tooltip-autocomplete-disabled", !!((_c = cState.open) === null || _c === void 0 ? void 0 : _c.disabled));
+        }
     }
-    positioned() {
+    updateTooltipClass(state) {
+        let cls = this.tooltipClass(state);
+        if (cls != this.currentClass) {
+            for (let c of this.currentClass.split(" "))
+                if (c)
+                    this.dom.classList.remove(c);
+            for (let c of cls.split(" "))
+                if (c)
+                    this.dom.classList.add(c);
+            this.currentClass = cls;
+        }
+    }
+    positioned(space) {
+        this.space = space;
         if (this.info)
             this.view.requestMeasure(this.placeInfo);
     }
@@ -505,27 +531,32 @@ class CompletionTooltip {
         let sel = this.dom.querySelector("[aria-selected]");
         if (!sel || !this.info)
             return null;
-        let win = this.dom.ownerDocument.defaultView || window;
         let listRect = this.dom.getBoundingClientRect();
         let infoRect = this.info.getBoundingClientRect();
         let selRect = sel.getBoundingClientRect();
-        if (selRect.top > Math.min(win.innerHeight, listRect.bottom) - 10 || selRect.bottom < Math.max(0, listRect.top) + 10)
+        let space = this.space;
+        if (!space) {
+            let win = this.dom.ownerDocument.defaultView || window;
+            space = { left: 0, top: 0, right: win.innerWidth, bottom: win.innerHeight };
+        }
+        if (selRect.top > Math.min(space.bottom, listRect.bottom) - 10 ||
+            selRect.bottom < Math.max(space.top, listRect.top) + 10)
             return null;
         let rtl = this.view.textDirection == Direction.RTL, left = rtl, narrow = false, maxWidth;
         let top = "", bottom = "";
-        let spaceLeft = listRect.left, spaceRight = win.innerWidth - listRect.right;
+        let spaceLeft = listRect.left - space.left, spaceRight = space.right - listRect.right;
         if (left && spaceLeft < Math.min(infoRect.width, spaceRight))
             left = false;
         else if (!left && spaceRight < Math.min(infoRect.width, spaceLeft))
             left = true;
         if (infoRect.width <= (left ? spaceLeft : spaceRight)) {
-            top = (Math.max(0, Math.min(selRect.top, win.innerHeight - infoRect.height)) - listRect.top) + "px";
+            top = (Math.max(space.top, Math.min(selRect.top, space.bottom - infoRect.height)) - listRect.top) + "px";
             maxWidth = Math.min(400 /* Info.Width */, left ? spaceLeft : spaceRight) + "px";
         }
         else {
             narrow = true;
-            maxWidth = Math.min(400 /* Info.Width */, (rtl ? listRect.right : win.innerWidth - listRect.left) - 30 /* Info.Margin */) + "px";
-            let spaceBelow = win.innerHeight - listRect.bottom;
+            maxWidth = Math.min(400 /* Info.Width */, (rtl ? listRect.right : space.right - listRect.left) - 30 /* Info.Margin */) + "px";
+            let spaceBelow = space.bottom - listRect.bottom;
             if (spaceBelow >= infoRect.height || spaceBelow > listRect.top) // Below the completion
                 top = (selRect.bottom - listRect.top) + "px";
             else // Above it
@@ -634,21 +665,24 @@ function sortOptions(active, state) {
     return result;
 }
 class CompletionDialog {
-    constructor(options, attrs, tooltip, timestamp, selected) {
+    constructor(options, attrs, tooltip, timestamp, selected, disabled) {
         this.options = options;
         this.attrs = attrs;
         this.tooltip = tooltip;
         this.timestamp = timestamp;
         this.selected = selected;
+        this.disabled = disabled;
     }
     setSelected(selected, id) {
         return selected == this.selected || selected >= this.options.length ? this
-            : new CompletionDialog(this.options, makeAttrs(id, selected), this.tooltip, this.timestamp, selected);
+            : new CompletionDialog(this.options, makeAttrs(id, selected), this.tooltip, this.timestamp, selected, this.disabled);
     }
     static build(active, state, id, prev, conf) {
         let options = sortOptions(active, state);
-        if (!options.length)
-            return null;
+        if (!options.length) {
+            return prev && active.some(a => a.state == 1 /* State.Pending */) ?
+                new CompletionDialog(prev.options, prev.attrs, prev.tooltip, prev.timestamp, prev.selected, true) : null;
+        }
         let selected = state.facet(completionConfig).selectOnOpen ? 0 : -1;
         if (prev && prev.selected != selected && prev.selected != -1) {
             let selectedValue = prev.options[prev.selected].completion;
@@ -662,10 +696,10 @@ class CompletionDialog {
             pos: active.reduce((a, b) => b.hasResult() ? Math.min(a, b.from) : a, 1e8),
             create: completionTooltip(completionState),
             above: conf.aboveCursor,
-        }, prev ? prev.timestamp : Date.now(), selected);
+        }, prev ? prev.timestamp : Date.now(), selected, false);
     }
     map(changes) {
-        return new CompletionDialog(this.options, this.attrs, Object.assign(Object.assign({}, this.tooltip), { pos: changes.mapPos(this.tooltip.pos) }), this.timestamp, this.selected);
+        return new CompletionDialog(this.options, this.attrs, Object.assign(Object.assign({}, this.tooltip), { pos: changes.mapPos(this.tooltip.pos) }), this.timestamp, this.selected, this.disabled);
     }
 }
 class CompletionState {
@@ -688,9 +722,14 @@ class CompletionState {
         });
         if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
             active = this.active;
-        let open = tr.selection || active.some(a => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) ||
-            !sameResults(active, this.active) ? CompletionDialog.build(active, state, this.id, this.open, conf)
-            : this.open && tr.docChanged ? this.open.map(tr.changes) : this.open;
+        let open = this.open;
+        if (open && tr.docChanged)
+            open = open.map(tr.changes);
+        if (tr.selection || active.some(a => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) ||
+            !sameResults(active, this.active))
+            open = CompletionDialog.build(active, state, this.id, open, conf);
+        else if (open && open.disabled && !active.some(a => a.state == 1 /* State.Pending */))
+            open = null;
         if (!open && active.every(a => a.state != 1 /* State.Pending */) && active.some(a => a.hasResult()))
             active = active.map(a => a.hasResult() ? new ActiveSource(a.source, 0 /* State.Inactive */) : a);
         for (let effect of tr.effects)
@@ -830,7 +869,7 @@ backward by the given amount.
 function moveCompletionSelection(forward, by = "option") {
     return (view) => {
         let cState = view.state.field(completionState, false);
-        if (!cState || !cState.open ||
+        if (!cState || !cState.open || cState.open.disabled ||
             Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
             return false;
         let step = 1, tooltip;
@@ -855,7 +894,8 @@ const acceptCompletion = (view) => {
     if (view.state.readOnly || !cState || !cState.open || cState.open.selected < 0 ||
         Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
         return false;
-    applyCompletion(view, cState.open.options[cState.open.selected]);
+    if (!cState.open.disabled)
+        applyCompletion(view, cState.open.options[cState.open.selected]);
     return true;
 };
 /**
@@ -1044,6 +1084,7 @@ const baseTheme = /*@__PURE__*/EditorView.baseTheme({
             maxWidth: "min(700px, 95vw)",
             minWidth: "250px",
             maxHeight: "10em",
+            height: "100%",
             listStyle: "none",
             margin: 0,
             padding: 0,
@@ -1060,9 +1101,15 @@ const baseTheme = /*@__PURE__*/EditorView.baseTheme({
         background: "#17c",
         color: "white",
     },
+    "&light .cm-tooltip-autocomplete-disabled ul li[aria-selected]": {
+        background: "#777",
+    },
     "&dark .cm-tooltip-autocomplete ul li[aria-selected]": {
         background: "#347",
         color: "white",
+    },
+    "&dark .cm-tooltip-autocomplete-disabled ul li[aria-selected]": {
+        background: "#444",
     },
     ".cm-completionListIncompleteTop:before, .cm-completionListIncompleteBottom:after": {
         content: '"···"',
@@ -1104,7 +1151,8 @@ const baseTheme = /*@__PURE__*/EditorView.baseTheme({
         display: "inline-block",
         textAlign: "center",
         paddingRight: ".6em",
-        opacity: "0.6"
+        opacity: "0.6",
+        boxSizing: "content-box"
     },
     ".cm-completionIcon-function, .cm-completionIcon-method": {
         "&:after": { content: "'ƒ'" }
@@ -1206,8 +1254,8 @@ class Snippet {
                 positions.push(new FieldPos(found, lines.length, m.index, m.index + name.length));
                 line = line.slice(0, m.index) + name + line.slice(m.index + m[0].length);
             }
-            for (let esc; esc = /([$#])\\{/.exec(line);) {
-                line = line.slice(0, esc.index) + esc[1] + "{" + line.slice(esc.index + esc[0].length);
+            for (let esc; esc = /\\([{}])/.exec(line);) {
+                line = line.slice(0, esc.index) + esc[1] + line.slice(esc.index + esc[0].length);
                 for (let pos of positions)
                     if (pos.line == lines.length && pos.from > esc.index) {
                         pos.from--;
@@ -1298,10 +1346,9 @@ The order of fields defaults to textual order, but you can add
 numbers to placeholders (`${1}` or `${1:defaultText}`) to provide
 a custom order.
 
-To include a literal `${` or `#{` in your template, put a
-backslash after the dollar or hash and before the brace (`$\\{`).
-This will be removed and the sequence will not be interpreted as a
-placeholder.
+To include a literal `{` or `}` in your template, put a backslash
+in front of it. This will be removed and the brace will not be
+interpreted as indicating a placeholder.
 */
 function snippet(template) {
     let snippet = Snippet.parse(template);
@@ -1772,7 +1819,7 @@ Returns the available completions as an array.
 function currentCompletions(state) {
     var _a;
     let open = (_a = state.field(completionState, false)) === null || _a === void 0 ? void 0 : _a.open;
-    if (!open)
+    if (!open || open.disabled)
         return [];
     let completions = completionArrayCache.get(open.options);
     if (!completions)
@@ -1785,7 +1832,7 @@ Return the currently selected completion, if any.
 function selectedCompletion(state) {
     var _a;
     let open = (_a = state.field(completionState, false)) === null || _a === void 0 ? void 0 : _a.open;
-    return open && open.selected >= 0 ? open.options[open.selected].completion : null;
+    return open && !open.disabled && open.selected >= 0 ? open.options[open.selected].completion : null;
 }
 /**
 Returns the currently selected position in the active completion
@@ -1794,7 +1841,7 @@ list, or null if no completions are active.
 function selectedCompletionIndex(state) {
     var _a;
     let open = (_a = state.field(completionState, false)) === null || _a === void 0 ? void 0 : _a.open;
-    return open && open.selected >= 0 ? open.selected : null;
+    return open && !open.disabled && open.selected >= 0 ? open.selected : null;
 }
 /**
 Create an effect that can be attached to a transaction to change

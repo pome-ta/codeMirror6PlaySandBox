@@ -363,10 +363,12 @@ declare class LanguageDescription {
 Facet that defines a way to provide a function that computes the
 appropriate indentation depth, as a column number (see
 [`indentString`](https://codemirror.net/6/docs/ref/#language.indentString)), at the start of a given
-line, or `null` to indicate no appropriate indentation could be
-determined.
+line. A return value of `null` indicates no indentation can be
+determined, and the line should inherit the indentation of the one
+above it. A return value of `undefined` defers to the next indent
+service.
 */
-declare const indentService: Facet<(context: IndentContext, pos: number) => number | null, readonly ((context: IndentContext, pos: number) => number | null)[]>;
+declare const indentService: Facet<(context: IndentContext, pos: number) => number | null | undefined, readonly ((context: IndentContext, pos: number) => number | null | undefined)[]>;
 /**
 Facet for overriding the unit by which indentation happens.
 Should be a string consisting either entirely of spaces or

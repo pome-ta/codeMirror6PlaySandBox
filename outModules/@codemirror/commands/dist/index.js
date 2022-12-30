@@ -1,6 +1,6 @@
 import { Annotation, Facet, combineConfig, StateField, EditorSelection, Transaction, ChangeSet, ChangeDesc, StateEffect, Text, findClusterBreak, countColumn, CharCategory } from '@codemirror/state';
 import { EditorView, Direction } from '@codemirror/view';
-import { IndentContext, getIndentation, indentString, indentUnit, getIndentUnit, matchBrackets, syntaxTree } from '@codemirror/language';
+import { IndentContext, getIndentation, indentString, matchBrackets, syntaxTree, getIndentUnit, indentUnit } from '@codemirror/language';
 import { NodeProp } from '@lezer/common';
 
 /**
@@ -807,7 +807,7 @@ const selectMatchingBracket = ({ state, dispatch }) => toMatchingBracket(state, 
 function extendSel(view, how) {
     let selection = updateSel(view.state.selection, range => {
         let head = how(range);
-        return EditorSelection.range(range.anchor, head.head, head.goalColumn);
+        return EditorSelection.range(range.anchor, head.head, head.goalColumn, head.bidiLevel || undefined);
     });
     if (selection.eq(view.state.selection))
         return false;

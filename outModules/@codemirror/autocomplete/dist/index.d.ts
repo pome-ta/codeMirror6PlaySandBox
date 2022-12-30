@@ -50,6 +50,11 @@ interface CompletionConfig {
     */
     aboveCursor?: boolean;
     /**
+    When given, this may return an additional CSS class to add to
+    the completion dialog element.
+    */
+    tooltipClass?: (state: EditorState) => string;
+    /**
     This can be used to add additional CSS classes to completion
     options.
     */
@@ -326,10 +331,9 @@ The order of fields defaults to textual order, but you can add
 numbers to placeholders (`${1}` or `${1:defaultText}`) to provide
 a custom order.
 
-To include a literal `${` or `#{` in your template, put a
-backslash after the dollar or hash and before the brace (`$\\{`).
-This will be removed and the sequence will not be interpreted as a
-placeholder.
+To include a literal `{` or `}` in your template, put a backslash
+in front of it. This will be removed and the brace will not be
+interpreted as indicating a placeholder.
 */
 declare function snippet(template: string): (editor: {
     state: EditorState;
