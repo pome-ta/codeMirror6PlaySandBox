@@ -1500,10 +1500,11 @@ class EditorSelection {
     /**
     Create a selection range.
     */
-    static range(anchor, head, goalColumn) {
-        let goal = (goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* RangeFlag.NoGoalColumn */) << 5 /* RangeFlag.GoalColumnOffset */;
-        return head < anchor ? SelectionRange.create(head, anchor, 16 /* RangeFlag.Inverted */ | goal | 8 /* RangeFlag.AssocAfter */)
-            : SelectionRange.create(anchor, head, goal | (head > anchor ? 4 /* RangeFlag.AssocBefore */ : 0));
+    static range(anchor, head, goalColumn, bidiLevel) {
+        let flags = ((goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* RangeFlag.NoGoalColumn */) << 5 /* RangeFlag.GoalColumnOffset */) |
+            (bidiLevel == null ? 3 : Math.min(2, bidiLevel));
+        return head < anchor ? SelectionRange.create(head, anchor, 16 /* RangeFlag.Inverted */ | 8 /* RangeFlag.AssocAfter */ | flags)
+            : SelectionRange.create(anchor, head, (head > anchor ? 4 /* RangeFlag.AssocBefore */ : 0) | flags);
     }
     /**
     @internal
@@ -1648,17 +1649,19 @@ class FacetProvider {
                 return 0;
             },
             reconfigure: (state, oldState) => {
-                let newVal = getter(state);
-                let oldAddr = oldState.config.address[id];
+                let newVal, oldAddr = oldState.config.address[id];
                 if (oldAddr != null) {
                     let oldVal = getAddr(oldState, oldAddr);
                     if (this.dependencies.every(dep => {
                         return dep instanceof Facet ? oldState.facet(dep) === state.facet(dep) :
                             dep instanceof StateField ? oldState.field(dep, false) == state.field(dep, false) : true;
-                    }) || (multi ? compareArray(newVal, oldVal, compare) : compare(newVal, oldVal))) {
+                    }) || (multi ? compareArray(newVal = getter(state), oldVal, compare) : compare(newVal = getter(state), oldVal))) {
                         state.values[idx] = oldVal;
                         return 0;
                     }
+                }
+                else {
+                    newVal = getter(state);
                 }
                 state.values[idx] = newVal;
                 return 1 /* SlotStatus.Changed */;
@@ -2793,6 +2796,18 @@ class EditorState {
     /**
     Find the values for a given language data field, provided by the
     the [`languageData`](https://codemirror.net/6/docs/ref/#state.EditorState^languageData) facet.
+    
+    Examples of language data fields are...
+    
+    - [`"commentTokens"`](https://codemirror.net/6/docs/ref/#commands.CommentTokens) for specifying
+      comment syntax.
+    - [`"autocomplete"`](https://codemirror.net/6/docs/ref/#autocomplete.autocompletion^config.override)
+      for providing language-specific completion sources.
+    - [`"wordChars"`](https://codemirror.net/6/docs/ref/#state.EditorState.charCategorizer) for adding
+      characters that should be considered part of words in this
+      language.
+    - [`"closeBrackets"`](https://codemirror.net/6/docs/ref/#autocomplete.CloseBracketConfig) controls
+      bracket closing behavior.
     */
     languageDataAt(name, pos, side = -1) {
         let values = [];
@@ -3297,7 +3312,7 @@ class RangeSet {
     */
     static eq(oldSets, newSets, from = 0, to) {
         if (to == null)
-            to = 1000000000 /* C.Far */;
+            to = 1000000000 /* C.Far */ - 1;
         let a = oldSets.filter(set => !set.isEmpty && newSets.indexOf(set) < 0);
         let b = newSets.filter(set => !set.isEmpty && oldSets.indexOf(set) < 0);
         if (a.length != b.length)
@@ -3331,23 +3346,24 @@ class RangeSet {
     */
     minPointSize = -1) {
         let cursor = new SpanCursor(sets, null, minPointSize).goto(from), pos = from;
-        let open = cursor.openStart;
+        let openRanges = cursor.openStart;
         for (;;) {
             let curTo = Math.min(cursor.to, to);
             if (cursor.point) {
-                iterator.point(pos, curTo, cursor.point, cursor.activeForPoint(cursor.to), open, cursor.pointRank);
-                open = cursor.openEnd(curTo) + (cursor.to > curTo ? 1 : 0);
+                let active = cursor.activeForPoint(cursor.to);
+                let openCount = cursor.pointFrom < from ? active.length + 1 : Math.min(active.length, openRanges);
+                iterator.point(pos, curTo, cursor.point, active, openCount, cursor.pointRank);
+                openRanges = Math.min(cursor.openEnd(curTo), active.length);
             }
             else if (curTo > pos) {
-                iterator.span(pos, curTo, cursor.active, open);
-                open = cursor.openEnd(curTo);
+                iterator.span(pos, curTo, cursor.active, openRanges);
+                openRanges = cursor.openEnd(curTo);
             }
             if (cursor.to > to)
-                break;
+                return openRanges + (cursor.point && cursor.to > to ? 1 : 0);
             pos = cursor.to;
             cursor.next();
         }
-        return open;
     }
     /**
     Create a range set for the given range or array of ranges. By
@@ -3651,6 +3667,8 @@ class SpanCursor {
         this.pointRank = 0;
         this.to = -1000000000 /* C.Far */;
         this.endSide = 0;
+        // The amount of open active ranges at the start of the iterator.
+        // Not including points.
         this.openStart = -1;
         this.cursor = HeapCursor.from(sets, skip, minPoint);
     }
@@ -3691,7 +3709,7 @@ class SpanCursor {
     next() {
         let from = this.to, wasPoint = this.point;
         this.point = null;
-        let trackOpen = this.openStart < 0 ? [] : null, trackExtra = 0;
+        let trackOpen = this.openStart < 0 ? [] : null;
         for (;;) {
             let a = this.minActive;
             if (a > -1 && (this.activeTo[a] - this.cursor.from || this.active[a].endSide - this.cursor.startSide) < 0) {
@@ -3717,8 +3735,6 @@ class SpanCursor {
                 let nextVal = this.cursor.value;
                 if (!nextVal.point) { // Opening a range
                     this.addActive(trackOpen);
-                    if (this.cursor.from < from && this.cursor.to > from)
-                        trackExtra++;
                     this.cursor.next();
                 }
                 else if (wasPoint && this.cursor.to == this.to && this.cursor.from < this.cursor.to) {
@@ -3731,8 +3747,6 @@ class SpanCursor {
                     this.pointRank = this.cursor.rank;
                     this.to = this.cursor.to;
                     this.endSide = nextVal.endSide;
-                    if (this.cursor.from < from)
-                        trackExtra = 1;
                     this.cursor.next();
                     this.forward(this.to, this.endSide);
                     break;
@@ -3740,10 +3754,9 @@ class SpanCursor {
             }
         }
         if (trackOpen) {
-            let openStart = 0;
-            while (openStart < trackOpen.length && trackOpen[openStart] < from)
-                openStart++;
-            this.openStart = openStart + trackExtra;
+            this.openStart = 0;
+            for (let i = trackOpen.length - 1; i >= 0 && trackOpen[i] < from; i--)
+                this.openStart++;
         }
     }
     activeForPoint(to) {
@@ -4320,6 +4333,26 @@ function scrollRectIntoView(dom, rect, side, x, y, xMargin, yMargin, ltr) {
             break;
         }
     }
+}
+function scrollableParent(dom) {
+    let doc = dom.ownerDocument;
+    for (let cur = dom.parentNode; cur;) {
+        if (cur == doc.body) {
+            break;
+        }
+        else if (cur.nodeType == 1) {
+            if (cur.scrollHeight > cur.clientHeight || cur.scrollWidth > cur.clientWidth)
+                return cur;
+            cur = cur.assignedSlot || cur.parentNode;
+        }
+        else if (cur.nodeType == 11) {
+            cur = cur.host;
+        }
+        else {
+            break;
+        }
+    }
+    return null;
 }
 class DOMSelectionState {
     constructor() {
@@ -5005,7 +5038,7 @@ class WidgetView extends ContentView {
             if (pos > 0 ? i == 0 : i == rects.length - 1 || rect.top < rect.bottom)
                 break;
         }
-        return flattenRect(rect, this.side > 0);
+        return this.length ? rect : flattenRect(rect, this.side > 0);
     }
     get isEditable() { return false; }
     destroy() {
@@ -5732,6 +5765,7 @@ class ContentBuilder {
         this.curLine = null;
         this.breakAtStart = 0;
         this.pendingBuffer = 0 /* Buf.No */;
+        this.bufferMarks = [];
         // Set to false directly after a widget that covers the position after it
         this.atCursorPos = true;
         this.openStart = -1;
@@ -5754,20 +5788,20 @@ class ContentBuilder {
         }
         return this.curLine;
     }
-    flushBuffer(active) {
+    flushBuffer(active = this.bufferMarks) {
         if (this.pendingBuffer) {
             this.curLine.append(wrapMarks(new WidgetBufferView(-1), active), active.length);
             this.pendingBuffer = 0 /* Buf.No */;
         }
     }
     addBlockWidget(view) {
-        this.flushBuffer([]);
+        this.flushBuffer();
         this.curLine = null;
         this.content.push(view);
     }
     finish(openEnd) {
-        if (!openEnd)
-            this.flushBuffer([]);
+        if (this.pendingBuffer && openEnd <= this.bufferMarks.length)
+            this.flushBuffer();
         else
             this.pendingBuffer = 0 /* Buf.No */;
         if (!this.posCovered())
@@ -5787,8 +5821,9 @@ class ContentBuilder {
                         this.content[this.content.length - 1].breakAfter = 1;
                     else
                         this.breakAtStart = 1;
-                    this.flushBuffer([]);
+                    this.flushBuffer();
                     this.curLine = null;
+                    this.atCursorPos = true;
                     length--;
                     continue;
                 }
@@ -5798,7 +5833,7 @@ class ContentBuilder {
                 }
             }
             let take = Math.min(this.text.length - this.textOff, length, 512 /* T.Chunk */);
-            this.flushBuffer(active.slice(0, openStart));
+            this.flushBuffer(active.slice(active.length - openStart));
             this.getLine().append(wrapMarks(new TextView(this.text.slice(this.textOff, this.textOff + take)), active), openStart);
             this.atCursorPos = true;
             this.textOff += take;
@@ -5830,7 +5865,7 @@ class ContentBuilder {
             else {
                 let view = WidgetView.create(deco.widget || new NullWidget("span"), len, len ? 0 : deco.startSide);
                 let cursorBefore = this.atCursorPos && !view.isEditable && openStart <= active.length && (from < to || deco.startSide > 0);
-                let cursorAfter = !view.isEditable && (from < to || deco.startSide <= 0);
+                let cursorAfter = !view.isEditable && (from < to || openStart > active.length || deco.startSide <= 0);
                 let line = this.getLine();
                 if (this.pendingBuffer == 2 /* Buf.IfCursor */ && !cursorBefore)
                     this.pendingBuffer = 0 /* Buf.No */;
@@ -5841,7 +5876,9 @@ class ContentBuilder {
                 }
                 line.append(wrapMarks(view, active), openStart);
                 this.atCursorPos = cursorAfter;
-                this.pendingBuffer = !cursorAfter ? 0 /* Buf.No */ : from < to ? 1 /* Buf.Yes */ : 2 /* Buf.IfCursor */;
+                this.pendingBuffer = !cursorAfter ? 0 /* Buf.No */ : from < to || openStart > active.length ? 1 /* Buf.Yes */ : 2 /* Buf.IfCursor */;
+                if (this.pendingBuffer)
+                    this.bufferMarks = active.slice();
             }
         }
         else if (this.doc.lineAt(this.pos).from == this.pos) { // Line decoration
@@ -5893,6 +5930,9 @@ const exceptionSink = /*@__PURE__*/Facet.define();
 const updateListener = /*@__PURE__*/Facet.define();
 const inputHandler = /*@__PURE__*/Facet.define();
 const perLineTextDirection = /*@__PURE__*/Facet.define({
+    combine: values => values.some(x => x)
+});
+const nativeSelectionHidden = /*@__PURE__*/Facet.define({
     combine: values => values.some(x => x)
 });
 class ScrollTarget {
@@ -6807,8 +6847,9 @@ class DocView extends ContentView {
     enforceCursorAssoc() {
         if (this.compositionDeco.size)
             return;
-        let cursor = this.view.state.selection.main;
-        let sel = getSelection(this.view.root);
+        let { view } = this, cursor = view.state.selection.main;
+        let sel = getSelection(view.root);
+        let { anchorNode, anchorOffset } = view.observer.selectionRange;
         if (!sel || !cursor.empty || !cursor.assoc || !sel.modify)
             return;
         let line = LineView.find(this, cursor.head);
@@ -6823,6 +6864,12 @@ class DocView extends ContentView {
         let dom = this.domAtPos(cursor.head + cursor.assoc);
         sel.collapse(dom.node, dom.offset);
         sel.modify("move", cursor.assoc < 0 ? "forward" : "backward", "lineboundary");
+        // This can go wrong in corner cases like single-character lines,
+        // so check and reset if necessary.
+        view.observer.readSelectionRange();
+        let newRange = view.observer.selectionRange;
+        if (view.docView.posFromDOM(newRange.anchorNode, newRange.anchorOffset) != cursor.from)
+            sel.collapse(anchorNode, anchorOffset);
     }
     mayControlSelection() {
         let active = this.view.root.activeElement;
@@ -7505,22 +7552,30 @@ class InputState {
         this.compositionFirstChange = null;
         this.compositionEndedAt = 0;
         this.mouseSelection = null;
+        let handleEvent = (handler, event) => {
+            if (this.ignoreDuringComposition(event))
+                return;
+            if (event.type == "keydown" && this.keydown(view, event))
+                return;
+            if (this.mustFlushObserver(event))
+                view.observer.forceFlush();
+            if (this.runCustomHandlers(event.type, view, event))
+                event.preventDefault();
+            else
+                handler(view, event);
+        };
         for (let type in handlers) {
             let handler = handlers[type];
-            view.contentDOM.addEventListener(type, (event) => {
-                if (!eventBelongsToEditor(view, event) || this.ignoreDuringComposition(event))
-                    return;
-                if (type == "keydown" && this.keydown(view, event))
-                    return;
-                if (this.mustFlushObserver(event))
-                    view.observer.forceFlush();
-                if (this.runCustomHandlers(type, view, event))
-                    event.preventDefault();
-                else
-                    handler(view, event);
+            view.contentDOM.addEventListener(type, event => {
+                if (eventBelongsToEditor(view, event))
+                    handleEvent(handler, event);
             }, handlerOptions[type]);
             this.registeredEvents.push(type);
         }
+        view.scrollDOM.addEventListener("mousedown", (event) => {
+            if (event.target == view.scrollDOM)
+                handleEvent(handlers.mousedown, event);
+        });
         if (browser.chrome && browser.chrome_version == 102) { // FIXME remove at some point
             // On Chrome 102, viewport updates somehow stop wheel-based
             // scrolling. Turning off pointer events during the scroll seems
@@ -7677,12 +7732,18 @@ const PendingKeys = [
 const EmacsyPendingKeys = "dthko";
 // Key codes for modifier keys
 const modifierCodes = [16, 17, 18, 20, 91, 92, 224, 225];
+function dragScrollSpeed(dist) {
+    return dist * 0.7 + 8;
+}
 class MouseSelection {
     constructor(view, startEvent, style, mustSelect) {
         this.view = view;
         this.style = style;
         this.mustSelect = mustSelect;
+        this.scrollSpeed = { x: 0, y: 0 };
+        this.scrolling = -1;
         this.lastEvent = startEvent;
+        this.scrollParent = scrollableParent(view.contentDOM);
         let doc = view.contentDOM.ownerDocument;
         doc.addEventListener("mousemove", this.move = this.move.bind(this));
         doc.addEventListener("mouseup", this.up = this.up.bind(this));
@@ -7698,11 +7759,24 @@ class MouseSelection {
         }
     }
     move(event) {
+        var _a;
         if (event.buttons == 0)
             return this.destroy();
         if (this.dragging !== false)
             return;
         this.select(this.lastEvent = event);
+        let sx = 0, sy = 0;
+        let rect = ((_a = this.scrollParent) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect())
+            || { left: 0, top: 0, right: this.view.win.innerWidth, bottom: this.view.win.innerHeight };
+        if (event.clientX <= rect.left)
+            sx = -dragScrollSpeed(rect.left - event.clientX);
+        else if (event.clientX >= rect.right)
+            sx = dragScrollSpeed(event.clientX - rect.right);
+        if (event.clientY <= rect.top)
+            sy = -dragScrollSpeed(rect.top - event.clientY);
+        else if (event.clientY >= rect.bottom)
+            sy = dragScrollSpeed(event.clientY - rect.bottom);
+        this.setScrollSpeed(sx, sy);
     }
     up(event) {
         if (this.dragging == null)
@@ -7712,10 +7786,33 @@ class MouseSelection {
         this.destroy();
     }
     destroy() {
+        this.setScrollSpeed(0, 0);
         let doc = this.view.contentDOM.ownerDocument;
         doc.removeEventListener("mousemove", this.move);
         doc.removeEventListener("mouseup", this.up);
         this.view.inputState.mouseSelection = null;
+    }
+    setScrollSpeed(sx, sy) {
+        this.scrollSpeed = { x: sx, y: sy };
+        if (sx || sy) {
+            if (this.scrolling < 0)
+                this.scrolling = setInterval(() => this.scroll(), 50);
+        }
+        else if (this.scrolling > -1) {
+            clearInterval(this.scrolling);
+            this.scrolling = -1;
+        }
+    }
+    scroll() {
+        if (this.scrollParent) {
+            this.scrollParent.scrollLeft += this.scrollSpeed.x;
+            this.scrollParent.scrollTop += this.scrollSpeed.y;
+        }
+        else {
+            this.view.win.scrollBy(this.scrollSpeed.x, this.scrollSpeed.y);
+        }
+        if (this.dragging === false)
+            this.select(this.lastEvent);
     }
     select(event) {
         let selection = this.style.get(event, this.extend, this.multiple);
@@ -7723,8 +7820,7 @@ class MouseSelection {
             selection.main.assoc != this.view.state.selection.main.assoc)
             this.view.dispatch({
                 selection,
-                userEvent: "select.pointer",
-                scrollIntoView: true
+                userEvent: "select.pointer"
             });
         this.mustSelect = false;
     }
@@ -7915,23 +8011,15 @@ function getClickType(event) {
 function basicMouseSelection(view, event) {
     let start = queryPos(view, event), type = getClickType(event);
     let startSel = view.state.selection;
-    let last = start, lastEvent = event;
     return {
         update(update) {
             if (update.docChanged) {
                 start.pos = update.changes.mapPos(start.pos);
                 startSel = startSel.map(update.changes);
-                lastEvent = null;
             }
         },
         get(event, extend, multiple) {
-            let cur;
-            if (lastEvent && event.clientX == lastEvent.clientX && event.clientY == lastEvent.clientY)
-                cur = last;
-            else {
-                cur = last = queryPos(view, event);
-                lastEvent = event;
-            }
+            let cur = queryPos(view, event);
             let range = rangeForClick(view, cur.pos, cur.bias, type);
             if (start.pos != cur.pos && !extend) {
                 let startRange = rangeForClick(view, start.pos, start.bias, type);
@@ -8156,9 +8244,9 @@ handlers.beforeinput = (view, event) => {
 
 const wrappingWhiteSpace = ["pre-wrap", "normal", "pre-line", "break-spaces"];
 class HeightOracle {
-    constructor() {
+    constructor(lineWrapping) {
+        this.lineWrapping = lineWrapping;
         this.doc = Text.empty;
-        this.lineWrapping = false;
         this.heightSamples = {};
         this.lineHeight = 14;
         this.charWidth = 7;
@@ -8897,7 +8985,6 @@ class ViewState {
         this.contentDOMHeight = 0;
         this.editorHeight = 0;
         this.editorWidth = 0;
-        this.heightOracle = new HeightOracle;
         // See VP.MaxDOMHeight
         this.scaler = IdScaler;
         this.scrollTarget = null;
@@ -8906,7 +8993,7 @@ class ViewState {
         // Flag set when editor content was redrawn, so that the next
         // measure stage knows it must read DOM layout
         this.mustMeasureContent = true;
-        this.defaultTextDirection = Direction.RTL;
+        this.defaultTextDirection = Direction.LTR;
         this.visibleRanges = [];
         // Cursor 'assoc' is only significant when the cursor is on a line
         // wrap point, where it must stick to the character that it is
@@ -8917,6 +9004,8 @@ class ViewState {
         // boundary and, if so, reset it to make sure it is positioned in
         // the right place.
         this.mustEnforceCursorAssoc = false;
+        let guessWrapping = state.facet(contentAttributes).some(v => typeof v != "function" && v.class == "cm-lineWrapping");
+        this.heightOracle = new HeightOracle(guessWrapping);
         this.stateDeco = state.facet(decorations).filter(d => typeof d != "function");
         this.heightMap = HeightMap.empty().applyChanges(this.stateDeco, Text.empty, this.heightOracle.setDoc(state.doc), [new ChangedRange(0, 0, 0, state.doc.length)]);
         this.viewport = this.getViewport(0, null);
@@ -8971,7 +9060,8 @@ class ViewState {
         if (scrollTarget)
             this.scrollTarget = scrollTarget;
         if (!this.mustEnforceCursorAssoc && update.selectionSet && update.view.lineWrapping &&
-            update.state.selection.main.empty && update.state.selection.main.assoc)
+            update.state.selection.main.empty && update.state.selection.main.assoc &&
+            !update.state.facet(nativeSelectionHidden))
             this.mustEnforceCursorAssoc = true;
     }
     measure(view) {
@@ -9034,7 +9124,7 @@ class ViewState {
             oracle.heightChanged = false;
             for (let vp of this.viewports) {
                 let heights = vp.from == this.viewport.from ? lineHeights : view.docView.measureVisibleLineHeights(vp);
-                this.heightMap = this.heightMap.updateHeight(oracle, 0, refresh, new MeasuredHeights(vp.from, heights));
+                this.heightMap = (refresh ? HeightMap.empty().applyChanges(this.stateDeco, Text.empty, this.heightOracle, [new ChangedRange(0, 0, 0, view.state.doc.length)]) : this.heightMap).updateHeight(oracle, 0, refresh, new MeasuredHeights(vp.from, heights));
             }
             if (oracle.heightChanged)
                 result |= 2 /* UpdateFlag.Height */;
@@ -9406,7 +9496,6 @@ const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
         margin: 0,
         flexGrow: 2,
         flexShrink: 0,
-        minHeight: "100%",
         display: "block",
         whiteSpace: "pre",
         wordWrap: "normal",
@@ -9428,14 +9517,13 @@ const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
     "&dark .cm-content": { caretColor: "white" },
     ".cm-line": {
         display: "block",
-        padding: "0 2px 0 4px"
+        padding: "0 2px 0 6px"
     },
-    ".cm-selectionLayer": {
-        zIndex: -1,
-        contain: "size style"
-    },
-    ".cm-selectionBackground": {
-        position: "absolute",
+    ".cm-layer": {
+        contain: "size style",
+        "& > *": {
+            position: "absolute"
+        }
     },
     "&light .cm-selectionBackground": {
         background: "#d9d9d9"
@@ -9450,8 +9538,6 @@ const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
         background: "#233"
     },
     ".cm-cursorLayer": {
-        zIndex: 100,
-        contain: "size style",
         pointerEvents: "none"
     },
     "&.cm-focused .cm-cursorLayer": {
@@ -9463,7 +9549,6 @@ const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
     "@keyframes cm-blink": { "0%": {}, "50%": { opacity: 0 }, "100%": {} },
     "@keyframes cm-blink2": { "0%": {}, "50%": { opacity: 0 }, "100%": {} },
     ".cm-cursor, .cm-dropCursor": {
-        position: "absolute",
         borderLeft: "1.2px solid black",
         marginLeft: "-0.6px",
         pointerEvents: "none",
@@ -9557,6 +9642,21 @@ const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
         display: "inline-block",
         verticalAlign: "top",
     },
+    ".cm-highlightSpace:before": {
+        content: "attr(data-display)",
+        position: "absolute",
+        pointerEvents: "none",
+        color: "#888"
+    },
+    ".cm-highlightTab": {
+        backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="20"><path stroke="%23888" stroke-width="1" fill="none" d="M1 10H196L190 5M190 15L196 10M197 4L197 16"/></svg>')`,
+        backgroundSize: "auto 100%",
+        backgroundPosition: "right 90%",
+        backgroundRepeat: "no-repeat"
+    },
+    ".cm-trailingSpace": {
+        backgroundColor: "#ff332255"
+    },
     ".cm-button": {
         verticalAlign: "middle",
         color: "inherit",
@@ -9600,7 +9700,11 @@ class DOMChange {
         this.bounds = null;
         this.text = "";
         let { impreciseHead: iHead, impreciseAnchor: iAnchor } = view.docView;
-        if (start > -1 && !view.state.readOnly && (this.bounds = view.docView.domBoundsAround(start, end, 0))) {
+        if (view.state.readOnly && start > -1) {
+            // Ignore changes when the editor is read-only
+            this.newSel = null;
+        }
+        else if (start > -1 && (this.bounds = view.docView.domBoundsAround(start, end, 0))) {
             let selPoints = iHead || iAnchor ? [] : selectionPoints(view);
             let reader = new DOMReader(selPoints, view.state);
             reader.readRange(this.bounds.startDOM, this.bounds.endDOM);
@@ -9855,7 +9959,8 @@ class DOMObserver {
         this.lastChange = 0;
         this.scrollTargets = [];
         this.intersection = null;
-        this.resize = null;
+        this.resizeScroll = null;
+        this.resizeContent = null;
         this.intersecting = false;
         this.gapIntersection = null;
         this.gaps = [];
@@ -9893,11 +9998,14 @@ class DOMObserver {
         this.onPrint = this.onPrint.bind(this);
         this.onScroll = this.onScroll.bind(this);
         if (typeof ResizeObserver == "function") {
-            this.resize = new ResizeObserver(() => {
-                if (this.view.docView.lastUpdate < Date.now() - 75)
+            this.resizeScroll = new ResizeObserver(() => {
+                var _a;
+                if (((_a = this.view.docView) === null || _a === void 0 ? void 0 : _a.lastUpdate) < Date.now() - 75)
                     this.onResize();
             });
-            this.resize.observe(view.scrollDOM);
+            this.resizeScroll.observe(view.scrollDOM);
+            this.resizeContent = new ResizeObserver(() => this.view.requestMeasure());
+            this.resizeContent.observe(view.contentDOM);
         }
         this.addWindowListeners(this.win = view.win);
         this.start();
@@ -10216,11 +10324,12 @@ class DOMObserver {
         win.document.removeEventListener("selectionchange", this.onSelectionChange);
     }
     destroy() {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         this.stop();
         (_a = this.intersection) === null || _a === void 0 ? void 0 : _a.disconnect();
         (_b = this.gapIntersection) === null || _b === void 0 ? void 0 : _b.disconnect();
-        (_c = this.resize) === null || _c === void 0 ? void 0 : _c.disconnect();
+        (_c = this.resizeScroll) === null || _c === void 0 ? void 0 : _c.disconnect();
+        (_d = this.resizeContent) === null || _d === void 0 ? void 0 : _d.disconnect();
         for (let dom of this.scrollTargets)
             dom.removeEventListener("scroll", this.onScroll);
         this.removeWindowListeners(this.win);
@@ -10319,7 +10428,7 @@ class EditorView {
         this.scrollDOM.className = "cm-scroller";
         this.scrollDOM.appendChild(this.contentDOM);
         this.announceDOM = document.createElement("div");
-        this.announceDOM.style.cssText = "position: absolute; top: -10000px";
+        this.announceDOM.style.cssText = "position: fixed; top: -10000px";
         this.announceDOM.setAttribute("aria-live", "polite");
         this.dom = document.createElement("div");
         this.dom.appendChild(this.announceDOM);
@@ -11378,7 +11487,7 @@ function runHandlers(map, event, view, scope) {
     if (scopeObj) {
         if (runFor(scopeObj[prefix + modifiers(name, event, !isChar)]))
             return true;
-        if (isChar && (event.shiftKey || event.altKey || event.metaKey || charCode > 127) &&
+        if (isChar && (event.altKey || event.metaKey || event.ctrlKey) &&
             (baseName = base[event.keyCode]) && baseName != name) {
             if (runFor(scopeObj[prefix + modifiers(baseName, event, true)]))
                 return true;
@@ -11396,50 +11505,21 @@ function runHandlers(map, event, view, scope) {
     return fallthrough;
 }
 
-const CanHidePrimary = !browser.ios; // FIXME test IE
-const selectionConfig = /*@__PURE__*/Facet.define({
-    combine(configs) {
-        return combineConfig(configs, {
-            cursorBlinkRate: 1200,
-            drawRangeCursor: true
-        }, {
-            cursorBlinkRate: (a, b) => Math.min(a, b),
-            drawRangeCursor: (a, b) => a || b
-        });
-    }
-});
 /**
-Returns an extension that hides the browser's native selection and
-cursor, replacing the selection with a background behind the text
-(with the `cm-selectionBackground` class), and the
-cursors with elements overlaid over the code (using
-`cm-cursor-primary` and `cm-cursor-secondary`).
-
-This allows the editor to display secondary selection ranges, and
-tends to produce a type of selection more in line with that users
-expect in a text editor (the native selection styling will often
-leave gaps between lines and won't fill the horizontal space after
-a line when the selection continues past it).
-
-It does have a performance cost, in that it requires an extra DOM
-layout cycle for many updates (the selection is drawn based on DOM
-layout information that's only available after laying out the
-content).
+Implementation of [`LayerMarker`](https://codemirror.net/6/docs/ref/#view.LayerMarker) that creates
+a rectangle at a given set of coordinates.
 */
-function drawSelection(config = {}) {
-    return [
-        selectionConfig.of(config),
-        drawSelectionPlugin,
-        hideNativeSelection
-    ];
-}
-class Piece {
-    constructor(left, top, width, height, className) {
+class RectangleMarker {
+    /**
+    Create a marker with the given class and dimensions. If `width`
+    is null, the DOM element will get no width style.
+    */
+    constructor(className, left, top, width, height) {
+        this.className = className;
         this.left = left;
         this.top = top;
         this.width = width;
         this.height = height;
-        this.className = className;
     }
     draw() {
         let elt = document.createElement("div");
@@ -11447,10 +11527,16 @@ class Piece {
         this.adjust(elt);
         return elt;
     }
+    update(elt, prev) {
+        if (prev.className != this.className)
+            return false;
+        this.adjust(elt);
+        return true;
+    }
     adjust(elt) {
         elt.style.left = this.left + "px";
         elt.style.top = this.top + "px";
-        if (this.width >= 0)
+        if (this.width != null)
             elt.style.width = this.width + "px";
         elt.style.height = this.height + "px";
     }
@@ -11458,82 +11544,26 @@ class Piece {
         return this.left == p.left && this.top == p.top && this.width == p.width && this.height == p.height &&
             this.className == p.className;
     }
+    /**
+    Create a set of rectangles for the given selection range,
+    assigning them theclass`className`. Will create a single
+    rectangle for empty ranges, and a set of selection-style
+    rectangles covering the range's content (in a bidi-aware
+    way) for non-empty ones.
+    */
+    static forRange(view, className, range) {
+        if (range.empty) {
+            let pos = view.coordsAtPos(range.head, range.assoc || 1);
+            if (!pos)
+                return [];
+            let base = getBase(view);
+            return [new RectangleMarker(className, pos.left - base.left, pos.top - base.top, null, pos.bottom - pos.top)];
+        }
+        else {
+            return rectanglesForRange(view, className, range);
+        }
+    }
 }
-const drawSelectionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.view = view;
-        this.rangePieces = [];
-        this.cursors = [];
-        this.measureReq = { read: this.readPos.bind(this), write: this.drawSel.bind(this) };
-        this.selectionLayer = view.scrollDOM.appendChild(document.createElement("div"));
-        this.selectionLayer.className = "cm-selectionLayer";
-        this.selectionLayer.setAttribute("aria-hidden", "true");
-        this.cursorLayer = view.scrollDOM.appendChild(document.createElement("div"));
-        this.cursorLayer.className = "cm-cursorLayer";
-        this.cursorLayer.setAttribute("aria-hidden", "true");
-        view.requestMeasure(this.measureReq);
-        this.setBlinkRate();
-    }
-    setBlinkRate() {
-        this.cursorLayer.style.animationDuration = this.view.state.facet(selectionConfig).cursorBlinkRate + "ms";
-    }
-    update(update) {
-        let confChanged = update.startState.facet(selectionConfig) != update.state.facet(selectionConfig);
-        if (confChanged || update.selectionSet || update.geometryChanged || update.viewportChanged)
-            this.view.requestMeasure(this.measureReq);
-        if (update.transactions.some(tr => tr.scrollIntoView))
-            this.cursorLayer.style.animationName = this.cursorLayer.style.animationName == "cm-blink" ? "cm-blink2" : "cm-blink";
-        if (confChanged)
-            this.setBlinkRate();
-    }
-    readPos() {
-        let { state } = this.view, conf = state.facet(selectionConfig);
-        let rangePieces = state.selection.ranges.map(r => r.empty ? [] : measureRange(this.view, r)).reduce((a, b) => a.concat(b));
-        let cursors = [];
-        for (let r of state.selection.ranges) {
-            let prim = r == state.selection.main;
-            if (r.empty ? !prim || CanHidePrimary : conf.drawRangeCursor) {
-                let piece = measureCursor(this.view, r, prim);
-                if (piece)
-                    cursors.push(piece);
-            }
-        }
-        return { rangePieces, cursors };
-    }
-    drawSel({ rangePieces, cursors }) {
-        if (rangePieces.length != this.rangePieces.length || rangePieces.some((p, i) => !p.eq(this.rangePieces[i]))) {
-            this.selectionLayer.textContent = "";
-            for (let p of rangePieces)
-                this.selectionLayer.appendChild(p.draw());
-            this.rangePieces = rangePieces;
-        }
-        if (cursors.length != this.cursors.length || cursors.some((c, i) => !c.eq(this.cursors[i]))) {
-            let oldCursors = this.cursorLayer.children;
-            if (oldCursors.length !== cursors.length) {
-                this.cursorLayer.textContent = "";
-                for (const c of cursors)
-                    this.cursorLayer.appendChild(c.draw());
-            }
-            else {
-                cursors.forEach((c, idx) => c.adjust(oldCursors[idx]));
-            }
-            this.cursors = cursors;
-        }
-    }
-    destroy() {
-        this.selectionLayer.remove();
-        this.cursorLayer.remove();
-    }
-});
-const themeSpec = {
-    ".cm-line": {
-        "& ::selection": { backgroundColor: "transparent !important" },
-        "&::selection": { backgroundColor: "transparent !important" }
-    }
-};
-if (CanHidePrimary)
-    themeSpec[".cm-line"].caretColor = "transparent !important";
-const hideNativeSelection = /*@__PURE__*/Prec.highest(/*@__PURE__*/EditorView.theme(themeSpec));
 function getBase(view) {
     let rect = view.scrollDOM.getBoundingClientRect();
     let left = view.textDirection == Direction.LTR ? rect.left : rect.right - view.scrollDOM.clientWidth;
@@ -11554,7 +11584,7 @@ function blockAt(view, pos) {
         }
     return line;
 }
-function measureRange(view, range) {
+function rectanglesForRange(view, className, range) {
     if (range.to <= view.viewport.from || range.from >= view.viewport.to)
         return [];
     let from = Math.max(range.from, view.viewport.from), to = Math.min(range.to, view.viewport.to);
@@ -11586,7 +11616,7 @@ function measureRange(view, range) {
         return pieces(top).concat(between).concat(pieces(bottom));
     }
     function piece(left, top, right, bottom) {
-        return new Piece(left - base.left, top - base.top - 0.01 /* C.Epsilon */, right - left, bottom - top + 0.01 /* C.Epsilon */, "cm-selectionBackground");
+        return new RectangleMarker(className, left - base.left, top - base.top - 0.01 /* C.Epsilon */, right - left, bottom - top + 0.01 /* C.Epsilon */);
     }
     function pieces({ top, bottom, horizontal }) {
         let pieces = [];
@@ -11638,13 +11668,174 @@ function measureRange(view, range) {
         return { top: y, bottom: y, horizontal: [] };
     }
 }
-function measureCursor(view, cursor, primary) {
-    let pos = view.coordsAtPos(cursor.head, cursor.assoc || 1);
-    if (!pos)
-        return null;
-    let base = getBase(view);
-    return new Piece(pos.left - base.left, pos.top - base.top, -1, pos.bottom - pos.top, primary ? "cm-cursor cm-cursor-primary" : "cm-cursor cm-cursor-secondary");
+function sameMarker(a, b) {
+    return a.constructor == b.constructor && a.eq(b);
 }
+class LayerView {
+    constructor(view, layer) {
+        this.view = view;
+        this.layer = layer;
+        this.drawn = [];
+        this.measureReq = { read: this.measure.bind(this), write: this.draw.bind(this) };
+        this.dom = view.scrollDOM.appendChild(document.createElement("div"));
+        this.dom.classList.add("cm-layer");
+        if (layer.above)
+            this.dom.classList.add("cm-layer-above");
+        if (layer.class)
+            this.dom.classList.add(layer.class);
+        this.dom.setAttribute("aria-hidden", "true");
+        this.setOrder(view.state);
+        view.requestMeasure(this.measureReq);
+        if (layer.mount)
+            layer.mount(this.dom, view);
+    }
+    update(update) {
+        if (update.startState.facet(layerOrder) != update.state.facet(layerOrder))
+            this.setOrder(update.state);
+        if (this.layer.update(update, this.dom) || update.geometryChanged)
+            update.view.requestMeasure(this.measureReq);
+    }
+    setOrder(state) {
+        let pos = 0, order = state.facet(layerOrder);
+        while (pos < order.length && order[pos] != this.layer)
+            pos++;
+        this.dom.style.zIndex = String((this.layer.above ? 150 : -1) - pos);
+    }
+    measure() {
+        return this.layer.markers(this.view);
+    }
+    draw(markers) {
+        if (markers.length != this.drawn.length || markers.some((p, i) => !sameMarker(p, this.drawn[i]))) {
+            let old = this.dom.firstChild, oldI = 0;
+            for (let marker of markers) {
+                if (marker.update && old && marker.constructor && this.drawn[oldI].constructor &&
+                    marker.update(old, this.drawn[oldI])) {
+                    old = old.nextSibling;
+                    oldI++;
+                }
+                else {
+                    this.dom.insertBefore(marker.draw(), old);
+                }
+            }
+            while (old) {
+                let next = old.nextSibling;
+                old.remove();
+                old = next;
+            }
+            this.drawn = markers;
+        }
+    }
+    destroy() {
+        if (this.layer.destroy)
+            this.layer.destroy(this.dom, this.view);
+        this.dom.remove();
+    }
+}
+const layerOrder = /*@__PURE__*/Facet.define();
+/**
+Define a layer.
+*/
+function layer(config) {
+    return [
+        ViewPlugin.define(v => new LayerView(v, config)),
+        layerOrder.of(config)
+    ];
+}
+
+const CanHidePrimary = !browser.ios; // FIXME test IE
+const selectionConfig = /*@__PURE__*/Facet.define({
+    combine(configs) {
+        return combineConfig(configs, {
+            cursorBlinkRate: 1200,
+            drawRangeCursor: true
+        }, {
+            cursorBlinkRate: (a, b) => Math.min(a, b),
+            drawRangeCursor: (a, b) => a || b
+        });
+    }
+});
+/**
+Returns an extension that hides the browser's native selection and
+cursor, replacing the selection with a background behind the text
+(with the `cm-selectionBackground` class), and the
+cursors with elements overlaid over the code (using
+`cm-cursor-primary` and `cm-cursor-secondary`).
+
+This allows the editor to display secondary selection ranges, and
+tends to produce a type of selection more in line with that users
+expect in a text editor (the native selection styling will often
+leave gaps between lines and won't fill the horizontal space after
+a line when the selection continues past it).
+
+It does have a performance cost, in that it requires an extra DOM
+layout cycle for many updates (the selection is drawn based on DOM
+layout information that's only available after laying out the
+content).
+*/
+function drawSelection(config = {}) {
+    return [
+        selectionConfig.of(config),
+        cursorLayer,
+        selectionLayer,
+        hideNativeSelection,
+        nativeSelectionHidden.of(true)
+    ];
+}
+function configChanged(update) {
+    return update.startState.facet(selectionConfig) != update.startState.facet(selectionConfig);
+}
+const cursorLayer = /*@__PURE__*/layer({
+    above: true,
+    markers(view) {
+        let { state } = view, conf = state.facet(selectionConfig);
+        let cursors = [];
+        for (let r of state.selection.ranges) {
+            let prim = r == state.selection.main;
+            if (r.empty ? !prim || CanHidePrimary : conf.drawRangeCursor) {
+                let className = prim ? "cm-cursor cm-cursor-primary" : "cm-cursor cm-cursor-secondary";
+                let cursor = r.empty ? r : EditorSelection.cursor(r.head, r.head > r.anchor ? -1 : 1);
+                for (let piece of RectangleMarker.forRange(view, className, cursor))
+                    cursors.push(piece);
+            }
+        }
+        return cursors;
+    },
+    update(update, dom) {
+        if (update.transactions.some(tr => tr.scrollIntoView))
+            dom.style.animationName = dom.style.animationName == "cm-blink" ? "cm-blink2" : "cm-blink";
+        let confChange = configChanged(update);
+        if (confChange)
+            setBlinkRate(update.state, dom);
+        return update.docChanged || update.selectionSet || confChange;
+    },
+    mount(dom, view) {
+        setBlinkRate(view.state, dom);
+    },
+    class: "cm-cursorLayer"
+});
+function setBlinkRate(state, dom) {
+    dom.style.animationDuration = state.facet(selectionConfig).cursorBlinkRate + "ms";
+}
+const selectionLayer = /*@__PURE__*/layer({
+    above: false,
+    markers(view) {
+        return view.state.selection.ranges.map(r => r.empty ? [] : RectangleMarker.forRange(view, "cm-selectionBackground", r))
+            .reduce((a, b) => a.concat(b));
+    },
+    update(update, dom) {
+        return update.docChanged || update.selectionSet || update.viewportChanged || configChanged(update);
+    },
+    class: "cm-selectionLayer"
+});
+const themeSpec = {
+    ".cm-line": {
+        "& ::selection": { backgroundColor: "transparent !important" },
+        "&::selection": { backgroundColor: "transparent !important" }
+    }
+};
+if (CanHidePrimary)
+    themeSpec[".cm-line"].caretColor = "transparent !important";
+const hideNativeSelection = /*@__PURE__*/Prec.highest(/*@__PURE__*/EditorView.theme(themeSpec));
 
 function iterMatches(doc, re, from, to, f) {
     re.lastIndex = 0;
@@ -12461,8 +12652,8 @@ class NodeType {
     /// Define a node type.
     static define(spec) {
         let props = spec.props && spec.props.length ? Object.create(null) : noProps;
-        let flags = (spec.top ? 1 /* Top */ : 0) | (spec.skipped ? 2 /* Skipped */ : 0) |
-            (spec.error ? 4 /* Error */ : 0) | (spec.name == null ? 8 /* Anonymous */ : 0);
+        let flags = (spec.top ? 1 /* NodeFlag.Top */ : 0) | (spec.skipped ? 2 /* NodeFlag.Skipped */ : 0) |
+            (spec.error ? 4 /* NodeFlag.Error */ : 0) | (spec.name == null ? 8 /* NodeFlag.Anonymous */ : 0);
         let type = new NodeType(spec.name || "", props, spec.id, flags);
         if (spec.props)
             for (let src of spec.props) {
@@ -12480,14 +12671,14 @@ class NodeType {
     /// the prop isn't present on this node.
     prop(prop) { return this.props[prop.id]; }
     /// True when this is the top node of a grammar.
-    get isTop() { return (this.flags & 1 /* Top */) > 0; }
+    get isTop() { return (this.flags & 1 /* NodeFlag.Top */) > 0; }
     /// True when this node is produced by a skip rule.
-    get isSkipped() { return (this.flags & 2 /* Skipped */) > 0; }
+    get isSkipped() { return (this.flags & 2 /* NodeFlag.Skipped */) > 0; }
     /// Indicates whether this is an error node.
-    get isError() { return (this.flags & 4 /* Error */) > 0; }
+    get isError() { return (this.flags & 4 /* NodeFlag.Error */) > 0; }
     /// When true, this node type doesn't correspond to a user-declared
     /// named node, for example because it is used to cache repetition.
-    get isAnonymous() { return (this.flags & 8 /* Anonymous */) > 0; }
+    get isAnonymous() { return (this.flags & 8 /* NodeFlag.Anonymous */) > 0; }
     /// Returns true when this node's name or one of its
     /// [groups](#common.NodeProp^group) matches the given string.
     is(name) {
@@ -12520,7 +12711,7 @@ class NodeType {
     }
 }
 /// An empty dummy node type to use when no actual type is available.
-NodeType.none = new NodeType("", Object.create(null), 0, 8 /* Anonymous */);
+NodeType.none = new NodeType("", Object.create(null), 0, 8 /* NodeFlag.Anonymous */);
 const CachedNode = new WeakMap(), CachedInnerNode = new WeakMap();
 /// Options that control iteration. Can be combined with the `|`
 /// operator to enable multiple ones.
@@ -12691,7 +12882,7 @@ class Tree {
     /// which may have children grouped into subtrees with type
     /// [`NodeType.none`](#common.NodeType^none).
     balance(config = {}) {
-        return this.children.length <= 8 /* BranchFactor */ ? this :
+        return this.children.length <= 8 /* Balance.BranchFactor */ ? this :
             balanceRange(NodeType.none, this.children, this.positions, 0, this.children.length, 0, this.length, (children, positions, length) => new Tree(this.type, children, positions, length, this.propValues), config.makeTree || ((children, positions, length) => new Tree(NodeType.none, children, positions, length)));
     }
     /// Build a tree from a postfix-ordered buffer of node information,
@@ -12770,26 +12961,27 @@ class TreeBuffer {
         return pick;
     }
     /// @internal
-    slice(startI, endI, from, to) {
+    slice(startI, endI, from) {
         let b = this.buffer;
-        let copy = new Uint16Array(endI - startI);
+        let copy = new Uint16Array(endI - startI), len = 0;
         for (let i = startI, j = 0; i < endI;) {
             copy[j++] = b[i++];
             copy[j++] = b[i++] - from;
-            copy[j++] = b[i++] - from;
+            let to = copy[j++] = b[i++] - from;
             copy[j++] = b[i++] - startI;
+            len = Math.max(len, to);
         }
-        return new TreeBuffer(copy, to - from, this.set);
+        return new TreeBuffer(copy, len, this.set);
     }
 }
 function checkSide(side, pos, from, to) {
     switch (side) {
-        case -2 /* Before */: return from < pos;
-        case -1 /* AtOrBefore */: return to >= pos && from < pos;
-        case 0 /* Around */: return from < pos && to > pos;
-        case 1 /* AtOrAfter */: return from <= pos && to > pos;
-        case 2 /* After */: return to > pos;
-        case 4 /* DontCare */: return true;
+        case -2 /* Side.Before */: return from < pos;
+        case -1 /* Side.AtOrBefore */: return to >= pos && from < pos;
+        case 0 /* Side.Around */: return from < pos && to > pos;
+        case 1 /* Side.AtOrAfter */: return from <= pos && to > pos;
+        case 2 /* Side.After */: return to > pos;
+        case 4 /* Side.DontCare */: return true;
     }
 }
 function enterUnfinishedNodesBefore(node, pos) {
@@ -12879,10 +13071,10 @@ class TreeNode {
                 return null;
         }
     }
-    get firstChild() { return this.nextChild(0, 1, 0, 4 /* DontCare */); }
-    get lastChild() { return this.nextChild(this._tree.children.length - 1, -1, 0, 4 /* DontCare */); }
-    childAfter(pos) { return this.nextChild(0, 1, pos, 2 /* After */); }
-    childBefore(pos) { return this.nextChild(this._tree.children.length - 1, -1, pos, -2 /* Before */); }
+    get firstChild() { return this.nextChild(0, 1, 0, 4 /* Side.DontCare */); }
+    get lastChild() { return this.nextChild(this._tree.children.length - 1, -1, 0, 4 /* Side.DontCare */); }
+    childAfter(pos) { return this.nextChild(0, 1, pos, 2 /* Side.After */); }
+    childBefore(pos) { return this.nextChild(this._tree.children.length - 1, -1, pos, -2 /* Side.Before */); }
     enter(pos, side, mode = 0) {
         let mounted;
         if (!(mode & IterMode.IgnoreOverlays) && (mounted = this._tree.prop(NodeProp.mounted)) && mounted.overlay) {
@@ -12905,10 +13097,10 @@ class TreeNode {
         return this._parent ? this._parent.nextSignificantParent() : null;
     }
     get nextSibling() {
-        return this._parent && this.index >= 0 ? this._parent.nextChild(this.index + 1, 1, 0, 4 /* DontCare */) : null;
+        return this._parent && this.index >= 0 ? this._parent.nextChild(this.index + 1, 1, 0, 4 /* Side.DontCare */) : null;
     }
     get prevSibling() {
-        return this._parent && this.index >= 0 ? this._parent.nextChild(this.index - 1, -1, 0, 4 /* DontCare */) : null;
+        return this._parent && this.index >= 0 ? this._parent.nextChild(this.index - 1, -1, 0, 4 /* Side.DontCare */) : null;
     }
     cursor(mode = 0) { return new TreeCursor(this, mode); }
     get tree() { return this._tree; }
@@ -12970,24 +13162,24 @@ class BufferContext {
     }
 }
 class BufferNode {
+    get name() { return this.type.name; }
+    get from() { return this.context.start + this.context.buffer.buffer[this.index + 1]; }
+    get to() { return this.context.start + this.context.buffer.buffer[this.index + 2]; }
     constructor(context, _parent, index) {
         this.context = context;
         this._parent = _parent;
         this.index = index;
         this.type = context.buffer.set.types[context.buffer.buffer[index]];
     }
-    get name() { return this.type.name; }
-    get from() { return this.context.start + this.context.buffer.buffer[this.index + 1]; }
-    get to() { return this.context.start + this.context.buffer.buffer[this.index + 2]; }
     child(dir, pos, side) {
         let { buffer } = this.context;
         let index = buffer.findChild(this.index + 4, buffer.buffer[this.index + 3], dir, pos - this.context.start, side);
         return index < 0 ? null : new BufferNode(this.context, this, index);
     }
-    get firstChild() { return this.child(1, 0, 4 /* DontCare */); }
-    get lastChild() { return this.child(-1, 0, 4 /* DontCare */); }
-    childAfter(pos) { return this.child(1, pos, 2 /* After */); }
-    childBefore(pos) { return this.child(-1, pos, -2 /* Before */); }
+    get firstChild() { return this.child(1, 0, 4 /* Side.DontCare */); }
+    get lastChild() { return this.child(-1, 0, 4 /* Side.DontCare */); }
+    childAfter(pos) { return this.child(1, pos, 2 /* Side.After */); }
+    childBefore(pos) { return this.child(-1, pos, -2 /* Side.Before */); }
     enter(pos, side, mode = 0) {
         if (mode & IterMode.ExcludeBuffers)
             return null;
@@ -12999,7 +13191,7 @@ class BufferNode {
         return this._parent || this.context.parent.nextSignificantParent();
     }
     externalSibling(dir) {
-        return this._parent ? null : this.context.parent.nextChild(this.context.index + dir, dir, 0, 4 /* DontCare */);
+        return this._parent ? null : this.context.parent.nextChild(this.context.index + dir, dir, 0, 4 /* Side.DontCare */);
     }
     get nextSibling() {
         let { buffer } = this.context;
@@ -13013,7 +13205,7 @@ class BufferNode {
         let parentStart = this._parent ? this._parent.index + 4 : 0;
         if (this.index == parentStart)
             return this.externalSibling(-1);
-        return new BufferNode(this.context, this._parent, buffer.findChild(parentStart, this.index, -1, 0, 4 /* DontCare */));
+        return new BufferNode(this.context, this._parent, buffer.findChild(parentStart, this.index, -1, 0, 4 /* Side.DontCare */));
     }
     cursor(mode = 0) { return new TreeCursor(this, mode); }
     get tree() { return null; }
@@ -13022,8 +13214,8 @@ class BufferNode {
         let { buffer } = this.context;
         let startI = this.index + 4, endI = buffer.buffer[this.index + 3];
         if (endI > startI) {
-            let from = buffer.buffer[this.index + 1], to = buffer.buffer[this.index + 2];
-            children.push(buffer.slice(startI, endI, from, to));
+            let from = buffer.buffer[this.index + 1];
+            children.push(buffer.slice(startI, endI, from));
             positions.push(0);
         }
         return new Tree(this.type, children, positions, this.to - this.from);
@@ -13050,6 +13242,8 @@ class BufferNode {
 /// A tree cursor object focuses on a given node in a syntax tree, and
 /// allows you to move to adjacent nodes.
 class TreeCursor {
+    /// Shorthand for `.type.name`.
+    get name() { return this.type.name; }
     /// @internal
     constructor(node, 
     /// @internal
@@ -13073,8 +13267,6 @@ class TreeCursor {
             this.yieldBuf(node.index);
         }
     }
-    /// Shorthand for `.type.name`.
-    get name() { return this.type.name; }
     yieldNode(node) {
         if (!node)
             return false;
@@ -13119,13 +13311,13 @@ class TreeCursor {
     }
     /// Move the cursor to this node's first child. When this returns
     /// false, the node has no child, and the cursor has not been moved.
-    firstChild() { return this.enterChild(1, 0, 4 /* DontCare */); }
+    firstChild() { return this.enterChild(1, 0, 4 /* Side.DontCare */); }
     /// Move the cursor to this node's last child.
-    lastChild() { return this.enterChild(-1, 0, 4 /* DontCare */); }
+    lastChild() { return this.enterChild(-1, 0, 4 /* Side.DontCare */); }
     /// Move the cursor to the first child that ends after `pos`.
-    childAfter(pos) { return this.enterChild(1, pos, 2 /* After */); }
+    childAfter(pos) { return this.enterChild(1, pos, 2 /* Side.After */); }
     /// Move to the last child that starts before `pos`.
-    childBefore(pos) { return this.enterChild(-1, pos, -2 /* Before */); }
+    childBefore(pos) { return this.enterChild(-1, pos, -2 /* Side.Before */); }
     /// Move the cursor to the child around `pos`. If side is -1 the
     /// child may end at that position, when 1 it may start there. This
     /// will also enter [overlaid](#common.MountedTree.overlay)
@@ -13151,19 +13343,19 @@ class TreeCursor {
         if (!this.buffer)
             return !this._tree._parent ? false
                 : this.yield(this._tree.index < 0 ? null
-                    : this._tree._parent.nextChild(this._tree.index + dir, dir, 0, 4 /* DontCare */, this.mode));
+                    : this._tree._parent.nextChild(this._tree.index + dir, dir, 0, 4 /* Side.DontCare */, this.mode));
         let { buffer } = this.buffer, d = this.stack.length - 1;
         if (dir < 0) {
             let parentStart = d < 0 ? 0 : this.stack[d] + 4;
             if (this.index != parentStart)
-                return this.yieldBuf(buffer.findChild(parentStart, this.index, -1, 0, 4 /* DontCare */));
+                return this.yieldBuf(buffer.findChild(parentStart, this.index, -1, 0, 4 /* Side.DontCare */));
         }
         else {
             let after = buffer.buffer[this.index + 3];
             if (after < (d < 0 ? buffer.buffer.length : buffer.buffer[this.stack[d] + 3]))
                 return this.yieldBuf(after);
         }
-        return d < 0 ? this.yield(this.buffer.parent.nextChild(this.buffer.index + dir, dir, 0, 4 /* DontCare */, this.mode)) : false;
+        return d < 0 ? this.yield(this.buffer.parent.nextChild(this.buffer.index + dir, dir, 0, 4 /* Side.DontCare */, this.mode)) : false;
     }
     /// Move to this node's next sibling, if any.
     nextSibling() { return this.sibling(1); }
@@ -13200,7 +13392,7 @@ class TreeCursor {
         return true;
     }
     move(dir, enter) {
-        if (enter && this.enterChild(dir, 0, 4 /* DontCare */))
+        if (enter && this.enterChild(dir, 0, 4 /* Side.DontCare */))
             return true;
         for (;;) {
             if (this.sibling(dir))
@@ -13210,7 +13402,7 @@ class TreeCursor {
         }
     }
     /// Move to the next node in a
-    /// [pre-order](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_(NLR))
+    /// [pre-order](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)
     /// traversal, going from a node to its first child or, if the
     /// current node is empty or `enter` is false, its next sibling or
     /// the next sibling of the first parent node that has one.
@@ -13326,17 +13518,17 @@ function buildTree(data) {
         let lookAheadAtStart = lookAhead;
         while (size < 0) {
             cursor.next();
-            if (size == -1 /* Reuse */) {
+            if (size == -1 /* SpecialRecord.Reuse */) {
                 let node = reused[id];
                 children.push(node);
                 positions.push(start - parentStart);
                 return;
             }
-            else if (size == -3 /* ContextChange */) { // Context change
+            else if (size == -3 /* SpecialRecord.ContextChange */) { // Context change
                 contextHash = id;
                 return;
             }
-            else if (size == -4 /* LookAhead */) {
+            else if (size == -4 /* SpecialRecord.LookAhead */) {
                 lookAhead = id;
                 return;
             }
@@ -13453,7 +13645,7 @@ function buildTree(data) {
             fork.next();
             while (fork.pos > startPos) {
                 if (fork.size < 0) {
-                    if (fork.size == -3 /* ContextChange */)
+                    if (fork.size == -3 /* SpecialRecord.ContextChange */)
                         localSkipped += 4;
                     else
                         break scan;
@@ -13489,10 +13681,10 @@ function buildTree(data) {
             buffer[--index] = start - bufferStart;
             buffer[--index] = id;
         }
-        else if (size == -3 /* ContextChange */) {
+        else if (size == -3 /* SpecialRecord.ContextChange */) {
             contextHash = id;
         }
-        else if (size == -4 /* LookAhead */) {
+        else if (size == -4 /* SpecialRecord.LookAhead */) {
             lookAhead = id;
         }
         return index;
@@ -13539,7 +13731,7 @@ mkTree) {
     let total = 0;
     for (let i = from; i < to; i++)
         total += nodeSize(balanceType, children[i]);
-    let maxChild = Math.ceil((total * 1.5) / 8 /* BranchFactor */);
+    let maxChild = Math.ceil((total * 1.5) / 8 /* Balance.BranchFactor */);
     let localChildren = [], localPositions = [];
     function divide(children, positions, from, to, offset) {
         for (let i = from; i < to;) {
@@ -13600,16 +13792,16 @@ class TreeFragment {
         this.to = to;
         this.tree = tree;
         this.offset = offset;
-        this.open = (openStart ? 1 /* Start */ : 0) | (openEnd ? 2 /* End */ : 0);
+        this.open = (openStart ? 1 /* Open.Start */ : 0) | (openEnd ? 2 /* Open.End */ : 0);
     }
     /// Whether the start of the fragment represents the start of a
     /// parse, or the end of a change. (In the second case, it may not
     /// be safe to reuse some nodes at the start, depending on the
     /// parsing algorithm.)
-    get openStart() { return (this.open & 1 /* Start */) > 0; }
+    get openStart() { return (this.open & 1 /* Open.Start */) > 0; }
     /// Whether the end of the fragment represents the end of a
     /// full-document parse, or the start of a change.
-    get openEnd() { return (this.open & 2 /* End */) > 0; }
+    get openEnd() { return (this.open & 2 /* Open.End */) > 0; }
     /// Create a set of fragments from a freshly parsed tree, or update
     /// an existing set of fragments by replacing the ones that overlap
     /// with a tree with content from the new tree. When `partial` is
@@ -13853,10 +14045,10 @@ function styleTags(spec) {
             tags = [tags];
         for (let part of prop.split(" "))
             if (part) {
-                let pieces = [], mode = 2 /* Normal */, rest = part;
+                let pieces = [], mode = 2 /* Mode.Normal */, rest = part;
                 for (let pos = 0;;) {
                     if (rest == "..." && pos > 0 && pos + 3 == part.length) {
-                        mode = 1 /* Inherit */;
+                        mode = 1 /* Mode.Inherit */;
                         break;
                     }
                     let m = /^"(?:[^"\\]|\\.)*?"|[^\/!]+/.exec(rest);
@@ -13868,7 +14060,7 @@ function styleTags(spec) {
                         break;
                     let next = part[pos++];
                     if (pos == part.length && next == "!") {
-                        mode = 0 /* Opaque */;
+                        mode = 0 /* Mode.Opaque */;
                         break;
                     }
                     if (next != "/")
@@ -13892,8 +14084,8 @@ class Rule {
         this.context = context;
         this.next = next;
     }
-    get opaque() { return this.mode == 0 /* Opaque */; }
-    get inherit() { return this.mode == 1 /* Inherit */; }
+    get opaque() { return this.mode == 0 /* Mode.Opaque */; }
+    get inherit() { return this.mode == 1 /* Mode.Inherit */; }
     sort(other) {
         if (!other || other.depth < this.depth) {
             this.next = other;
@@ -13904,7 +14096,7 @@ class Rule {
     }
     get depth() { return this.context ? this.context.length : 0; }
 }
-Rule.empty = new Rule([], 2 /* Normal */, null);
+Rule.empty = new Rule([], 2 /* Mode.Normal */, null);
 /// Define a [highlighter](#highlight.Highlighter) from an array of
 /// tag/class pairs. Classes associated with more specific tags will
 /// take precedence.
@@ -13991,7 +14183,7 @@ class HighlightBuilder {
             if (cls)
                 cls += " ";
             cls += tagCls;
-            if (rule.mode == 1 /* Inherit */)
+            if (rule.mode == 1 /* Mode.Inherit */)
                 inheritedClass += (inheritedClass ? " " : "") + tagCls;
         }
         this.startSpan(cursor.from, cls);
@@ -14009,7 +14201,7 @@ class HighlightBuilder {
                 if (rangeFrom < rangeTo && hasChild) {
                     while (cursor.from < rangeTo) {
                         this.highlightRange(cursor, rangeFrom, rangeTo, inheritedClass, highlighters);
-                        this.startSpan(Math.min(to, cursor.to), cls);
+                        this.startSpan(Math.min(rangeTo, cursor.to), cls);
                         if (cursor.to >= nextPos || !cursor.nextSibling())
                             break;
                     }
@@ -14891,8 +15083,10 @@ const language = /*@__PURE__*/Facet.define({
 Facet that defines a way to provide a function that computes the
 appropriate indentation depth, as a column number (see
 [`indentString`](https://codemirror.net/6/docs/ref/#language.indentString)), at the start of a given
-line, or `null` to indicate no appropriate indentation could be
-determined.
+line. A return value of `null` indicates no indentation can be
+determined, and the line should inherit the indentation of the one
+above it. A return value of `undefined` defers to the next indent
+service.
 */
 const indentService = /*@__PURE__*/Facet.define();
 /**
@@ -14950,7 +15144,7 @@ function getIndentation(context, pos) {
         context = new IndentContext(context);
     for (let service of context.state.facet(indentService)) {
         let result = service(context, pos);
-        if (result != null)
+        if (result !== undefined)
             return result;
     }
     let tree = syntaxTree(context.state);
@@ -15300,7 +15494,7 @@ A default highlight style (works well with light themes).
 */
 const defaultHighlightStyle = /*@__PURE__*/HighlightStyle.define([
     { tag: tags.meta,
-        color: "#7a757a" },
+        color: "#404740" },
     { tag: tags.link,
         textDecoration: "underline" },
     { tag: tags.heading,
@@ -16172,7 +16366,7 @@ const cursorMatchingBracket = ({ state, dispatch }) => toMatchingBracket(state, 
 function extendSel(view, how) {
     let selection = updateSel(view.state.selection, range => {
         let head = how(range);
-        return EditorSelection.range(range.anchor, head.head, head.goalColumn);
+        return EditorSelection.range(range.anchor, head.head, head.goalColumn, head.bidiLevel || undefined);
     });
     if (selection.eq(view.state.selection))
         return false;
