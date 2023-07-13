@@ -8,6 +8,7 @@ from wkwebview import WKWebView
 
 
 class View(ui.View):
+
   def __init__(self, url, *args, **kwargs):
     ui.View.__init__(self, *args, **kwargs)
     self.wv = WKWebView()
@@ -40,3 +41,4 @@ if __name__ == '__main__':
   uri_path = pathlib.Path('./docs/index.html')
   view = View(uri_path)
   view.present(style='fullscreen', orientations=['portrait'])
+
