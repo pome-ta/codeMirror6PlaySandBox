@@ -15,13 +15,13 @@ const container = document.createElement('main');
 container.id = 'container-main';
 container.style.height = '100%';
 container.style.backgroundColor = 'red';
-/*
+
 const btn = document.createElement('div');
 btn.textContent = 'underline';
 btn.style.height = '3rem';
 
 container.appendChild(btn);
-*/
+
 document.body.appendChild(container).appendChild(editorDiv);
 
 const bgRectangleClassName = 'cm-bgRectangle';
