@@ -1,0 +1,26 @@
+{
+  "name": "codemirror6playsandbox",
+  "description": "[codemirror6sandbox](https://pome-ta.github.io/codeMirror6PlaySandBox/)",
+  "version": "0.0.0",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pome-ta/codeMirror6PlaySandBox.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pome-ta/codeMirror6PlaySandBox/issues"
+  },
+  "homepage": "https://github.com/pome-ta/codeMirror6PlaySandBox#readme",
+  "dependencies": {
+    "codemirror": "^6.0.1"
+  }
+}
