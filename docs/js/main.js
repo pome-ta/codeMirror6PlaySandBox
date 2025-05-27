@@ -1,4 +1,4 @@
-import Editor from './editor.js';
+import Editor from './editor/main.js';
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editor-div';
