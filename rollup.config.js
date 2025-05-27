@@ -3,9 +3,9 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const codemirror = () => {
   return {
-    input: './docs/js/codemirror/bundleSrc/codemirror.src.js',
+    input: './docs/js/editor/codemirror/bundleSrc/codemirror.src.js',
     output: {
-      file: './docs/js/codemirror/codemirror.bundle.js',
+      file: './docs/js/editor/codemirror/codemirror.bundle.js',
       format: 'es',
     },
     plugins: [nodeResolve()],
@@ -14,3 +14,4 @@ const codemirror = () => {
 
 
 export default [codemirror(),];
+

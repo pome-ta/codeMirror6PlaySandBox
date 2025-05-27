@@ -392,7 +392,7 @@ if __name__ == '__main__':
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
   _title = NSStringFromClass(WebViewController)
   main_vc.navigationItem.title = _title
-  main_vc.savePathObject = save_path
+  #main_vc.savePathObject = save_path
 
   presentation_style = UIModalPresentationStyle.fullScreen
   #presentation_style = UIModalPresentationStyle.pageSheet
