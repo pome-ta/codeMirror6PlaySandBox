@@ -2,6 +2,7 @@ import { minimalSetup } from './codemirror/codemirror.js';
 import { EditorState, } from './codemirror/state.js';
 import { EditorView, lineNumbers, highlightActiveLineGutter } from './codemirror/view.js';
 import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
+import { javascript } from './codemirror/lang-javascript.js';
 
 
 /*
@@ -48,7 +49,7 @@ const minimalSetup = (() => [
 
 */
 
-const myTheme = EditorView.theme(
+const initTheme = EditorView.theme(
   {
     '&': {
       fontSize: '0.72rem',
@@ -59,8 +60,13 @@ const myTheme = EditorView.theme(
         'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     },
     '.cm-line': { padding: 0 },
+    '&.cm-editor': {
+      '&.cm-focused': {
+        outline: '0px dotted #21212100',
+      },
+    },
   },
-  { dark: true }
+  //{ dark: true },
 );
 
 
@@ -73,7 +79,8 @@ const initializeSetup = [
   lineNumbers(),
   highlightActiveLineGutter(),
   closeBrackets(),
-  myTheme,
+  javascript(),
+  initTheme,
 ];
 
 
