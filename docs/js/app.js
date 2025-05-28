@@ -3,7 +3,7 @@ import Editor from './editor/main.js';
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editor-div';
 editorDiv.style.width = '100%';
-editorDiv.style.backgroundColor = 'dodgerblue'
+//editorDiv.style.backgroundColor = 'dodgerblue'
 
 
 const editor = new Editor(editorDiv, 'hoge( fuga- )');
