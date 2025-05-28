@@ -7,7 +7,7 @@ import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
 import { bracketMatching } from './codemirror/language.js';
 
 import { javascript } from './codemirror/lang-javascript.js';
-
+import { oneDark } from './codemirror/theme-one-dark.js';
 
 
 
@@ -73,7 +73,6 @@ const initTheme = EditorView.theme(
       },
     },
   },
-  { dark: true },
 );
 
 
@@ -93,6 +92,7 @@ const initializeSetup = [
   EditorView.lineWrapping, // 改行
   tabSize.of(EditorState.tabSize.of(2)),
   javascript(),
+  oneDark,
   initTheme,
 ];
 

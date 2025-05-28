@@ -3957,7 +3957,7 @@ function findColumn(string, col, tabSize, strict) {
     return strict === true ? -1 : string.length;
 }
 
-var index$6 = /*#__PURE__*/Object.freeze({
+var index$7 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   Annotation: Annotation,
   AnnotationType: AnnotationType,
@@ -15455,7 +15455,7 @@ function highlightTrailingWhitespace() {
 const __test = { HeightMap, HeightOracle, MeasuredHeights, QueryType: QueryType$1, ChangedRange, computeOrder,
     moveVisually, clearHeightChangeFlag, getHeightChangeFlag: () => heightChangeFlag };
 
-var index$5 = /*#__PURE__*/Object.freeze({
+var index$6 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   BidiSpan: BidiSpan,
   BlockInfo: BlockInfo,
@@ -20788,7 +20788,7 @@ const marks = {
     auto: /*@__PURE__*/Decoration.mark({ class: "cm-iso", inclusive: true, attributes: { dir: "auto" }, bidiIsolate: null })
 };
 
-var index$4 = /*#__PURE__*/Object.freeze({
+var index$5 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   DocInput: DocInput,
   HighlightStyle: HighlightStyle,
@@ -22581,7 +22581,7 @@ this.
 */
 const indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
-var index$3 = /*#__PURE__*/Object.freeze({
+var index$4 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   blockComment: blockComment,
   blockUncomment: blockUncomment,
@@ -26022,7 +26022,7 @@ function setSelectedCompletion(index) {
     return setSelectedEffect.of(index);
 }
 
-var index$2 = /*#__PURE__*/Object.freeze({
+var index$3 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   CompletionContext: CompletionContext,
   acceptCompletion: acceptCompletion,
@@ -26725,7 +26725,7 @@ const minimalSetup = /*@__PURE__*/(() => [
     ])
 ])();
 
-var index$1 = /*#__PURE__*/Object.freeze({
+var index$2 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   basicSetup: basicSetup,
   minimalSetup: minimalSetup,
@@ -29290,7 +29290,7 @@ function translateDiagnostic(input, doc, offset) {
     return result;
 }
 
-var index = /*#__PURE__*/Object.freeze({
+var index$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   autoCloseTags: autoCloseTags,
   completionPath: completionPath,
@@ -29306,4 +29306,141 @@ var index = /*#__PURE__*/Object.freeze({
   typescriptSnippets: typescriptSnippets
 });
 
-export { index$2 as autocomplete, index$1 as codemirror, index$3 as commands, index as javascript, index$4 as language, index$6 as state, index$5 as view };
+// Using https://github.com/one-dark/vscode-one-dark-theme/ as reference for the colors
+const chalky = "#e5c07b", coral = "#e06c75", cyan = "#56b6c2", invalid = "#ffffff", ivory = "#abb2bf", stone = "#7d8799", // Brightened compared to original to increase contrast
+malibu = "#61afef", sage = "#98c379", whiskey = "#d19a66", violet = "#c678dd", darkBackground = "#21252b", highlightBackground = "#2c313a", background = "#282c34", tooltipBackground = "#353a42", selection = "#3E4451", cursor = "#528bff";
+/**
+The colors used in the theme, as CSS color strings.
+*/
+const color = {
+    chalky,
+    coral,
+    cyan,
+    invalid,
+    ivory,
+    stone,
+    malibu,
+    sage,
+    whiskey,
+    violet,
+    darkBackground,
+    highlightBackground,
+    background,
+    tooltipBackground,
+    selection,
+    cursor
+};
+/**
+The editor theme styles for One Dark.
+*/
+const oneDarkTheme = /*@__PURE__*/EditorView.theme({
+    "&": {
+        color: ivory,
+        backgroundColor: background
+    },
+    ".cm-content": {
+        caretColor: cursor
+    },
+    ".cm-cursor, .cm-dropCursor": { borderLeftColor: cursor },
+    "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": { backgroundColor: selection },
+    ".cm-panels": { backgroundColor: darkBackground, color: ivory },
+    ".cm-panels.cm-panels-top": { borderBottom: "2px solid black" },
+    ".cm-panels.cm-panels-bottom": { borderTop: "2px solid black" },
+    ".cm-searchMatch": {
+        backgroundColor: "#72a1ff59",
+        outline: "1px solid #457dff"
+    },
+    ".cm-searchMatch.cm-searchMatch-selected": {
+        backgroundColor: "#6199ff2f"
+    },
+    ".cm-activeLine": { backgroundColor: "#6699ff0b" },
+    ".cm-selectionMatch": { backgroundColor: "#aafe661a" },
+    "&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket": {
+        backgroundColor: "#bad0f847"
+    },
+    ".cm-gutters": {
+        backgroundColor: background,
+        color: stone,
+        border: "none"
+    },
+    ".cm-activeLineGutter": {
+        backgroundColor: highlightBackground
+    },
+    ".cm-foldPlaceholder": {
+        backgroundColor: "transparent",
+        border: "none",
+        color: "#ddd"
+    },
+    ".cm-tooltip": {
+        border: "none",
+        backgroundColor: tooltipBackground
+    },
+    ".cm-tooltip .cm-tooltip-arrow:before": {
+        borderTopColor: "transparent",
+        borderBottomColor: "transparent"
+    },
+    ".cm-tooltip .cm-tooltip-arrow:after": {
+        borderTopColor: tooltipBackground,
+        borderBottomColor: tooltipBackground
+    },
+    ".cm-tooltip-autocomplete": {
+        "& > ul > li[aria-selected]": {
+            backgroundColor: highlightBackground,
+            color: ivory
+        }
+    }
+}, { dark: true });
+/**
+The highlighting style for code in the One Dark theme.
+*/
+const oneDarkHighlightStyle = /*@__PURE__*/HighlightStyle.define([
+    { tag: tags.keyword,
+        color: violet },
+    { tag: [tags.name, tags.deleted, tags.character, tags.propertyName, tags.macroName],
+        color: coral },
+    { tag: [/*@__PURE__*/tags.function(tags.variableName), tags.labelName],
+        color: malibu },
+    { tag: [tags.color, /*@__PURE__*/tags.constant(tags.name), /*@__PURE__*/tags.standard(tags.name)],
+        color: whiskey },
+    { tag: [/*@__PURE__*/tags.definition(tags.name), tags.separator],
+        color: ivory },
+    { tag: [tags.typeName, tags.className, tags.number, tags.changed, tags.annotation, tags.modifier, tags.self, tags.namespace],
+        color: chalky },
+    { tag: [tags.operator, tags.operatorKeyword, tags.url, tags.escape, tags.regexp, tags.link, /*@__PURE__*/tags.special(tags.string)],
+        color: cyan },
+    { tag: [tags.meta, tags.comment],
+        color: stone },
+    { tag: tags.strong,
+        fontWeight: "bold" },
+    { tag: tags.emphasis,
+        fontStyle: "italic" },
+    { tag: tags.strikethrough,
+        textDecoration: "line-through" },
+    { tag: tags.link,
+        color: stone,
+        textDecoration: "underline" },
+    { tag: tags.heading,
+        fontWeight: "bold",
+        color: coral },
+    { tag: [tags.atom, tags.bool, /*@__PURE__*/tags.special(tags.variableName)],
+        color: whiskey },
+    { tag: [tags.processingInstruction, tags.string, tags.inserted],
+        color: sage },
+    { tag: tags.invalid,
+        color: invalid },
+]);
+/**
+Extension to enable the One Dark theme (both the editor theme and
+the highlight style).
+*/
+const oneDark = [oneDarkTheme, /*@__PURE__*/syntaxHighlighting(oneDarkHighlightStyle)];
+
+var index = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  color: color,
+  oneDark: oneDark,
+  oneDarkHighlightStyle: oneDarkHighlightStyle,
+  oneDarkTheme: oneDarkTheme
+});
+
+export { index$3 as autocomplete, index$2 as codemirror, index$4 as commands, index$1 as javascript, index$5 as language, index as oneDark, index$7 as state, index$6 as view };
