@@ -10,8 +10,6 @@ import { javascript } from './codemirror/lang-javascript.js';
 import { oneDark } from './codemirror/theme-one-dark.js';
 
 
-
-
 /*
 const basicSetup = (() => [
     lineNumbers(),
