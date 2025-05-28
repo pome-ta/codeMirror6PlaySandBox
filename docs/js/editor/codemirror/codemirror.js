@@ -1,3 +1,4 @@
 import { codemirror, } from './codemirror.bundle.js';
 
-export const { minimalSetup } = codemirror;
+export const { basicSetup, minimalSetup } = codemirror;
+

@@ -73,7 +73,7 @@ const initTheme = EditorView.theme(
       },
     },
   },
-  //{ dark: true },
+  { dark: true },
 );
 
 
