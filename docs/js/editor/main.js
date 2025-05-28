@@ -1,7 +1,7 @@
 import { minimalSetup } from './codemirror/codemirror.js';
 import { EditorState, } from './codemirror/state.js';
 import { EditorView, lineNumbers, highlightActiveLineGutter } from './codemirror/view.js';
-
+import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
 
 
 /*
@@ -48,10 +48,32 @@ const minimalSetup = (() => [
 
 */
 
+const myTheme = EditorView.theme(
+  {
+    '&': {
+      fontSize: '0.72rem',
+      //fontSize: '1rem',
+    },
+    '.cm-scroller': {
+      fontFamily:
+        'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    },
+    '.cm-line': { padding: 0 },
+  },
+  { dark: true }
+);
+
+
+
+
+
+
 const initializeSetup = [
   minimalSetup,
   lineNumbers(),
   highlightActiveLineGutter(),
+  closeBrackets(),
+  myTheme,
 ];
 
 
@@ -59,7 +81,7 @@ class Editor {
   constructor(editorDiv, doc = '') {
     this.state = EditorState.create({
       doc: doc,
-      extensions: [minimalSetup, lineNumbers()]
+      extensions: initializeSetup,
     });
     this.editor = new EditorView({
       state: this.state,
