@@ -1,8 +1,15 @@
 import { minimalSetup } from './codemirror/codemirror.js';
-import { EditorState, } from './codemirror/state.js';
-import { EditorView, lineNumbers, highlightActiveLineGutter } from './codemirror/view.js';
+import { EditorState, Compartment, } from './codemirror/state.js';
+import { EditorView, lineNumbers, highlightActiveLineGutter,
+  highlightActiveLine,
+  highlightSpecialChars, } from './codemirror/view.js';
 import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
+import { bracketMatching } from './codemirror/language.js';
+
 import { javascript } from './codemirror/lang-javascript.js';
+
+
+
 
 
 /*
@@ -73,12 +80,18 @@ const initTheme = EditorView.theme(
 
 
 
+const tabSize = new Compartment();
 
 const initializeSetup = [
   minimalSetup,
   lineNumbers(),
   highlightActiveLineGutter(),
+  highlightActiveLine(),
+  autocompletion(),
   closeBrackets(),
+  bracketMatching(),
+  EditorView.lineWrapping, // 改行
+  tabSize.of(EditorState.tabSize.of(2)),
   javascript(),
   initTheme,
 ];

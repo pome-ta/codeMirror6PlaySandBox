@@ -11,7 +11,6 @@ import { EditorState, } from './codemirror/state.js';
 import { EditorView, lineNumbers, highlightActiveLineGutter } from './codemirror/view.js';
 import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
 
-
 /*
 const basicSetup = (() => [
     lineNumbers(),
@@ -75,11 +74,6 @@ const initTheme = EditorView.theme(
   },
   { dark: true },
 );
-
-
-
-
-
 
 const initializeSetup = [
   minimalSetup,

@@ -1,3 +1,3 @@
 import { state, } from './codemirror.bundle.js';
 
-export const { EditorState } = state;
+export const { Annotation, AnnotationType, ChangeDesc, ChangeSet, CharCategory, Compartment, EditorSelection, EditorState, Facet, Line, MapMode, Prec, Range, RangeSet, RangeSetBuilder, RangeValue, SelectionRange, StateEffect, StateEffectType, StateField, Text, Transaction, codePointAt, codePointSize, combineConfig, countColumn, findClusterBreak, findColumn, fromCodePoint } = state;
