@@ -2,7 +2,7 @@ import { minimalSetup } from './codemirror/codemirror.js';
 import { EditorState, Compartment, } from './codemirror/state.js';
 import { EditorView, lineNumbers, highlightActiveLineGutter,
   highlightActiveLine,
-  highlightSpecialChars, } from './codemirror/view.js';
+  highlightSpecialChars, highlightWhitespace, } from './codemirror/view.js';
 import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
 import { bracketMatching } from './codemirror/language.js';
 
@@ -84,6 +84,7 @@ const initializeSetup = [
   lineNumbers(),
   highlightActiveLineGutter(),
   highlightActiveLine(),
+  highlightWhitespace(),
   autocompletion(),
   closeBrackets(),
   bracketMatching(),
