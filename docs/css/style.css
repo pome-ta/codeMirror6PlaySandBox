@@ -3,20 +3,13 @@
 
 html {
   height: 100%;
-  /* タップアクション制御 */
-  /*
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  */
 }
 
-*,
+/* *,
 *::before,
 *::after {
   box-sizing: border-box;
-}
+} */
 
 body {
   max-width: 960px;

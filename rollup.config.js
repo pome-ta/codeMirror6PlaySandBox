@@ -14,4 +14,3 @@ const codemirror = () => {
 
 
 export default [codemirror(),];
-

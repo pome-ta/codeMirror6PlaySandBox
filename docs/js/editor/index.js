@@ -1,8 +1,10 @@
 import { minimalSetup } from './codemirror/codemirror.js';
 import { EditorState, Compartment, } from './codemirror/state.js';
-import { EditorView, lineNumbers, highlightActiveLineGutter,
+import {
+  EditorView, lineNumbers, highlightActiveLineGutter,
   highlightActiveLine,
-  highlightSpecialChars, highlightWhitespace, } from './codemirror/view.js';
+  highlightSpecialChars, highlightWhitespace,
+} from './codemirror/view.js';
 import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
 import { bracketMatching } from './codemirror/language.js';
 
@@ -70,14 +72,13 @@ const initTheme = EditorView.theme(
         outline: '0px dotted #21212100',
       },
     },
-    
+    // `highlightWhitespace` 調整
     '.cm-highlightSpace': {
-      backgroundImage: 'radial-gradient(circle at 50% 55%, #eee 20%, transparent 8%)',
+      backgroundImage: 'radial-gradient(circle at 50% 55%, #ababab 8%, transparent 24%)',
+      opacity: 0.2,
     },
   },
 );
-
-//<span class="cm-highlightSpace"> </span>
 
 
 
