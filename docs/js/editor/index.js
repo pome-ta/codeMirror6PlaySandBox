@@ -74,7 +74,7 @@ const initTheme = EditorView.theme(
     },
     // `highlightWhitespace` 調整
     '.cm-highlightSpace': {
-      backgroundImage: 'radial-gradient(circle at 50% 55%, #ababab 8%, transparent 24%)',
+      backgroundImage: 'radial-gradient(circle at 50% 55%, #ababab 4%, transparent 24%)',
       opacity: 0.2,
     },
   },

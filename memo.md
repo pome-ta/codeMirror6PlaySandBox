@@ -1,3 +1,11 @@
+# 📝 2025/05/30
+
+ここに書き落としてる
+
+[publicObsidianVault/inBox/note2505271154.md at main · pome-ta/publicObsidianVault · GitHub](https://github.com/pome-ta/publicObsidianVault/blob/main/inBox/note2505271154.md)
+
+
+
 # 📝 2025/05/27
 
 
