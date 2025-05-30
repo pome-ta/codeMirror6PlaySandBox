@@ -386,8 +386,8 @@ if __name__ == '__main__':
   from rbedge.app import App
   from rbedge.enumerations import UIModalPresentationStyle
 
-  index_path = Path('./docs/index.html')
-  save_path = Path('./docs/js/sketchBook/devSketch.js')
+  index_path = Path('./client/index.html')
+  save_path = Path('./client/js/sketchBook/devSketch.js')
 
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
   _title = NSStringFromClass(WebViewController)
