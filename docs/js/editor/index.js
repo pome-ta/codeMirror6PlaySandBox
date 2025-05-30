@@ -70,10 +70,14 @@ const initTheme = EditorView.theme(
         outline: '0px dotted #21212100',
       },
     },
+    
+    '.cm-highlightSpace': {
+      backgroundImage: 'radial-gradient(circle at 50% 55%, #eee 20%, transparent 8%)',
+    },
   },
 );
 
-
+//<span class="cm-highlightSpace"> </span>
 
 
 
