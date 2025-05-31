@@ -23,11 +23,36 @@ const setEditorDiv = (element = document.body) => {
 };
 
 
+const accessoryDiv = document.createElement('div');
+accessoryDiv.id = 'accessory-div';
+accessoryDiv.style.padding = '0.2rem';
+//accessoryDiv.style.backgroundColor = '#1c1c1e80'; // Gray6
+accessoryDiv.style.backgroundColor = 'red';
+// todo: 常に下部に表示
+accessoryDiv.style.position = 'sticky';
+accessoryDiv.style.bottom = 0;
+
+accessoryDiv.style.height = '1.6rem';
+
+//visualViewport.addEventListener('resize', ({ target }) => {
+function visualViewportHandler({ target }) {
+  console.log(target)
+  const keyboardHeight = window.innerHeight - target.height;
+  const bottomValue = keyboardHeight === 0 ? '' : `${keyboardHeight}px`;
+  accessoryDiv.style.bottom = bottomValue;
+};
+
+
+visualViewport.addEventListener('scroll', visualViewportHandler);
+visualViewport.addEventListener('resize', visualViewportHandler);
+
 // main
 initializeMainCall(codeFilePath).then((loadedSource) => {
   const editorDiv = setEditorDiv();
   const editor = new Editor(editorDiv, loadedSource);
   console.log(editor);
+  
+  document.body.appendChild(accessoryDiv)
 });
 
 /*
