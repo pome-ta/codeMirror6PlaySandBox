@@ -4,12 +4,26 @@ const codePath = './js/editor/index.js';
 
 
 /* -- load Source */
-async function fetchSketchFile(path) {
+async function fetchFilePath(path) {
   const res = await fetch(path);
-  const sketchText = await res.text();
-  return sketchText;
+  const sourceText = await res.text();
+  return sourceText;
 }
 
+function setupEditorDiv(element = document.body) {
+  const div = document.createElement('div');
+  div.id = 'editor-div';
+  div.style.width = '100%';
+  // div.style.backgroundColor = 'dodgerblue'
+  // div.style.backgroundColor = 'darkslategray';
+  element.appendChild(div);
+  return div;
+}
+
+fetchFilePath(codePath).then(loadedSource => {
+  const editorDiv = setupEditorDiv();
+  const editor = new Editor(editorDiv, loadedSource);
+});
 
 /*
 const editorDiv = document.createElement('div');
