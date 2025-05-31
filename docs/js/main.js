@@ -1,16 +1,18 @@
 import Editor from './editor/index.js';
 
-const codePath = './js/editor/index.js';
-
+const codeFilePath = './js/editor/index.js';
 
 /* -- load Source */
 async function fetchFilePath(path) {
   const res = await fetch(path);
-  const sourceText = await res.text();
-  return sourceText;
+  return await res.text();
 }
 
-function setupEditorDiv(element = document.body) {
+async function initializeMainCall(filePath) {
+  return await fetchFilePath(filePath);
+}
+
+const setEditorDiv = (element = document.body) => {
   const div = document.createElement('div');
   div.id = 'editor-div';
   div.style.width = '100%';
@@ -18,11 +20,14 @@ function setupEditorDiv(element = document.body) {
   // div.style.backgroundColor = 'darkslategray';
   element.appendChild(div);
   return div;
-}
+};
 
-fetchFilePath(codePath).then(loadedSource => {
-  const editorDiv = setupEditorDiv();
+
+// main
+initializeMainCall(codeFilePath).then((loadedSource) => {
+  const editorDiv = setEditorDiv();
   const editor = new Editor(editorDiv, loadedSource);
+  console.log(editor);
 });
 
 /*
