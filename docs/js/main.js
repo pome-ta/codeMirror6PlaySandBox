@@ -36,10 +36,12 @@ accessoryDiv.style.height = '1.6rem';
 
 //visualViewport.addEventListener('resize', ({ target }) => {
 function visualViewportHandler({ target }) {
-  console.log(target)
+  console.log(target.height)
+  /*
   const keyboardHeight = window.innerHeight - target.height;
   const bottomValue = keyboardHeight === 0 ? '' : `${keyboardHeight}px`;
   accessoryDiv.style.bottom = bottomValue;
+  */
 };
 
 
@@ -47,13 +49,33 @@ visualViewport.addEventListener('scroll', visualViewportHandler);
 visualViewport.addEventListener('resize', visualViewportHandler);
 
 // main
+/*
 initializeMainCall(codeFilePath).then((loadedSource) => {
   const editorDiv = setEditorDiv();
   const editor = new Editor(editorDiv, loadedSource);
-  console.log(editor);
+  //console.log(editor);
+  console.log(`initializeMainCall: ${window.innerHeight}`);
   
-  document.body.appendChild(accessoryDiv)
+  //document.body.appendChild(accessoryDiv)
 });
+*/
+
+document.addEventListener('DOMContentLoaded', () => {
+  initializeMainCall(codeFilePath).then((loadedSource) => {
+  const editorDiv = setEditorDiv();
+  const editor = new Editor(editorDiv, loadedSource);
+  //console.log(editor);
+  console.log(`initializeMainCall: ${window.innerHeight}`);
+  
+  //document.body.appendChild(accessoryDiv)
+});
+  console.log(`DOMContentLoaded: ${window.innerHeight}`);
+});
+
+window.addEventListener('load', (event) => {
+  console.log(`load: ${window.innerHeight}`);
+});
+
 
 /*
 const editorDiv = document.createElement('div');
