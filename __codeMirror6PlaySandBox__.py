@@ -70,7 +70,6 @@ class WebViewController(UIViewController):
       return self
 
     self.indexPathObject = index_path
-
     return self
 
   @objc_method
@@ -387,7 +386,7 @@ if __name__ == '__main__':
   from rbedge.enumerations import UIModalPresentationStyle
 
   index_path = Path('./docs/index.html')
-  save_path = Path('./docs/js/sketchBook/devSketch.js')
+  save_path = Path('./docs/js/editor/index.js')
 
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
   _title = NSStringFromClass(WebViewController)
@@ -399,3 +398,4 @@ if __name__ == '__main__':
 
   app = App(main_vc, presentation_style)
   app.present()
+
