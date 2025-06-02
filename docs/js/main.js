@@ -49,7 +49,9 @@ const rootDiv = setRootDiv()
 const editorDiv = setEditorDiv(rootDiv);
 rootDiv.appendChild(accessoryFooter)
 
-
+document.body.addEventListener('touchstart', ()=>{
+  console.log(`touchstart: ${document.body.clientHeight}`);
+});
 
 
 document.addEventListener('DOMContentLoaded', () => {
