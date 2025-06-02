@@ -1,6 +1,9 @@
 import Editor from './editor/index.js';
 
-const codeFilePath = './js/editor/index.js';
+//const codeFilePath = './js/editor/index.js';
+const codeFilePath = './js/main.js';
+
+
 
 /* -- load Source */
 async function fetchFilePath(path) {
@@ -63,10 +66,12 @@ initializeMainCall(codeFilePath).then((loadedSource) => {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+
   initializeMainCall(codeFilePath).then((loadedSource) => {
   const editorDiv = setEditorDiv();
   const editor = new Editor(editorDiv, loadedSource);
   //console.log(editor);
+  
   console.log(`initializeMainCall: ${window.innerHeight}`);
   
   //document.body.appendChild(accessoryDiv)
