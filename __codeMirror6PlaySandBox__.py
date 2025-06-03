@@ -38,6 +38,8 @@ UILabel = ObjCClass('UILabel')
 UIFont = ObjCClass('UIFont')
 UIStackView = ObjCClass('UIStackView')
 
+WKContentView = ObjCClass('WKContentView')  # todo: 型
+
 
 class WebViewController(UIViewController):
 
@@ -173,6 +175,8 @@ class WebViewController(UIViewController):
     self.promptLabel = promptLabel
 
     self.wkWebView = wkWebView
+    
+    self.getToolbar()
 
   @objc_method
   def viewDidLoad(self):
@@ -204,9 +208,7 @@ class WebViewController(UIViewController):
       self.wkWebView.rightAnchor.constraintEqualToAnchor_(
         layoutGuide.rightAnchor),
     ])
-    
-    self.getToolbar()
-    
+
     
 
   @objc_method
@@ -219,7 +221,6 @@ class WebViewController(UIViewController):
                  ctypes.c_bool,
                ])
     #print(f'\t{NSStringFromClass(__class__)}: viewWillAppear_')
-    
 
   @objc_method
   def viewDidAppear_(self, animated: bool):
@@ -385,16 +386,19 @@ class WebViewController(UIViewController):
     open_file(Path('./', dummy_path, 'Welcome3.md'), False)
     open_file(self.savePathObject, False)
 
-
   # toolbarのカスタマイズしてインスタンス化
   @objc_method
   def getToolbar(self):
-    for subview in self.wkWebView.subviews():
-      #print(subview)
-      #pdbr.state(subview, 1)
-      print(subview.description)
-      
-    #pdbr.state(self.wkWebView.subviews(), 1)
+    candidateView: WKContentView = None
+
+    for subview in self.wkWebView.scrollView.subviews():
+      if subview.isMemberOfClass_(WKContentView):
+        candidateView = subview
+        break
+    if (targetView := candidateView) is None:
+      return
+    pdbr.state(targetView)
+
 
 if __name__ == '__main__':
   from rbedge.app import App
@@ -407,9 +411,8 @@ if __name__ == '__main__':
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
   _title = NSStringFromClass(WebViewController)
   main_vc.navigationItem.title = _title
-  
+
   main_vc.setSavePathObject_(save_path)
-  
 
   presentation_style = UIModalPresentationStyle.fullScreen
   #presentation_style = UIModalPresentationStyle.pageSheet
