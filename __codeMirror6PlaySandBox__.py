@@ -204,6 +204,10 @@ class WebViewController(UIViewController):
       self.wkWebView.rightAnchor.constraintEqualToAnchor_(
         layoutGuide.rightAnchor),
     ])
+    
+    self.getToolbar()
+    
+    
 
   @objc_method
   def viewWillAppear_(self, animated: bool):
@@ -215,6 +219,7 @@ class WebViewController(UIViewController):
                  ctypes.c_bool,
                ])
     #print(f'\t{NSStringFromClass(__class__)}: viewWillAppear_')
+    
 
   @objc_method
   def viewDidAppear_(self, animated: bool):
@@ -380,6 +385,16 @@ class WebViewController(UIViewController):
     open_file(Path('./', dummy_path, 'Welcome3.md'), False)
     open_file(self.savePathObject, False)
 
+
+  # toolbarのカスタマイズしてインスタンス化
+  @objc_method
+  def getToolbar(self):
+    for subview in self.wkWebView.subviews():
+      #print(subview)
+      #pdbr.state(subview, 1)
+      print(subview.description)
+      
+    #pdbr.state(self.wkWebView.subviews(), 1)
 
 if __name__ == '__main__':
   from rbedge.app import App
