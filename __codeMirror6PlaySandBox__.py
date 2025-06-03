@@ -38,8 +38,6 @@ UILabel = ObjCClass('UILabel')
 UIFont = ObjCClass('UIFont')
 UIStackView = ObjCClass('UIStackView')
 
-WKContentView = ObjCClass('WKContentView')  # todo: 型
-
 
 class WebViewController(UIViewController):
 
@@ -175,8 +173,6 @@ class WebViewController(UIViewController):
     self.promptLabel = promptLabel
 
     self.wkWebView = wkWebView
-    
-    self.getToolbar()
 
   @objc_method
   def viewDidLoad(self):
@@ -208,8 +204,6 @@ class WebViewController(UIViewController):
       self.wkWebView.rightAnchor.constraintEqualToAnchor_(
         layoutGuide.rightAnchor),
     ])
-
-    
 
   @objc_method
   def viewWillAppear_(self, animated: bool):
@@ -385,19 +379,6 @@ class WebViewController(UIViewController):
       dummy_path = _path.parent
     open_file(Path('./', dummy_path, 'Welcome3.md'), False)
     open_file(self.savePathObject, False)
-
-  # toolbarのカスタマイズしてインスタンス化
-  @objc_method
-  def getToolbar(self):
-    candidateView: WKContentView = None
-
-    for subview in self.wkWebView.scrollView.subviews():
-      if subview.isMemberOfClass_(WKContentView):
-        candidateView = subview
-        break
-    if (targetView := candidateView) is None:
-      return
-    pdbr.state(targetView)
 
 
 if __name__ == '__main__':
