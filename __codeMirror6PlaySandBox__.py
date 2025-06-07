@@ -185,7 +185,7 @@ class WebViewController(UIViewController):
     self.titleLabel.setText_(self.navigationItem.title)
     self.titleLabel.sizeToFit()
 
-    self.view.backgroundColor = UIColor.systemFillColor()
+    #self.view.backgroundColor = UIColor.systemFillColor()
 
     self.loadFileIndexPath()
 
