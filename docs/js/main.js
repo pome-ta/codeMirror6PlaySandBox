@@ -43,6 +43,8 @@ accessoryFooter.style.width = '100%';
 accessoryFooter.style.height = '40px';
 accessoryFooter.style.backgroundColor = 'maroon';
 accessoryFooter.textContent = 'hoge';
+accessoryFooter.style.position = 'sticky';
+accessoryFooter.style.bottom = -100;
 accessoryFooter.style.zIndex = 1;
 
 const rootDiv = setRootDiv()
