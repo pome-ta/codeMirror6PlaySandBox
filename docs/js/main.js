@@ -51,6 +51,7 @@ rootDiv.appendChild(accessoryFooter)
 
 document.body.addEventListener('touchstart', ()=>{
   console.log(`touchstart: ${document.body.clientHeight}`);
+  console.log(`visualViewport: ${window.visualViewport.height}`);
 });
 
 

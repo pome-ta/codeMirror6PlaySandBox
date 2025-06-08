@@ -56,7 +56,7 @@ const minimalSetup = (() => [
 
 const initTheme = EditorView.theme({
   '&': {
-    fontSize: '0.72rem', //fontSize: '1rem',
+    fontSize: '0.64rem', //fontSize: '1rem',
   },
   '.cm-scroller': {
     fontFamily: 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
