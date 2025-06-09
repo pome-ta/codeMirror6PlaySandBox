@@ -20,10 +20,12 @@ const setRootDiv = () => {
   const div = document.createElement('div');
   div.id = 'root-div';
   div.style.width = '100%';
-  div.style.height = '100svh';
+  div.style.height = '100%';
+  /*
   div.style.display = 'flex';
   div.style.flexDirection = 'column';
   div.style.position = 'relative';
+  */
   document.body.appendChild(div);
   return div;
 }
