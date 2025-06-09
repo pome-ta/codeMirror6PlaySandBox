@@ -20,7 +20,7 @@ const setRootDiv = () => {
   const div = document.createElement('div');
   div.id = 'root-div';
   div.style.width = '100%';
-  div.style.height = '100%';
+  div.style.height = '100svh';
   div.style.display = 'flex';
   div.style.flexDirection = 'column';
   div.style.position = 'relative';
@@ -48,7 +48,7 @@ accessoryFooter.style.position = 'sticky';
 accessoryFooter.style.bottom = -100;
 */
 accessoryFooter.style.position = 'sticky';
-accessoryFooter.style.bottom = 0;
+//accessoryFooter.style.bottom = 0;
 accessoryFooter.style.zIndex = 1;
 
 const rootDiv = setRootDiv()
@@ -62,12 +62,13 @@ document.body.addEventListener('touchstart', ()=>{
 });
 */
 
+let editor
 
 document.addEventListener('DOMContentLoaded', () => {
 
   initializeMainCall(codeFilePath).then((loadedSource) => {
   
-    const editor = new Editor(editorDiv, loadedSource);
+     editor = new Editor(editorDiv, loadedSource);
     //console.log(editor);
     //console.log(`initializeMainCall: ${window.innerHeight}`);
     //document.body.appendChild(accessoryDiv)
@@ -89,13 +90,21 @@ function viewportHandler() {
     visualViewport.height -
     document.documentElement.clientHeight
   */
+  
+  console.log(editor.hasFocus)
+  if (editor.hasFocus) {
+    accessoryFooter.style.display = 'flex';
+  } else {
+    accessoryFooter.style.display = 'none';
+  }
     
     
     
   const offsetTop = window.innerHeight
+      //document.documentElement.clientHeight
     - window.visualViewport.height
     + window.visualViewport.offsetTop
-    - window.visualViewport.pageTop;
+    //- window.visualViewport.pageTop;
 
   /*
   // 絵文字ボタンを Visual Viewport の下端に合わせる
@@ -111,4 +120,4 @@ function viewportHandler() {
 
 window.visualViewport.addEventListener('scroll', viewportHandler)
 window.visualViewport.addEventListener('resize', viewportHandler)
-document.body.addEventListener('touchstart', viewportHandler)
+//document.body.addEventListener('touchstart', viewportHandler)

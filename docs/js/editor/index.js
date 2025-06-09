@@ -107,6 +107,10 @@ class Editor {
       parent: editorDiv,
     });
   }
+  
+  get hasFocus() {
+    return this.editor.hasFocus
+  }
 }
 
 export default Editor;
