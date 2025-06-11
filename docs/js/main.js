@@ -4,6 +4,75 @@ import Editor from './editor/index.js';
 const codeFilePath = './js/main.js';
 
 
+const ua = window.navigator.userAgent;
+const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
+/*
+const replaceSyncs = [
+  `body.virtual-keyboard-shown {
+    margin-top: var(--visual-viewport-offset-top, 0px);
+  }`,
+  `.virtual-keyboard-shown #root,
+    #root:has(input:focus),
+    #root:has([contenteditable="true"]:focus) {
+    overscroll-behavior-y: contain;
+  }`,
+  `#editor:has(:focus),
+    .virtual-keyboard-shown #editor {
+    min-height: calc(100 * var(--svh, 1svh) - 96px + 1px);
+  }`,
+];
+*/
+
+const replaceSyncs = [
+  `body.virtual-keyboard-shown {
+    margin-top: var(--visual-viewport-offset-top, 0px);
+  }`,
+  `.virtual-keyboard-shown #root {
+    overscroll-behavior-y: contain;
+  }`,
+  `#editor:has(:focus),
+    .virtual-keyboard-shown #editor {
+    min-height: calc(100 * var(--svh, 1svh) - 96px + 1px);
+  }`,
+];
+
+let prevHeight = undefined;
+let prevOffsetTop = undefined;
+let timerId = undefined;
+
+function handleResize(e) {
+  const height = window.visualViewport.height * window.visualViewport.scale;
+  if (prevHeight !== height) {
+    prevHeight = height;
+    requestAnimationFrame(() => {
+      document.documentElement.style.setProperty('--svh', height * 0.01 + 'px');
+    });
+  }
+  if (prevOffsetTop !== window.visualViewport.offsetTop) {
+    if (prevOffsetTop === undefined) {
+      prevOffsetTop = window.visualViewport.offsetTop;
+    } else {
+      const scrollOffset = window.visualViewport.offsetTop - prevOffsetTop;
+      prevOffsetTop = window.visualViewport.offsetTop;
+      requestAnimationFrame(() => {
+        if (e && e.type === 'resize') {
+          rootDiv.scrollBy(0, scrollOffset);
+        }
+        document.documentElement.style.setProperty(
+          '--visual-viewport-offset-top',
+          window.visualViewport.offsetTop + 'px'
+        );
+      });
+    }
+  }
+  if (height + 10 < document.documentElement.clientHeight) {
+    document.body.classList.add('virtual-keyboard-shown');
+  } else {
+    document.body.classList.remove('virtual-keyboard-shown');
+  }
+}
+
+
 
 /* -- load Source */
 async function fetchFilePath(path) {
@@ -16,16 +85,77 @@ async function initializeMainCall(filePath) {
 }
 
 
+const createRootDiv = () => {
+  const element = document.createElement('div');
+  element.id = 'root';
+  element.classList.add('scrollable');
+  // element.style.width = '100vw';
+  element.style.width = '100%';
+  element.style.height = `calc(100 * var(--svh, 1svh))`;
+  element.style.overflowY = 'scroll';
+  //element.style.overflowX = 'hidden';
+  
+
+  return element;
+};
+
+const createHeader = () => {
+  const element = document.createElement('header');
+  element.id = 'header';
+  const h1Tag = document.createElement('h1');
+  h1Tag.style.fontSize = '1.5rem';
+  h1Tag.textContent = 'Safari Virtual Keyboard Demo';
+
+  element.appendChild(h1Tag);
+  // element.style.position = 'sticky';
+  element.style.top = '0';
+  element.style.backgroundColor = 'maroon';
+  element.style.zIndex = 1;
+
+  return element;
+};
+
+const createEditorDiv = () => {
+  const element = document.createElement('div');
+  element.id = 'editor';
+  //element.contentEditable = 'true';
+  element.style.minHeight = `calc(100 * var(--svh, 1svh) - 96px)`;
+  //element.style.fontSize = '1.5rem';
+  element.style.width = '100%';
+
+  return element;
+};
+
+const createFooter = () => {
+  const element = document.createElement('footer');
+  element.id = 'footer';
+  // element.style.position = 'sticky';
+  element.style.bottom = '0';
+  
+  return element;
+};
+
+const addHeaderFooterStyle = (headerFooter) => {
+  [...headerFooter].forEach((element) => {
+    element.style.position = 'sticky';
+    element.style.display = 'flex';
+    element.style.alignItems = 'center';
+    element.style.justifyContent = 'stretch';
+    element.style.width = '100%';
+    element.style.height = '3rem';
+  });
+};
+/*
 const setRootDiv = () => {
   const div = document.createElement('div');
   div.id = 'root-div';
   div.style.width = '100%';
   div.style.height = '100%';
-  /*
-  div.style.display = 'flex';
-  div.style.flexDirection = 'column';
-  div.style.position = 'relative';
-  */
+  
+  //div.style.display = 'flex';
+  //div.style.flexDirection = 'column';
+  //div.style.position = 'relative';
+  
   document.body.appendChild(div);
   return div;
 }
@@ -40,86 +170,65 @@ const setEditorDiv = (element = document.body) => {
   return div;
 };
 
-const accessoryFooter = document.createElement('footer');
-accessoryFooter.style.width = '100%';
-accessoryFooter.style.height = '40px';
-accessoryFooter.style.backgroundColor = 'maroon';
-accessoryFooter.textContent = 'hoge';
-/*
-accessoryFooter.style.position = 'sticky';
-accessoryFooter.style.bottom = -100;
-*/
-accessoryFooter.style.position = 'sticky';
-//accessoryFooter.style.bottom = 0;
-accessoryFooter.style.zIndex = 1;
-
-const rootDiv = setRootDiv()
-const editorDiv = setEditorDiv(rootDiv);
-//rootDiv.appendChild(accessoryFooter)
-document.body.appendChild(accessoryFooter)
-/*
-document.body.addEventListener('touchstart', ()=>{
-  console.log(`touchstart: ${document.body.clientHeight}`);
-  console.log(`visualViewport: ${window.visualViewport.height}`);
-});
 */
 
-let editor
+
+const createButton = (id, textContent) => {
+  const element = document.createElement('button');
+  element.id = id;
+  element.style.type = 'button';
+  element.textContent = textContent;
+
+  element.style.fontSize = '1rem';
+  element.style.padding = '0.5rem';
+  element.style.appearance = 'none';
+  element.style.height = '100%';
+  element.style.flex = '1';
+  return element;
+};
+
+const stickyButton = createButton('stickyButton', 'Sticky');
+const fixedButton = createButton('fixedButton', 'Fixed');
+const clearButton = createButton('clearButton', 'Clear');
+
+//let editor
+const rootDiv = createRootDiv()
+const editorDiv = createEditorDiv()
+const headerDiv= createHeader()
+const footerDiv= createFooter()
+addHeaderFooterStyle([headerDiv, footerDiv])
+
+footerDiv.appendChild(stickyButton);
+footerDiv.appendChild(fixedButton);
+footerDiv.appendChild(clearButton);
+
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  rootDiv.appendChild(headerDiv)
+  rootDiv.appendChild(editorDiv)
+  rootDiv.appendChild(footerDiv)
+  document.body.appendChild(rootDiv)
   initializeMainCall(codeFilePath).then((loadedSource) => {
   
-     editor = new Editor(editorDiv, loadedSource);
+     const editor = new Editor(editorDiv, loadedSource);
     //console.log(editor);
     //console.log(`initializeMainCall: ${window.innerHeight}`);
     //document.body.appendChild(accessoryDiv)
   });
-  console.log(`DOMContentLoaded: ${window.innerHeight}`);
+  
+  if (!iOS) {
+    return;
+  }
+  const extraSheet = new CSSStyleSheet();
+  extraSheet.replaceSync(replaceSyncs.join('\n'));
+  document.adoptedStyleSheets = [extraSheet];
+  handleResize();
+  window.visualViewport.addEventListener('resize', handleResize);
+  window.visualViewport.addEventListener('scroll', handleResize);
+  
 });
 
 
-
-function viewportHandler() {
-  const visualViewport = window.visualViewport
-
-  const offsetLeft = visualViewport.offsetLeft
-
-  // documentElement.clientHeight は Layout Viewport の高さとなる
-  /*
-  const offsetTop = accessoryFooter.offsetHeight +
-    visualViewport.offsetTop +
-    visualViewport.height -
-    document.documentElement.clientHeight
-  */
-  
-  console.log(editor.hasFocus)
-  if (editor.hasFocus) {
-    accessoryFooter.style.display = 'flex';
-  } else {
-    accessoryFooter.style.display = 'none';
-  }
-    
-    
-    
-  const offsetTop = window.innerHeight
-      //document.documentElement.clientHeight
-    - window.visualViewport.height
-    + window.visualViewport.offsetTop
-    //- window.visualViewport.pageTop;
-
-  /*
-  // 絵文字ボタンを Visual Viewport の下端に合わせる
-  const translate = `translate(${offsetLeft}px, ${offsetTop}px)`
-
-  // 絵文字ボタンの大きさを常に同じにするため、現在の拡大率で割る
-  const scale = `scale(${1 / visualViewport.scale})`
-
-  accessoryFooter.style.transform = `${translate} ${scale}`
-  */
-  accessoryFooter.style.bottom = `${offsetTop}px`;
-}
-
-window.visualViewport.addEventListener('scroll', viewportHandler)
-window.visualViewport.addEventListener('resize', viewportHandler)
-//document.body.addEventListener('touchstart', viewportHandler)
