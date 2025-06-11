@@ -66,8 +66,11 @@ function handleResize(e) {
   }
   if (height + 10 < document.documentElement.clientHeight) {
     document.body.classList.add('virtual-keyboard-shown');
+    footerDiv.style.display = 'flex';
+    
   } else {
     document.body.classList.remove('virtual-keyboard-shown');
+    footerDiv.style.display = 'none';
   }
 }
 
@@ -185,7 +188,7 @@ const stickyButton = createButton('stickyButton', 'Sticky');
 const fixedButton = createButton('fixedButton', 'Fixed');
 const clearButton = createButton('clearButton', 'Clear');
 
-//let editor
+let editor
 const rootDiv = createRootDiv();
 const editorDiv = createEditorDiv();
 const headerDiv = createHeader();
@@ -202,12 +205,12 @@ document.addEventListener('DOMContentLoaded', () => {
   rootDiv.appendChild(footerDiv);
   document.body.appendChild(rootDiv);
   initializeMainCall(codeFilePath).then((loadedSource) => {
-    const editor = new Editor(editorDiv, loadedSource);
+    editor = new Editor(editorDiv, loadedSource);
     //console.log(editor);
     //console.log(`initializeMainCall: ${window.innerHeight}`);
     //document.body.appendChild(accessoryDiv)
   });
-
+  
   if (!iOS) {
     return;
   }
@@ -217,4 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   handleResize();
   window.visualViewport.addEventListener('resize', handleResize);
   window.visualViewport.addEventListener('scroll', handleResize);
+  document.body.addEventListener('focus', ()=>{
+    console.log(editor.hasFocus)
+  },true);
 });
