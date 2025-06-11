@@ -3,7 +3,6 @@ import Editor from './editor/index.js';
 //const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
-
 const ua = window.navigator.userAgent;
 const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 /*
@@ -72,8 +71,6 @@ function handleResize(e) {
   }
 }
 
-
-
 /* -- load Source */
 async function fetchFilePath(path) {
   const res = await fetch(path);
@@ -84,7 +81,6 @@ async function initializeMainCall(filePath) {
   return await fetchFilePath(filePath);
 }
 
-
 const createRootDiv = () => {
   const element = document.createElement('div');
   element.id = 'root';
@@ -94,7 +90,6 @@ const createRootDiv = () => {
   element.style.height = `calc(100 * var(--svh, 1svh))`;
   element.style.overflowY = 'scroll';
   //element.style.overflowX = 'hidden';
-  
 
   return element;
 };
@@ -131,7 +126,7 @@ const createFooter = () => {
   element.id = 'footer';
   // element.style.position = 'sticky';
   element.style.bottom = '0';
-  
+
   return element;
 };
 
@@ -172,7 +167,6 @@ const setEditorDiv = (element = document.body) => {
 
 */
 
-
 const createButton = (id, textContent) => {
   const element = document.createElement('button');
   element.id = id;
@@ -192,33 +186,28 @@ const fixedButton = createButton('fixedButton', 'Fixed');
 const clearButton = createButton('clearButton', 'Clear');
 
 //let editor
-const rootDiv = createRootDiv()
-const editorDiv = createEditorDiv()
-const headerDiv= createHeader()
-const footerDiv= createFooter()
-addHeaderFooterStyle([headerDiv, footerDiv])
+const rootDiv = createRootDiv();
+const editorDiv = createEditorDiv();
+const headerDiv = createHeader();
+const footerDiv = createFooter();
+addHeaderFooterStyle([headerDiv, footerDiv]);
 
 footerDiv.appendChild(stickyButton);
 footerDiv.appendChild(fixedButton);
 footerDiv.appendChild(clearButton);
 
-
-
-
 document.addEventListener('DOMContentLoaded', () => {
-
-  rootDiv.appendChild(headerDiv)
-  rootDiv.appendChild(editorDiv)
-  rootDiv.appendChild(footerDiv)
-  document.body.appendChild(rootDiv)
+  rootDiv.appendChild(headerDiv);
+  rootDiv.appendChild(editorDiv);
+  rootDiv.appendChild(footerDiv);
+  document.body.appendChild(rootDiv);
   initializeMainCall(codeFilePath).then((loadedSource) => {
-  
-     const editor = new Editor(editorDiv, loadedSource);
+    const editor = new Editor(editorDiv, loadedSource);
     //console.log(editor);
     //console.log(`initializeMainCall: ${window.innerHeight}`);
     //document.body.appendChild(accessoryDiv)
   });
-  
+
   if (!iOS) {
     return;
   }
@@ -228,7 +217,4 @@ document.addEventListener('DOMContentLoaded', () => {
   handleResize();
   window.visualViewport.addEventListener('resize', handleResize);
   window.visualViewport.addEventListener('scroll', handleResize);
-  
 });
-
-

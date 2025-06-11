@@ -1,14 +1,18 @@
 import { minimalSetup, basicSetup } from './codemirror/codemirror.js';
-import { EditorState, Compartment, } from './codemirror/state.js';
+import { EditorState, Compartment } from './codemirror/state.js';
 import {
-  EditorView, lineNumbers, highlightActiveLineGutter, highlightActiveLine, highlightWhitespace, dropCursor, 
+  EditorView,
+  lineNumbers,
+  highlightActiveLineGutter,
+  highlightActiveLine,
+  highlightWhitespace,
+  dropCursor,
 } from './codemirror/view.js';
-import { closeBrackets, autocompletion, } from './codemirror/autocomplete.js';
+import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
 import { bracketMatching } from './codemirror/language.js';
 
 import { javascript } from './codemirror/lang-javascript.js';
 import { oneDark } from './codemirror/theme-one-dark.js';
-
 
 /*
 const basicSetup = (() => [
@@ -59,10 +63,11 @@ const initTheme = EditorView.theme({
     fontSize: '0.64rem', //fontSize: '1rem',
   },
   '.cm-scroller': {
-    fontFamily: 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    fontFamily:
+      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
   },
   '.cm-line': {
-    padding: 0
+    padding: 0,
   },
   '&.cm-editor': {
     '&.cm-focused': {
@@ -70,11 +75,11 @@ const initTheme = EditorView.theme({
     },
   }, // `highlightWhitespace` 調整
   '.cm-highlightSpace': {
-    backgroundImage: 'radial-gradient(circle at 50% 55%, #ababab 4%, transparent 24%)',
+    backgroundImage:
+      'radial-gradient(circle at 50% 55%, #ababab 4%, transparent 24%)',
     opacity: 0.2,
   },
 });
-
 
 const tabSize = new Compartment();
 
@@ -95,7 +100,6 @@ const initializeSetup = [
   initTheme,
 ];
 
-
 class Editor {
   constructor(editorDiv, doc = '') {
     this.state = EditorState.create({
@@ -108,9 +112,9 @@ class Editor {
       parent: editorDiv,
     });
   }
-  
+
   get hasFocus() {
-    return this.editor.hasFocus
+    return this.editor.hasFocus;
   }
 }
 

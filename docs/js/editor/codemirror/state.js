@@ -1,4 +1,4 @@
-import { state, } from './codemirror.bundle.js';
+import { state } from './codemirror.bundle.js';
 
 export const {
   Annotation,
