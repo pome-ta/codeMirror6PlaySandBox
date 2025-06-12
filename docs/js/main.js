@@ -6,7 +6,7 @@ const codeFilePath = './js/main.js';
 const ua = window.navigator.userAgent;
 const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 //const keyboardOffset = 96;
-const keyboardOffset = 200;
+const keyboardOffset = 256;
 /*
 const replaceSyncs = [
   `body.virtual-keyboard-shown {
@@ -29,7 +29,7 @@ const replaceSyncs = [
     margin-top: var(--visual-viewport-offset-top, 0px);
   }`,
   `.virtual-keyboard-shown #root {
-    overscroll-behavior-y: contain;
+    /*overscroll-behavior-y: contain;*/
   }`,
   `#editor:has(:focus),
     .virtual-keyboard-shown #editor {
@@ -219,10 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const extraSheet = new CSSStyleSheet();
   extraSheet.replaceSync(replaceSyncs.join('\n'));
   document.adoptedStyleSheets = [extraSheet];
+  
   handleResize();
   window.visualViewport.addEventListener('resize', handleResize);
   window.visualViewport.addEventListener('scroll', handleResize);
-  document.body.addEventListener('focus', ()=>{
-    console.log(editor.hasFocus)
-  },true);
+  
 });
