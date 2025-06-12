@@ -5,6 +5,8 @@ const codeFilePath = './js/main.js';
 
 const ua = window.navigator.userAgent;
 const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
+//const keyboardOffset = 96;
+const keyboardOffset = 200;
 /*
 const replaceSyncs = [
   `body.virtual-keyboard-shown {
@@ -31,7 +33,7 @@ const replaceSyncs = [
   }`,
   `#editor:has(:focus),
     .virtual-keyboard-shown #editor {
-    min-height: calc(100 * var(--svh, 1svh) - 96px + 1px);
+    min-height: calc(100 * var(--svh, 1svh) - ${keyboardOffset}px + 1px);
   }`,
 ];
 
