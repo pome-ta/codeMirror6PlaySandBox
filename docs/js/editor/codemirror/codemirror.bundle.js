@@ -4283,6 +4283,34 @@ function keyName(event) {
   return name
 }
 
+function crelt() {
+  var elt = arguments[0];
+  if (typeof elt == "string") elt = document.createElement(elt);
+  var i = 1, next = arguments[1];
+  if (next && typeof next == "object" && next.nodeType == null && !Array.isArray(next)) {
+    for (var name in next) if (Object.prototype.hasOwnProperty.call(next, name)) {
+      var value = next[name];
+      if (typeof value == "string") elt.setAttribute(name, value);
+      else if (value != null) elt[name] = value;
+    }
+    i++;
+  }
+  for (; i < arguments.length; i++) add(elt, arguments[i]);
+  return elt
+}
+
+function add(elt, child) {
+  if (typeof child == "string") {
+    elt.appendChild(document.createTextNode(child));
+  } else if (child == null) ; else if (child.nodeType != null) {
+    elt.appendChild(child);
+  } else if (Array.isArray(child)) {
+    for (var i = 0; i < child.length; i++) add(elt, child[i]);
+  } else {
+    throw new RangeError("Unsupported child node: " + child)
+  }
+}
+
 function getSelection(root) {
     let target;
     // Browsers differ on whether shadow roots have a getSelection
@@ -6707,11 +6735,23 @@ function logException(state, exception, context) {
 }
 const editable = /*@__PURE__*/Facet.define({ combine: values => values.length ? values[0] : true });
 let nextPluginID = 0;
-const viewPlugin = /*@__PURE__*/Facet.define();
+const viewPlugin = /*@__PURE__*/Facet.define({
+    combine(plugins) {
+        return plugins.filter((p, i) => {
+            for (let j = 0; j < i; j++)
+                if (plugins[j].plugin == p.plugin)
+                    return false;
+            return true;
+        });
+    }
+});
 /**
 View plugins associate stateful values with a view. They can
 influence the way the content is drawn, and are notified of things
-that happen in the view.
+that happen in the view. They optionally take an argument, in
+which case you need to call [`of`](https://codemirror.net/6/docs/ref/#view.ViewPlugin.of) to create
+an extension for the plugin. When the argument type is undefined,
+you can use the plugin instance as an extension directly.
 */
 class ViewPlugin {
     constructor(
@@ -6735,7 +6775,14 @@ class ViewPlugin {
         this.create = create;
         this.domEventHandlers = domEventHandlers;
         this.domEventObservers = domEventObservers;
-        this.extension = buildExtensions(this);
+        this.baseExtensions = buildExtensions(this);
+        this.extension = this.baseExtensions.concat(viewPlugin.of({ plugin: this, arg: undefined }));
+    }
+    /**
+    Create an extension for this plugin with the given argument.
+    */
+    of(arg) {
+        return this.baseExtensions.concat(viewPlugin.of({ plugin: this, arg }));
     }
     /**
     Define a plugin from a constructor function that creates the
@@ -6744,7 +6791,7 @@ class ViewPlugin {
     static define(create, spec) {
         const { eventHandlers, eventObservers, provide, decorations: deco } = spec || {};
         return new ViewPlugin(nextPluginID++, create, eventHandlers, eventObservers, plugin => {
-            let ext = [viewPlugin.of(plugin)];
+            let ext = [];
             if (deco)
                 ext.push(decorations.of(view => {
                     let pluginInst = view.plugin(plugin);
@@ -6760,7 +6807,7 @@ class ViewPlugin {
     editor view as argument.
     */
     static fromClass(cls, spec) {
-        return ViewPlugin.define(view => new cls(view), spec);
+        return ViewPlugin.define((view, arg) => new cls(view, arg), spec);
     }
 }
 class PluginInstance {
@@ -6768,18 +6815,19 @@ class PluginInstance {
         this.spec = spec;
         // When starting an update, all plugins have this field set to the
         // update object, indicating they need to be updated. When finished
-        // updating, it is set to `false`. Retrieving a plugin that needs to
+        // updating, it is set to `null`. Retrieving a plugin that needs to
         // be updated with `view.plugin` forces an eager update.
         this.mustUpdate = null;
         // This is null when the plugin is initially created, but
         // initialized on the first update.
         this.value = null;
     }
+    get plugin() { return this.spec && this.spec.plugin; }
     update(view) {
         if (!this.value) {
             if (this.spec) {
                 try {
-                    this.value = this.spec.create(view);
+                    this.value = this.spec.plugin.create(view, this.spec.arg);
                 }
                 catch (e) {
                     logException(view.state, e, "CodeMirror plugin crashed");
@@ -8637,16 +8685,16 @@ function computeHandlers(plugins) {
         return result[type] || (result[type] = { observers: [], handlers: [] });
     }
     for (let plugin of plugins) {
-        let spec = plugin.spec;
-        if (spec && spec.domEventHandlers)
-            for (let type in spec.domEventHandlers) {
-                let f = spec.domEventHandlers[type];
+        let spec = plugin.spec, handlers = spec && spec.plugin.domEventHandlers, observers = spec && spec.plugin.domEventObservers;
+        if (handlers)
+            for (let type in handlers) {
+                let f = handlers[type];
                 if (f)
                     record(type).handlers.push(bindHandler(plugin.value, f));
             }
-        if (spec && spec.domEventObservers)
-            for (let type in spec.domEventObservers) {
-                let f = spec.domEventObservers[type];
+        if (observers)
+            for (let type in observers) {
+                let f = observers[type];
                 if (f)
                     record(type).observers.push(bindHandler(plugin.value, f));
             }
@@ -10892,6 +10940,21 @@ const baseTheme$1$3 = /*@__PURE__*/buildTheme("." + baseThemeID, {
         backgroundColor: "#333338",
         color: "white"
     },
+    ".cm-dialog": {
+        padding: "2px 19px 4px 6px",
+        position: "relative",
+        "& label": { fontSize: "80%" },
+    },
+    ".cm-dialog-close": {
+        position: "absolute",
+        top: "3px",
+        right: "4px",
+        backgroundColor: "inherit",
+        border: "none",
+        font: "inherit",
+        fontSize: "14px",
+        padding: "0"
+    },
     ".cm-tab": {
         display: "inline-block",
         overflow: "hidden",
@@ -12204,8 +12267,8 @@ class EditorView {
     */
     plugin(plugin) {
         let known = this.pluginMap.get(plugin);
-        if (known === undefined || known && known.spec != plugin)
-            this.pluginMap.set(plugin, known = this.plugins.find(p => p.spec == plugin) || null);
+        if (known === undefined || known && known.plugin != plugin)
+            this.pluginMap.set(plugin, known = this.plugins.find(p => p.plugin == plugin) || null);
         return known && known.update(this).value;
     }
     /**
@@ -14921,6 +14984,134 @@ const showPanel = /*@__PURE__*/Facet.define({
 });
 
 /**
+Show a panel above or below the editor to show the user a message
+or prompt them for input. Returns an effect that can be dispatched
+to close the dialog, and a promise that resolves when the dialog
+is closed or a form inside of it is submitted.
+
+You are encouraged, if your handling of the result of the promise
+dispatches a transaction, to include the `close` effect in it. If
+you don't, this function will automatically dispatch a separate
+transaction right after.
+*/
+function showDialog(view, config) {
+    let resolve;
+    let promise = new Promise(r => resolve = r);
+    let panelCtor = (view) => createDialog(view, config, resolve);
+    if (view.state.field(dialogField$1, false)) {
+        view.dispatch({ effects: openDialogEffect.of(panelCtor) });
+    }
+    else {
+        view.dispatch({ effects: StateEffect.appendConfig.of(dialogField$1.init(() => [panelCtor])) });
+    }
+    let close = closeDialogEffect.of(panelCtor);
+    return { close, result: promise.then(form => {
+            let queue = view.win.queueMicrotask || ((f) => view.win.setTimeout(f, 10));
+            queue(() => {
+                if (view.state.field(dialogField$1).indexOf(panelCtor) > -1)
+                    view.dispatch({ effects: close });
+            });
+            return form;
+        }) };
+}
+/**
+Find the [`Panel`](https://codemirror.net/6/docs/ref/#view.Panel) for an open dialog, using a class
+name as identifier.
+*/
+function getDialog(view, className) {
+    let dialogs = view.state.field(dialogField$1, false) || [];
+    for (let open of dialogs) {
+        let panel = getPanel(view, open);
+        if (panel && panel.dom.classList.contains(className))
+            return panel;
+    }
+    return null;
+}
+const dialogField$1 = /*@__PURE__*/StateField.define({
+    create() { return []; },
+    update(dialogs, tr) {
+        for (let e of tr.effects) {
+            if (e.is(openDialogEffect))
+                dialogs = [e.value].concat(dialogs);
+            else if (e.is(closeDialogEffect))
+                dialogs = dialogs.filter(d => d != e.value);
+        }
+        return dialogs;
+    },
+    provide: f => showPanel.computeN([f], state => state.field(f))
+});
+const openDialogEffect = /*@__PURE__*/StateEffect.define();
+const closeDialogEffect = /*@__PURE__*/StateEffect.define();
+function createDialog(view, config, result) {
+    let content = config.content ? config.content(view, () => done(null)) : null;
+    if (!content) {
+        content = crelt("form");
+        if (config.input) {
+            let input = crelt("input", config.input);
+            if (/^(text|password|number|email|tel|url)$/.test(input.type))
+                input.classList.add("cm-textfield");
+            if (!input.name)
+                input.name = "input";
+            content.appendChild(crelt("label", (config.label || "") + ": ", input));
+        }
+        else {
+            content.appendChild(document.createTextNode(config.label || ""));
+        }
+        content.appendChild(document.createTextNode(" "));
+        content.appendChild(crelt("button", { class: "cm-button", type: "submit" }, config.submitLabel || "OK"));
+    }
+    let forms = content.nodeName == "FORM" ? [content] : content.querySelectorAll("form");
+    for (let i = 0; i < forms.length; i++) {
+        let form = forms[i];
+        form.addEventListener("keydown", (event) => {
+            if (event.keyCode == 27) { // Escape
+                event.preventDefault();
+                done(null);
+            }
+            else if (event.keyCode == 13) { // Enter
+                event.preventDefault();
+                done(form);
+            }
+        });
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            done(form);
+        });
+    }
+    let panel = crelt("div", content, crelt("button", {
+        onclick: () => done(null),
+        "aria-label": view.state.phrase("close"),
+        class: "cm-dialog-close",
+        type: "button"
+    }, ["×"]));
+    if (config.class)
+        panel.className = config.class;
+    panel.classList.add("cm-dialog");
+    function done(form) {
+        if (panel.contains(panel.ownerDocument.activeElement))
+            view.focus();
+        result(form);
+    }
+    return {
+        dom: panel,
+        top: config.top,
+        mount: () => {
+            if (config.focus) {
+                let focus;
+                if (typeof config.focus == "string")
+                    focus = content.querySelector(config.focus);
+                else
+                    focus = content.querySelector("input") || content.querySelector("button");
+                if (focus && "select" in focus)
+                    focus.select();
+                else if (focus && "focus" in focus)
+                    focus.focus();
+            }
+        }
+    };
+}
+
+/**
 A gutter marker represents a bit of information attached to a line
 in a specific gutter. Your own custom markers have to extend this
 class.
@@ -14978,7 +15169,7 @@ Define an editor gutter. The order in which the gutters appear is
 determined by their extension priority.
 */
 function gutter(config) {
-    return [gutters(), activeGutters.of(Object.assign(Object.assign({}, defaults$1), config))];
+    return [gutters(), activeGutters.of({ ...defaults$1, ...config })];
 }
 const unfixGutters = /*@__PURE__*/Facet.define({
     combine: values => values.some(x => x)
@@ -15474,6 +15665,7 @@ var index$6 = /*#__PURE__*/Object.freeze({
   crosshairCursor: crosshairCursor,
   drawSelection: drawSelection,
   dropCursor: dropCursor,
+  getDialog: getDialog,
   getDrawSelectionConfig: getDrawSelectionConfig,
   getPanel: getPanel,
   getTooltip: getTooltip,
@@ -15500,6 +15692,7 @@ var index$6 = /*#__PURE__*/Object.freeze({
   repositionTooltips: repositionTooltips,
   runScopeHandlers: runScopeHandlers,
   scrollPastEnd: scrollPastEnd,
+  showDialog: showDialog,
   showPanel: showPanel,
   showTooltip: showTooltip,
   tooltips: tooltips
@@ -18928,8 +19121,8 @@ service.
 const indentService = /*@__PURE__*/Facet.define();
 /**
 Facet for overriding the unit by which indentation happens. Should
-be a string consisting either entirely of the same whitespace
-character. When not set, this defaults to 2 spaces.
+be a string consisting entirely of the same whitespace character.
+When not set, this defaults to 2 spaces.
 */
 const indentUnit = /*@__PURE__*/Facet.define({
     combine: values => {
@@ -19123,7 +19316,8 @@ function syntaxIndentation(cx, ast, pos) {
     let inner = ast.resolveInner(pos, -1).resolve(pos, 0).enterUnfinishedNodesBefore(pos);
     if (inner != stack.node) {
         let add = [];
-        for (let cur = inner; cur && !(cur.from == stack.node.from && cur.type == stack.node.type); cur = cur.parent)
+        for (let cur = inner; cur && !(cur.from < stack.node.from || cur.to > stack.node.to ||
+            cur.from == stack.node.from && cur.type == stack.node.type); cur = cur.parent)
             add.push(cur);
         for (let i = add.length - 1; i >= 0; i--)
             stack = { node: add[i], next: stack };
@@ -19704,7 +19898,7 @@ fold status indicator before foldable lines (which can be clicked
 to fold or unfold the line).
 */
 function foldGutter(config = {}) {
-    let fullConfig = Object.assign(Object.assign({}, foldGutterDefaults), config);
+    let fullConfig = { ...foldGutterDefaults, ...config };
     let canFold = new FoldMarker(fullConfig, true), canUnfold = new FoldMarker(fullConfig, false);
     let markers = ViewPlugin.fromClass(class {
         constructor(view) {
@@ -19739,7 +19933,9 @@ function foldGutter(config = {}) {
             initialSpacer() {
                 return new FoldMarker(fullConfig, false);
             },
-            domEventHandlers: Object.assign(Object.assign({}, domEventHandlers), { click: (view, line, event) => {
+            domEventHandlers: {
+                ...domEventHandlers,
+                click: (view, line, event) => {
                     if (domEventHandlers.click && domEventHandlers.click(view, line, event))
                         return true;
                     let folded = findFold(view.state, line.from, line.to);
@@ -19753,7 +19949,8 @@ function foldGutter(config = {}) {
                         return true;
                     }
                     return false;
-                } })
+                }
+            }
         }),
         codeFolding()
     ];
@@ -22694,34 +22891,6 @@ var index$4 = /*#__PURE__*/Object.freeze({
   undoDepth: undoDepth,
   undoSelection: undoSelection
 });
-
-function crelt() {
-  var elt = arguments[0];
-  if (typeof elt == "string") elt = document.createElement(elt);
-  var i = 1, next = arguments[1];
-  if (next && typeof next == "object" && next.nodeType == null && !Array.isArray(next)) {
-    for (var name in next) if (Object.prototype.hasOwnProperty.call(next, name)) {
-      var value = next[name];
-      if (typeof value == "string") elt.setAttribute(name, value);
-      else if (value != null) elt[name] = value;
-    }
-    i++;
-  }
-  for (; i < arguments.length; i++) add(elt, arguments[i]);
-  return elt
-}
-
-function add(elt, child) {
-  if (typeof child == "string") {
-    elt.appendChild(document.createTextNode(child));
-  } else if (child == null) ; else if (child.nodeType != null) {
-    elt.appendChild(child);
-  } else if (Array.isArray(child)) {
-    for (var i = 0; i < child.length; i++) add(elt, child[i]);
-  } else {
-    throw new RangeError("Unsupported child node: " + child)
-  }
-}
 
 const basicNormalize = typeof String.prototype.normalize == "function"
     ? x => x.normalize("NFKD") : x => x;
