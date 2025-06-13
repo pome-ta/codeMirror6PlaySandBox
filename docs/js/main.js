@@ -110,6 +110,7 @@ const createHeader = () => {
   // element.style.position = 'sticky';
   element.style.top = '0';
   element.style.backgroundColor = 'maroon';
+  //element.style.backgroundColor = 'red';
   element.style.zIndex = 1;
 
   return element;
