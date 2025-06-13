@@ -110,9 +110,23 @@ const createEditorDiv = () => {
   return element;
 };
 
+const buttonArea = document.createElement('div');
+buttonArea.id = 'buttonArea-div';
+buttonArea.style.padding = '0.2rem 0';
+buttonArea.style.display = 'flex';
+buttonArea.style.justifyContent = 'space-around';
+buttonArea.style.display = 'none';
+
+
+
+
 const createFooter = () => {
   const element = document.createElement('footer');
   element.id = 'footer';
+  element.style.padding = '0.6rem 0';
+  element.style.justifyContent = 'space-around';
+  //element.style.padding = '0.2rem';
+  element.style.backgroundColor = 'maroon';
   element.style.bottom = '0';
 
   return element;
@@ -124,9 +138,9 @@ const addHeaderFooterStyle = (headerFooter) => {
     element.style.position = 'sticky';
     element.style.display = 'flex';
     element.style.alignItems = 'center';
-    element.style.justifyContent = 'stretch';
+    //element.style.justifyContent = 'stretch';
     element.style.width = '100%';
-    element.style.height = '3rem';
+    //element.style.height = '3rem';
   });
 };
 
@@ -144,6 +158,51 @@ const createButton = (id, textContent) => {
   return element;
 };
 
+
+const btnW = '2.5rem';
+const btnRadius = '16%';
+
+function _createButtonWrap(width, height) {
+  const wrap = document.createElement('div');
+  // xxx: 最大数問題
+  wrap.style.minWidth = width;
+  wrap.style.height = height;
+  wrap.style.display = 'flex';
+  wrap.style.justifyContent = 'center';
+  wrap.style.alignItems = 'center';
+  return wrap;
+}
+
+function createIcon(char) {
+  const icon = document.createElement('span');
+  icon.textContent = char;
+  icon.style.fontSize = '1.0rem';
+  icon.style.color = '#f2f2f7'; // gray6
+  return icon;
+}
+
+function createActionButton(iconChar) {
+  const wrap = _createButtonWrap(btnW, '100%');
+  const button = _createButtonWrap('90%', '90%');
+  const icon = createIcon(iconChar);
+  wrap.appendChild(button);
+  wrap.style.cursor = 'pointer';
+  button.style.borderRadius = btnRadius;
+  button.style.backgroundColor = '#8e8e93'; // light gray
+  button.style.filter = 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))';
+  button.appendChild(icon);
+  return wrap;
+}
+/*
+const buttonArea = document.createElement('div');
+buttonArea.id = 'buttonArea-div';
+buttonArea.style.padding = '0.2rem 0';
+buttonArea.style.display = 'flex';
+buttonArea.style.justifyContent = 'space-around';
+buttonArea.style.display = 'none';
+*/
+
+
 const stickyButton = createButton('stickyButton', 'Sticky');
 const fixedButton = createButton('fixedButton', 'Fixed');
 const clearButton = createButton('clearButton', 'Clear');
@@ -155,9 +214,29 @@ const headerDiv = createHeader();
 const footerDiv = createFooter();
 addHeaderFooterStyle([headerDiv, footerDiv]);
 
-footerDiv.appendChild(stickyButton);
-footerDiv.appendChild(fixedButton);
-footerDiv.appendChild(clearButton);
+
+const [
+  commentButton,
+  selectLineButton,
+  leftButton,
+  downButton,
+  upButton,
+  rightButton,
+  selectAllButton,
+  redoButton,
+  undoButton,
+  //reIndentButton,
+] = ['//', '▭', '←', '↓', '↑', '→', '⎁', '⤻', '⤺'].map((str) => {
+  const ele = createActionButton(str);
+  footerDiv.appendChild(ele);
+  return ele;
+});
+
+
+
+//footerDiv.appendChild(buttonArea);
+//footerDiv.appendChild(fixedButton);
+//footerDiv.appendChild(clearButton);
 
 document.addEventListener('DOMContentLoaded', () => {
   rootDiv.appendChild(headerDiv);
