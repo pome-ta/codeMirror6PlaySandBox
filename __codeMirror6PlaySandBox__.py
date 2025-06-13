@@ -409,7 +409,7 @@ class WebViewController(UIViewController):
     def completionHandler(object_id, error_id):
       objc_instance = ObjCInstance(object_id)
       if objc_instance is None:
-        return 
+        return
       self.savePathObject.write_text(str(objc_instance), encoding='utf-8')
 
     self.wkWebView.evaluateJavaScript_completionHandler_(

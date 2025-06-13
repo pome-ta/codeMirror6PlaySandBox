@@ -1,28 +1,14 @@
 import Editor from './editor/index.js';
-
 //const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
+
+let editor
 
 const ua = window.navigator.userAgent;
 const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 //const keyboardOffset = 96;
 const keyboardOffset = 256;
-/*
-const replaceSyncs = [
-  `body.virtual-keyboard-shown {
-    margin-top: var(--visual-viewport-offset-top, 0px);
-  }`,
-  `.virtual-keyboard-shown #root,
-    #root:has(input:focus),
-    #root:has([contenteditable="true"]:focus) {
-    overscroll-behavior-y: contain;
-  }`,
-  `#editor:has(:focus),
-    .virtual-keyboard-shown #editor {
-    min-height: calc(100 * var(--svh, 1svh) - 96px + 1px);
-  }`,
-];
-*/
+
 
 const replaceSyncs = [
   `body.virtual-keyboard-shown {
@@ -107,7 +93,6 @@ const createHeader = () => {
   h1Tag.textContent = 'Safari Virtual Keyboard Demo';
 
   element.appendChild(h1Tag);
-  // element.style.position = 'sticky';
   element.style.top = '0';
   element.style.backgroundColor = 'maroon';
   //element.style.backgroundColor = 'red';
@@ -118,10 +103,8 @@ const createHeader = () => {
 
 const createEditorDiv = () => {
   const element = document.createElement('div');
-  element.id = 'editor';
-  //element.contentEditable = 'true';
+  element.id = 'editor-div';
   element.style.minHeight = `calc(100 * var(--svh, 1svh) - 96px)`;
-  //element.style.fontSize = '1.5rem';
   element.style.width = '100%';
 
   return element;
@@ -130,13 +113,13 @@ const createEditorDiv = () => {
 const createFooter = () => {
   const element = document.createElement('footer');
   element.id = 'footer';
-  // element.style.position = 'sticky';
   element.style.bottom = '0';
 
   return element;
 };
 
 const addHeaderFooterStyle = (headerFooter) => {
+  // xxx: 配列？🤔
   [...headerFooter].forEach((element) => {
     element.style.position = 'sticky';
     element.style.display = 'flex';
@@ -146,32 +129,6 @@ const addHeaderFooterStyle = (headerFooter) => {
     element.style.height = '3rem';
   });
 };
-/*
-const setRootDiv = () => {
-  const div = document.createElement('div');
-  div.id = 'root-div';
-  div.style.width = '100%';
-  div.style.height = '100%';
-  
-  //div.style.display = 'flex';
-  //div.style.flexDirection = 'column';
-  //div.style.position = 'relative';
-  
-  document.body.appendChild(div);
-  return div;
-}
-
-const setEditorDiv = (element = document.body) => {
-  const div = document.createElement('div');
-  div.id = 'editor-div';
-  div.style.width = '100%';
-  // div.style.backgroundColor = 'dodgerblue'
-  // div.style.backgroundColor = 'darkslategray';
-  element.appendChild(div);
-  return div;
-};
-
-*/
 
 const createButton = (id, textContent) => {
   const element = document.createElement('button');
@@ -191,7 +148,7 @@ const stickyButton = createButton('stickyButton', 'Sticky');
 const fixedButton = createButton('fixedButton', 'Fixed');
 const clearButton = createButton('clearButton', 'Clear');
 
-let editor
+
 const rootDiv = createRootDiv();
 const editorDiv = createEditorDiv();
 const headerDiv = createHeader();
@@ -209,9 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(rootDiv);
   initializeMainCall(codeFilePath).then((loadedSource) => {
     editor = new Editor(editorDiv, loadedSource);
-    //console.log(editor);
-    //console.log(`initializeMainCall: ${window.innerHeight}`);
-    //document.body.appendChild(accessoryDiv)
   });
   
   if (!iOS) {
