@@ -174,7 +174,7 @@ class WebViewController(UIViewController):
 
     if IS_PHONE:
       self.view.backgroundColor = UIColor.systemFillColor()
-      print(UIColor.systemFillColor())
+      
 
     self.loadFileIndexPath()
 
@@ -506,8 +506,7 @@ if __name__ == '__main__':
 
   presentation_style = UIModalPresentationStyle.fullScreen
   #presentation_style = UIModalPresentationStyle.pageSheet
-
+  
   app = App(main_vc, presentation_style)
   app.present()
-
 
