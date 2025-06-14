@@ -76,6 +76,7 @@ const createRootDiv = () => {
   const element = document.createElement('div');
   element.id = 'root';
   element.classList.add('scrollable');
+  //element.style.backgroundColor = 'red';
   // element.style.width = '100vw';
   element.style.width = '100%';
   element.style.height = `calc(100 * var(--svh, 1svh))`;

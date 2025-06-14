@@ -174,6 +174,7 @@ class WebViewController(UIViewController):
 
     if IS_PHONE:
       self.view.backgroundColor = UIColor.systemFillColor()
+      print(UIColor.systemFillColor())
 
     self.loadFileIndexPath()
 
