@@ -501,8 +501,8 @@ if __name__ == '__main__':
 
   main_vc.setSavePathObject_(save_path)
 
-  presentation_style = UIModalPresentationStyle.fullScreen
-  #presentation_style = UIModalPresentationStyle.pageSheet
+  #presentation_style = UIModalPresentationStyle.fullScreen
+  presentation_style = UIModalPresentationStyle.pageSheet
 
   app = App(main_vc, presentation_style)
   app.present()
