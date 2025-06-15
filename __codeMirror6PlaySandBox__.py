@@ -92,8 +92,9 @@ class WebViewController(UIViewController):
     send_super(__class__, self, 'loadView')
     #print(f'\t{NSStringFromClass(__class__)}: loadView')
     # --- toolbar set up
-    self.navigationController.setNavigationBarHidden_animated_(True, IS_PHONE)
+    self.navigationController.setNavigationBarHidden_animated_(IS_PHONE, True)
     self.navigationController.setToolbarHidden_animated_(False, True)
+    #self.navigationController.setToolbarHidden_animated_(not IS_PHONE, True)
 
     promptLabel = UILabel.new()
     promptLabel.setTextAlignment_(NSTextAlignment.center)
@@ -170,8 +171,7 @@ class WebViewController(UIViewController):
     self.titleLabel.setText_(self.navigationItem.title)
     self.titleLabel.sizeToFit()
 
-    self.view.backgroundColor = UIColor.secondarySystemBackgroundColor(
-    ) if IS_PHONE else UIColor.secondarySystemBackgroundColor
+    self.view.backgroundColor = UIColor.secondarySystemBackgroundColor()
 
     self.loadFileIndexPath()
 
@@ -201,6 +201,7 @@ class WebViewController(UIViewController):
                  ctypes.c_bool,
                ])
     #print(f'\t{NSStringFromClass(__class__)}: viewWillAppear_')
+
     notificationCenter = NSNotificationCenter.defaultCenter
 
     notificationCenter.addObserver_selector_name_object_(
@@ -501,10 +502,9 @@ if __name__ == '__main__':
 
   main_vc.setSavePathObject_(save_path)
 
-  #presentation_style = UIModalPresentationStyle.fullScreen
-  presentation_style = UIModalPresentationStyle.pageSheet
+  presentation_style = UIModalPresentationStyle.fullScreen
+  #presentation_style = UIModalPresentationStyle.pageSheet
 
   app = App(main_vc, presentation_style)
   app.present()
-
 
