@@ -10,6 +10,27 @@ const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 const keyboardOffset = 256;
 
 
+
+function visualViewportHandler() {
+  //footerDiv.style.display = editor.hasFocus ? 'flex' : 'none';
+  
+   
+  console.log(`---`)
+  console.log(`visualViewport.height: ${visualViewport.height}`)
+  console.log(`visualViewport.offsetTop: ${visualViewport.offsetTop}`)
+  console.log(`visualViewport.pageTop: ${visualViewport.pageTop}`)
+  
+  
+  const upBottom =
+    window.innerHeight -
+    visualViewport.height +
+    visualViewport.offsetTop -
+    visualViewport.pageTop;
+
+  headerDiv.style.top = `${visualViewport.offsetTop}px`;
+  footerDiv.style.bottom = `${upBottom}px`;
+}
+
 const replaceSyncs = [
   `body.virtual-keyboard-shown {
     margin-top: var(--visual-viewport-offset-top, 0px);
@@ -248,6 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
     editor = new Editor(editorDiv, loadedSource);
   });
   
+  
+  
+  /*
+  
   if (!iOS) {
     return;
   }
@@ -258,5 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
   handleResize();
   window.visualViewport.addEventListener('resize', handleResize);
   window.visualViewport.addEventListener('scroll', handleResize);
+  */
+  visualViewportHandler();
+  window.visualViewport.addEventListener('resize', visualViewportHandler);
+  window.visualViewport.addEventListener('scroll', visualViewportHandler);
   
 });
