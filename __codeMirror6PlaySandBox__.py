@@ -92,9 +92,7 @@ class WebViewController(UIViewController):
     send_super(__class__, self, 'loadView')
     #print(f'\t{NSStringFromClass(__class__)}: loadView')
     # --- toolbar set up
-
-    if IS_PHONE:
-      self.navigationController.setNavigationBarHidden_animated_(True, True)
+    self.navigationController.setNavigationBarHidden_animated_(True, IS_PHONE)
     self.navigationController.setToolbarHidden_animated_(False, True)
 
     promptLabel = UILabel.new()
@@ -172,10 +170,8 @@ class WebViewController(UIViewController):
     self.titleLabel.setText_(self.navigationItem.title)
     self.titleLabel.sizeToFit()
 
-    if IS_PHONE:
-      #self.view.backgroundColor = UIColor.systemFillColor()
-      self.view.backgroundColor = UIColor.secondarySystemBackgroundColor()
-      #self.view.backgroundColor = UIColor.tertiarySystemBackgroundColor()
+    self.view.backgroundColor = UIColor.secondarySystemBackgroundColor(
+    ) if IS_PHONE else UIColor.secondarySystemBackgroundColor
 
     self.loadFileIndexPath()
 
