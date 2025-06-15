@@ -3,9 +3,7 @@
 
 :root {
   color-scheme: light dark;
-  --backGround-color: light-dark(#ADADB2, color-mix(in srgb, #77777F 36%, #000));
-  
-  
+  --backGround-color: light-dark(#F2F2F7, #1C1C1E);
 }
 
 html {

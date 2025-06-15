@@ -173,10 +173,9 @@ class WebViewController(UIViewController):
     self.titleLabel.sizeToFit()
 
     if IS_PHONE:
-      self.view.backgroundColor = UIColor.systemFillColor()
-      #self.view.backgroundColor = UIColor.systemBackgroundColor()
-      
-      
+      #self.view.backgroundColor = UIColor.systemFillColor()
+      self.view.backgroundColor = UIColor.secondarySystemBackgroundColor()
+      #self.view.backgroundColor = UIColor.tertiarySystemBackgroundColor()
 
     self.loadFileIndexPath()
 
@@ -499,8 +498,7 @@ if __name__ == '__main__':
   index_path = Path('./docs/index.html')
   #save_path = Path('./docs/js/editor/index.js')
   save_path = Path('./docs/js/main.js')
-  
-  
+
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
   _title = NSStringFromClass(WebViewController)
   main_vc.navigationItem.title = _title
@@ -509,53 +507,8 @@ if __name__ == '__main__':
 
   presentation_style = UIModalPresentationStyle.fullScreen
   #presentation_style = UIModalPresentationStyle.pageSheet
-  
-  
+
   app = App(main_vc, presentation_style)
   app.present()
-  
-  c = UIColor.systemFillColor()
-  
-  
-  # sf_brightenedColor
-  #l: <ObjCInstance: UIDeviceRGBColor at 0x12404d090: UIExtendedSRGBColorSpace 0.588235 0.588235 0.627451 0.2>
-  #d: <ObjCInstance: UIDeviceRGBColor at 0x11e1f0940: UIExtendedSRGBColorSpace 0.588235 0.588235 0.627451 0.36>
-  
-  
-  '''
-  safari_rgbColorComponents",
-  d
-  0.4705882352941176,
-0.4705882352941176,
-0.5019607843137255
 
-l
-0.4705882352941176,
-0.4705882352941176,
-0.5019607843137255
-  '''
-  
-  '''
-  safari_rgbColorComponents",
-    "safari_sRGBColor",
-    "safari_saturation",
-    "saturationComponent",
-  '''
-  
-  '''
-  arrayFromRGBAComponents
-  d:
-    0.4705882,
-0.4705882,
-0.5019608,
-0.36
 
-  l:
-    0.4705882,
-0.4705882,
-0.5019608,
-0.2
-  '''
-
-  
-  #pdbr.state(c.arrayFromRGBAComponents())
