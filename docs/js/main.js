@@ -1,10 +1,9 @@
 import Editor from './editor/index.js';
 
 
-let editor
+let editor;
 //const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
-
 
 
 const ua = window.navigator.userAgent;
@@ -14,46 +13,45 @@ const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 class Elementer {
   // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
   #element;
-  
-  constructor(type, idName=null, classNames=[]) {
+
+  constructor(type, idName = null, classNames = []) {
     this.#element = document.createElement(type);
     if (idName !== null) {
-      this.#element.id = idName
+      this.#element.id = idName;
     }
-    classNames.forEach((name)=>{
-      this.#element.classList.add(nsme);
+    classNames.forEach((name) => {
+      this.#element.classList.add(name);
     });
-    
+
     this.addStyles();
   }
-  
+
+  get element() {
+    return this.#element;
+  }
+
+  static of(type, idName, classNames) {
+    const instance = new this(type, idName, classNames);
+    return instance.element;
+  }
+
   addStyles() {
     this.#element.style.position = 'sticky';
     this.#element.style.display = 'flex';
     this.#element.style.alignItems = 'center';
     this.#element.style.width = '100%';
   }
-  
-  get element() {
-    return this.#element
-  }
-  
-  static of(type, idName, classNames) {
-    const instance = new this(type, idName, classNames);
-    return instance.element;
-  }
 }
 
 
-
-const headerCreate = (idName=null, classNames=[]) =>{
+const headerCreate = (idName = null, classNames = []) => {
   const element = Elementer.of('header', idName, classNames);
   element.style.top = '0';
   element.style.backgroundColor = 'maroon';
   element.style.zIndex = 1;
 
   return element;
-}
+};
 
 class AccessoryWidget {
   constructor(cmEditor, isMobile) {
@@ -64,7 +62,7 @@ class AccessoryWidget {
 
 function visualViewportHandler() {
   //footerDiv.style.display = editor.hasFocus ? 'flex' : 'none';
-  
+
   const upBottom =
     window.innerHeight -
     window.visualViewport.height +
@@ -74,7 +72,6 @@ function visualViewportHandler() {
   headerDiv.style.top = `${visualViewport.offsetTop}px`;
   footerDiv.style.bottom = `${upBottom}px`;
 }
-
 
 
 /* -- load Source */
@@ -113,7 +110,7 @@ const createHeader = () => {
   element.style.top = '0';
   element.style.backgroundColor = 'maroon';
   //element.style.backgroundColor = 'red';
-  element.style.zIndex = 1;
+  element.style.zIndex = '1';
 
   return element;
 };
@@ -126,8 +123,6 @@ const createEditorDiv = () => {
 
   return element;
 };
-
-
 
 
 const createFooter = () => {
@@ -235,7 +230,6 @@ const [
 });
 
 
-
 //footerDiv.appendChild(buttonArea);
 //footerDiv.appendChild(fixedButton);
 //footerDiv.appendChild(clearButton);
@@ -248,18 +242,17 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeMainCall(codeFilePath).then((loadedSource) => {
     editor = new Editor(editorDiv, loadedSource);
   });
-  
-  
-  
+
+
   /*
   
   if (!iOS) {
     return;
   }
   */
-  
+
   visualViewportHandler();
   window.visualViewport.addEventListener('resize', visualViewportHandler);
   window.visualViewport.addEventListener('scroll', visualViewportHandler);
-  
+
 });

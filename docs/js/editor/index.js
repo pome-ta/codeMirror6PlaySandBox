@@ -1,18 +1,18 @@
-import { minimalSetup, basicSetup } from './codemirror/codemirror.js';
-import { EditorState, Compartment } from './codemirror/state.js';
+import {minimalSetup} from './codemirror/codemirror.js';
+import {Compartment, EditorState} from './codemirror/state.js';
 import {
-  EditorView,
-  lineNumbers,
-  highlightActiveLineGutter,
-  highlightActiveLine,
-  highlightWhitespace,
   dropCursor,
+  EditorView,
+  highlightActiveLine,
+  highlightActiveLineGutter,
+  highlightWhitespace,
+  lineNumbers,
 } from './codemirror/view.js';
-import { closeBrackets, autocompletion } from './codemirror/autocomplete.js';
-import { bracketMatching } from './codemirror/language.js';
+import {autocompletion, closeBrackets} from './codemirror/autocomplete.js';
+import {bracketMatching} from './codemirror/language.js';
 
-import { javascript } from './codemirror/lang-javascript.js';
-import { oneDark } from './codemirror/theme-one-dark.js';
+import {javascript} from './codemirror/lang-javascript.js';
+import {oneDark} from './codemirror/theme-one-dark.js';
 
 /*
 const basicSetup = (() => [
