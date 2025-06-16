@@ -47,7 +47,7 @@ const createHeader = (idName = null, classNames = []) => {
   const element = Elementer.of('header', idName, classNames);
   element.style.top = '0';
   element.style.backgroundColor = 'maroon';
-  element.style.zIndex = 1;
+  element.style.zIndex = '1';
 
   return element;
 };
@@ -57,24 +57,41 @@ const createFooter = (idName = null, classNames = []) => {
   const element = Elementer.of('footer', idName, classNames);
   element.style.padding = '0.6rem 0';
   element.style.justifyContent = 'space-around';
-
   element.style.backgroundColor = 'maroon';
   element.style.bottom = '0';
 
   return element;
 };
 
-class AccessoryWidget {
+class AccessoryWidgets {
   constructor(cmEditor, isMobile) {
     this.editor = cmEditor;
     this.isMobile = isMobile;
     this.header = createHeader('header');
-    this.footer = createFooter('footer');
-
+    if (this.isMobile) {
+      this.footer = createFooter('footer');
+      this.footer.style.display = 'none';
+    }
   }
+  
+  #setupItems = (items, parent) => items.forEach((item) => parent?.appendChild(item));
+  
+  setupHeader(items) {
+    this.#setupItems(items, this.header);
+  }
+  
+  setupFooter(items) {
+    if (!this.isMobile) {
+      return
+    }
+    this.#setupItems(items, this.footer);
+  }
+  
+  
+  
 
   visualViewportHandler() {
-    this.header.style.top = `${window.visualViewport.offsetTop}px`;
+    //this.header.style.top = `${window.visualViewport.offsetTop}px`;
     if (!this.isMobile) {
       return;
     }
@@ -129,22 +146,6 @@ const createRootDiv = () => {
   return element;
 };
 
-// const createHeader = () => {
-//   const element = document.createElement('header');
-//   element.id = 'header';
-//   const h1Tag = document.createElement('h1');
-//   h1Tag.style.fontSize = '1.5rem';
-//   h1Tag.textContent = 'Safari Virtual Keyboard Demo';
-//
-//   element.appendChild(h1Tag);
-//   element.style.top = '0';
-//   element.style.backgroundColor = 'maroon';
-//   //element.style.backgroundColor = 'red';
-//   element.style.zIndex = '1';
-//
-//   return element;
-// };
-
 const createEditorDiv = () => {
   const element = document.createElement('div');
   element.id = 'editor-div';
@@ -155,29 +156,6 @@ const createEditorDiv = () => {
 };
 
 
-// const createFooter = () => {
-//   const element = document.createElement('footer');
-//   element.id = 'footer';
-//   element.style.padding = '0.6rem 0';
-//   element.style.justifyContent = 'space-around';
-//   //element.style.padding = '0.2rem';
-//   element.style.backgroundColor = 'maroon';
-//   element.style.bottom = '0';
-//
-//   return element;
-// };
-
-const addHeaderFooterStyle = (headerFooter) => {
-  // xxx: 配列？🤔
-  [...headerFooter].forEach((element) => {
-    element.style.position = 'sticky';
-    element.style.display = 'flex';
-    element.style.alignItems = 'center';
-    //element.style.justifyContent = 'stretch';
-    element.style.width = '100%';
-    //element.style.height = '3rem';
-  });
-};
 
 const createButton = (id, textContent) => {
   const element = document.createElement('button');
@@ -229,17 +207,15 @@ function createActionButton(iconChar) {
   return wrap;
 }
 
-const stickyButton = createButton('stickyButton', 'Sticky');
-const fixedButton = createButton('fixedButton', 'Fixed');
-const clearButton = createButton('clearButton', 'Clear');
+const h1Tag = document.createElement('h1');
+h1Tag.style.fontSize = '1.5rem';
+h1Tag.textContent = 'Safari Virtual Keyboard Demo';
 
 
 const rootDiv = createRootDiv();
 const editorDiv = createEditorDiv();
 const headerDiv = createHeader('header');
 const footerDiv = createFooter('footer');
-//addHeaderFooterStyle([headerDiv, footerDiv]);
-// addHeaderFooterStyle([footerDiv]);
 
 const [
   commentButton,
@@ -254,19 +230,28 @@ const [
   //reIndentButton,
 ] = ['//', '▭', '←', '↓', '↑', '→', '⎁', '⤻', '⤺'].map((str) => {
   const ele = createActionButton(str);
-  footerDiv.appendChild(ele);
+  //footerDiv.appendChild(ele);
   return ele;
 });
 
 
-//footerDiv.appendChild(buttonArea);
-//footerDiv.appendChild(fixedButton);
-//footerDiv.appendChild(clearButton);
+const accessory = new AccessoryWidgets(editor, iOS);
+accessory.setupHeader([h1Tag]);
+accessory.setupFooter([
+  commentButton,
+  selectLineButton,
+  leftButton,
+  downButton,
+  upButton,
+  rightButton,
+  selectAllButton,
+  redoButton,
+  undoButton,]);
 
 document.addEventListener('DOMContentLoaded', () => {
-  rootDiv.appendChild(headerDiv);
+  rootDiv.appendChild(accessory.header);
   rootDiv.appendChild(editorDiv);
-  rootDiv.appendChild(footerDiv);
+  rootDiv.appendChild(accessory.footer);
   document.body.appendChild(rootDiv);
   initializeMainCall(codeFilePath).then((loadedSource) => {
     editor = new Editor(editorDiv, loadedSource);
@@ -280,8 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   */
 
-  visualViewportHandler();
-  window.visualViewport.addEventListener('resize', visualViewportHandler);
-  window.visualViewport.addEventListener('scroll', visualViewportHandler);
+  
+  window.visualViewport.addEventListener('resize', accessory.visualViewportHandler);
+  window.visualViewport.addEventListener('scroll', accessory.visualViewportHandler);
 
 });
