@@ -12,7 +12,7 @@ const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 
 
 class Elementer {
-  // header footer をいい感じに管理したい
+  // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
   #element;
   constructor(type, idName=null, classNames=[]) {
     this.#element = document.createElement(type);
@@ -37,8 +37,8 @@ class Elementer {
     this.#element.style.width = '100%';
   }
   
-  static of(idName, classNames) {
-    const instance = new this(idName, classNames);
+  static of(type, idName, classNames) {
+    const instance = new this(type, idName, classNames);
     return instance.element;
   }
 }
@@ -46,8 +46,12 @@ class Elementer {
 
 
 const headerCreate = (idName=null, classNames=[]) =>{
-  const eelement = Elementer.of(idName, classNames);
-  
+  const element = Elementer.of('header', idName, classNames);
+  element.style.top = '0';
+  element.style.backgroundColor = 'maroon';
+  element.style.zIndex = 1;
+
+  return element;
 }
 
 class AccessoryWidget {
@@ -89,7 +93,8 @@ const createRootDiv = () => {
   //element.style.backgroundColor = 'red';
   // element.style.width = '100vw';
   element.style.width = '100%';
-  element.style.height = `calc(100 * var(--svh, 1svh))`;
+  //element.style.height = `calc(100 * var(--svh, 1svh))`;
+  element.style.height = '100svh';
   element.style.overflowY = 'scroll';
   //element.style.overflowX = 'hidden';
 
@@ -115,7 +120,7 @@ const createHeader = () => {
 const createEditorDiv = () => {
   const element = document.createElement('div');
   element.id = 'editor-div';
-  element.style.minHeight = `calc(100 * var(--svh, 1svh) - 96px)`;
+  //element.style.minHeight = `calc(100 * var(--svh, 1svh) - 96px)`;
   element.style.width = '100%';
 
   return element;
@@ -205,10 +210,11 @@ const clearButton = createButton('clearButton', 'Clear');
 
 const rootDiv = createRootDiv();
 const editorDiv = createEditorDiv();
-const headerDiv = createHeader();
+//const headerDiv = createHeader();
+const headerDiv = headerCreate('header');
 const footerDiv = createFooter();
-addHeaderFooterStyle([headerDiv, footerDiv]);
-
+//addHeaderFooterStyle([headerDiv, footerDiv]);
+addHeaderFooterStyle([footerDiv]);
 
 const [
   commentButton,
