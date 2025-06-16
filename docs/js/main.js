@@ -14,6 +14,7 @@ const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 class Elementer {
   // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
   #element;
+  
   constructor(type, idName=null, classNames=[]) {
     this.#element = document.createElement(type);
     if (idName !== null) {
@@ -26,15 +27,15 @@ class Elementer {
     this.addStyles();
   }
   
-  get element() {
-    return this.#element
-  }
-  
   addStyles() {
     this.#element.style.position = 'sticky';
     this.#element.style.display = 'flex';
     this.#element.style.alignItems = 'center';
     this.#element.style.width = '100%';
+  }
+  
+  get element() {
+    return this.#element
   }
   
   static of(type, idName, classNames) {
