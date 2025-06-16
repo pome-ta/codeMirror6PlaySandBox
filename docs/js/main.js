@@ -1,87 +1,37 @@
 import Editor from './editor/index.js';
+
+
+let editor
 //const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
-let editor
+
 
 const ua = window.navigator.userAgent;
 const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
-//const keyboardOffset = 96;
-const keyboardOffset = 256;
 
+
+class AccessoryWidget {
+  constructor(cmEditor) {
+    this.editor = cmEditor;
+  }
+}
 
 
 function visualViewportHandler() {
   //footerDiv.style.display = editor.hasFocus ? 'flex' : 'none';
   
-   
-  console.log(`---`)
-  console.log(`visualViewport.height: ${visualViewport.height}`)
-  console.log(`visualViewport.offsetTop: ${visualViewport.offsetTop}`)
-  console.log(`visualViewport.pageTop: ${visualViewport.pageTop}`)
-  
-  
   const upBottom =
     window.innerHeight -
-    visualViewport.height +
-    visualViewport.offsetTop -
-    visualViewport.pageTop;
+    window.visualViewport.height +
+    window.visualViewport.offsetTop -
+    window.visualViewport.pageTop;
 
   headerDiv.style.top = `${visualViewport.offsetTop}px`;
   footerDiv.style.bottom = `${upBottom}px`;
 }
 
-const replaceSyncs = [
-  `body.virtual-keyboard-shown {
-    margin-top: var(--visual-viewport-offset-top, 0px);
-  }`,
-  `.virtual-keyboard-shown #root {
-    /*overscroll-behavior-y: contain;*/
-  }`,
-  `#editor:has(:focus),
-    .virtual-keyboard-shown #editor {
-    min-height: calc(100 * var(--svh, 1svh) - ${keyboardOffset}px + 1px);
-  }`,
-];
 
-let prevHeight = undefined;
-let prevOffsetTop = undefined;
-let timerId = undefined;
-
-function handleResize(e) {
-  const height = window.visualViewport.height * window.visualViewport.scale;
-  if (prevHeight !== height) {
-    prevHeight = height;
-    requestAnimationFrame(() => {
-      document.documentElement.style.setProperty('--svh', height * 0.01 + 'px');
-    });
-  }
-  if (prevOffsetTop !== window.visualViewport.offsetTop) {
-    if (prevOffsetTop === undefined) {
-      prevOffsetTop = window.visualViewport.offsetTop;
-    } else {
-      const scrollOffset = window.visualViewport.offsetTop - prevOffsetTop;
-      prevOffsetTop = window.visualViewport.offsetTop;
-      requestAnimationFrame(() => {
-        if (e && e.type === 'resize') {
-          rootDiv.scrollBy(0, scrollOffset);
-        }
-        document.documentElement.style.setProperty(
-          '--visual-viewport-offset-top',
-          window.visualViewport.offsetTop + 'px'
-        );
-      });
-    }
-  }
-  if (height + 10 < document.documentElement.clientHeight) {
-    document.body.classList.add('virtual-keyboard-shown');
-    footerDiv.style.display = 'flex';
-    
-  } else {
-    document.body.classList.remove('virtual-keyboard-shown');
-    footerDiv.style.display = 'none';
-  }
-}
 
 /* -- load Source */
 async function fetchFilePath(path) {
@@ -131,13 +81,6 @@ const createEditorDiv = () => {
 
   return element;
 };
-
-const buttonArea = document.createElement('div');
-buttonArea.id = 'buttonArea-div';
-buttonArea.style.padding = '0.2rem 0';
-buttonArea.style.display = 'flex';
-buttonArea.style.justifyContent = 'space-around';
-buttonArea.style.display = 'none';
 
 
 
@@ -215,15 +158,6 @@ function createActionButton(iconChar) {
   button.appendChild(icon);
   return wrap;
 }
-/*
-const buttonArea = document.createElement('div');
-buttonArea.id = 'buttonArea-div';
-buttonArea.style.padding = '0.2rem 0';
-buttonArea.style.display = 'flex';
-buttonArea.style.justifyContent = 'space-around';
-buttonArea.style.display = 'none';
-*/
-
 
 const stickyButton = createButton('stickyButton', 'Sticky');
 const fixedButton = createButton('fixedButton', 'Fixed');
@@ -276,14 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!iOS) {
     return;
   }
-  const extraSheet = new CSSStyleSheet();
-  extraSheet.replaceSync(replaceSyncs.join('\n'));
-  document.adoptedStyleSheets = [extraSheet];
-  
-  handleResize();
-  window.visualViewport.addEventListener('resize', handleResize);
-  window.visualViewport.addEventListener('scroll', handleResize);
   */
+  
   visualViewportHandler();
   window.visualViewport.addEventListener('resize', visualViewportHandler);
   window.visualViewport.addEventListener('scroll', visualViewportHandler);
