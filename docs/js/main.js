@@ -13,6 +13,7 @@ const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 
 class Elementer {
   // header footer をいい感じに管理したい
+  #element;
   constructor(type, idName=null, classNames=[]) {
     this.#element = document.createElement(type);
     if (idName !== null) {
@@ -45,7 +46,7 @@ class Elementer {
 
 
 const headerCreate = (idName=null, classNames=[]) =>{
-  const element = Elementer.of(idName, classNames);
+  const eelement = Elementer.of(idName, classNames);
   
 }
 
