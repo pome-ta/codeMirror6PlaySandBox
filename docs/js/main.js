@@ -5,13 +5,13 @@ let editor;
 //const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
-
 const ua = window.navigator.userAgent;
 const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 
 
 class Elementer {
   // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
+
   #element;
 
   constructor(type, idName = null, classNames = []) {
@@ -22,7 +22,6 @@ class Elementer {
     classNames.forEach((name) => {
       this.#element.classList.add(name);
     });
-
     this.addStyles();
   }
 
@@ -44,7 +43,7 @@ class Elementer {
 }
 
 
-const headerCreate = (idName = null, classNames = []) => {
+const createHeader = (idName = null, classNames = []) => {
   const element = Elementer.of('header', idName, classNames);
   element.style.top = '0';
   element.style.backgroundColor = 'maroon';
@@ -53,10 +52,41 @@ const headerCreate = (idName = null, classNames = []) => {
   return element;
 };
 
+
+const createFooter = (idName = null, classNames = []) => {
+  const element = Elementer.of('footer', idName, classNames);
+  element.style.padding = '0.6rem 0';
+  element.style.justifyContent = 'space-around';
+
+  element.style.backgroundColor = 'maroon';
+  element.style.bottom = '0';
+
+  return element;
+};
+
 class AccessoryWidget {
   constructor(cmEditor, isMobile) {
     this.editor = cmEditor;
+    this.isMobile = isMobile;
+    this.header = createHeader('header');
+    this.footer = createFooter('footer');
+
   }
+
+  visualViewportHandler() {
+    this.header.style.top = `${window.visualViewport.offsetTop}px`;
+    if (!this.isMobile) {
+      return;
+    }
+    this.footer.style.display = this.editor?.hasFocus ? 'flex' : 'none';
+    const upBottom = window.innerHeight
+      - window.visualViewport.height
+      + window.visualViewport.offsetTop
+      - window.visualViewport.pageTop;
+    this.footer.style.button = `${upBottom}px`;
+
+  }
+
 }
 
 
@@ -99,21 +129,21 @@ const createRootDiv = () => {
   return element;
 };
 
-const createHeader = () => {
-  const element = document.createElement('header');
-  element.id = 'header';
-  const h1Tag = document.createElement('h1');
-  h1Tag.style.fontSize = '1.5rem';
-  h1Tag.textContent = 'Safari Virtual Keyboard Demo';
-
-  element.appendChild(h1Tag);
-  element.style.top = '0';
-  element.style.backgroundColor = 'maroon';
-  //element.style.backgroundColor = 'red';
-  element.style.zIndex = '1';
-
-  return element;
-};
+// const createHeader = () => {
+//   const element = document.createElement('header');
+//   element.id = 'header';
+//   const h1Tag = document.createElement('h1');
+//   h1Tag.style.fontSize = '1.5rem';
+//   h1Tag.textContent = 'Safari Virtual Keyboard Demo';
+//
+//   element.appendChild(h1Tag);
+//   element.style.top = '0';
+//   element.style.backgroundColor = 'maroon';
+//   //element.style.backgroundColor = 'red';
+//   element.style.zIndex = '1';
+//
+//   return element;
+// };
 
 const createEditorDiv = () => {
   const element = document.createElement('div');
@@ -125,17 +155,17 @@ const createEditorDiv = () => {
 };
 
 
-const createFooter = () => {
-  const element = document.createElement('footer');
-  element.id = 'footer';
-  element.style.padding = '0.6rem 0';
-  element.style.justifyContent = 'space-around';
-  //element.style.padding = '0.2rem';
-  element.style.backgroundColor = 'maroon';
-  element.style.bottom = '0';
-
-  return element;
-};
+// const createFooter = () => {
+//   const element = document.createElement('footer');
+//   element.id = 'footer';
+//   element.style.padding = '0.6rem 0';
+//   element.style.justifyContent = 'space-around';
+//   //element.style.padding = '0.2rem';
+//   element.style.backgroundColor = 'maroon';
+//   element.style.bottom = '0';
+//
+//   return element;
+// };
 
 const addHeaderFooterStyle = (headerFooter) => {
   // xxx: 配列？🤔
@@ -206,11 +236,10 @@ const clearButton = createButton('clearButton', 'Clear');
 
 const rootDiv = createRootDiv();
 const editorDiv = createEditorDiv();
-//const headerDiv = createHeader();
-const headerDiv = headerCreate('header');
-const footerDiv = createFooter();
+const headerDiv = createHeader('header');
+const footerDiv = createFooter('footer');
 //addHeaderFooterStyle([headerDiv, footerDiv]);
-addHeaderFooterStyle([footerDiv]);
+// addHeaderFooterStyle([footerDiv]);
 
 const [
   commentButton,
