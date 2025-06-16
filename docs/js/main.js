@@ -11,8 +11,46 @@ const ua = window.navigator.userAgent;
 const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
 
 
+class Elementer {
+  // header footer をいい感じに管理したい
+  constructor(type, idName=null, classNames=[]) {
+    this.#element = document.createElement(type);
+    if (idName !== null) {
+      this.#element.id = idName
+    }
+    classNames.forEach((name)=>{
+      this.#element.classList.add(nsme);
+    });
+    
+    this.addStyles();
+  }
+  
+  get element() {
+    return this.#element
+  }
+  
+  addStyles() {
+    this.#element.style.position = 'sticky';
+    this.#element.style.display = 'flex';
+    this.#element.style.alignItems = 'center';
+    this.#element.style.width = '100%';
+  }
+  
+  static of(idName, classNames) {
+    const instance = new this(idName, classNames);
+    return instance.element;
+  }
+}
+
+
+
+const headerCreate = (idName=null, classNames=[]) =>{
+  const element = Elementer.of(idName, classNames);
+  
+}
+
 class AccessoryWidget {
-  constructor(cmEditor) {
+  constructor(cmEditor, isMobile) {
     this.editor = cmEditor;
   }
 }
