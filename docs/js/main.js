@@ -39,11 +39,13 @@ rootDiv.appendChild(editorDiv);
 document.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(rootDiv);
   initializeMainCall(codeFilePath).then((loadedSource) => {
-    editor = new Editor(editorDiv, loadedSource);
+    editor = Editor.create(editorDiv, loadedSource);
+    console.log(editor);
   });
-  console.log(editor);
+  
 });
-
+/*
 window.addEventListener('load', () => {
   console.log(editor.hasFocus);
 });
+*/

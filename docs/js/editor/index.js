@@ -101,20 +101,29 @@ const initializeSetup = [
 ];
 
 class Editor {
+
+  #editorView;
+
   constructor(editorDiv, doc = '') {
-    this.state = EditorState.create({
+    const state = EditorState.create({
       doc: doc,
       extensions: initializeSetup,
       //extensions: basicSetup,
     });
-    this.editor = new EditorView({
-      state: this.state,
+    this.#editorView = new EditorView({
+      state: state,
       parent: editorDiv,
     });
   }
+  
+  get editorView() {
+    return this.#editorView;
+  }
 
-  get hasFocus() {
-    return this.editor.hasFocus;
+  
+  static create(editorDiv, doc = '') {
+    const instance = new this(editorDiv, doc);
+    return instance.editorView;
   }
 }
 
