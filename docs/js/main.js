@@ -71,6 +71,7 @@ class AccessoryWidgets {
       this.footer = createFooter('footer');
       //this.footer.style.display = 'none';
     }
+    this.targetEditor = null
   }
   
   #setupItems = (items, parent) => items.forEach((item) => parent?.appendChild(item));
@@ -90,8 +91,11 @@ class AccessoryWidgets {
   
   
   eventtHandler(targetEditor) {
+    if (this.targetEditor === null) {
+      this.targetEditor = targetEditor;
+    }
     const visualViewportHandler = () => {
-      console.log(targetEditor.hasFocus)
+      console.log(this.targetEditor.hasFocus)
       this.header.style.top = `${window.visualViewport.offsetTop}px`;
       
       //this.footer.style.display = targetEditor.hasFocus ? 'flex' : 'none';
@@ -100,8 +104,11 @@ class AccessoryWidgets {
         + window.visualViewport.offsetTop
         - window.visualViewport.pageTop;
       
-      console.log(upBottom)
-      this.footer.style.button = `${upBottom}px`;
+      console.log(`accessory: ${upBottom}`)
+      console.log(`accessory: ${this.footer}`)
+      
+      //this.footer.style.button = `${upBottom}px`;
+      //this.footer.style.button = `${0}px`;
     }
     
     window.visualViewport.addEventListener('resize', visualViewportHandler);
@@ -285,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(rootDiv);
   initializeMainCall(codeFilePath).then((loadedSource) => {
     editor = new Editor(editorDiv, loadedSource);
-    accessory.eventtHandler(editor)
+    //accessory.eventtHandler(editor)
     
     
     // {name: editor, handleEvent: accessory.visualViewportHandler}
@@ -294,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
   });
+  //accessory.eventtHandler(editor)
 
 
   /*
@@ -311,6 +319,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+window.visualViewport.addEventListener('resize', () => {
+  const upBottom = window.innerHeight
+        - window.visualViewport.height
+        + window.visualViewport.offsetTop
+        - window.visualViewport.pageTop;
+        
+        console.log(`visualViewport: ${upBottom}`)
+  
+});
+
+
 /*
 window.addEventListener('load', ()=>{
 
@@ -319,3 +338,9 @@ window.visualViewport.addEventListener('resize', {name: editor, handleEvent: acc
 window.visualViewport.addEventListener('scroll', {name: editor, handleEvent: accessory.visualViewportHandler});
 });
 */
+
+window.addEventListener('load', ()=>{
+  accessory.eventtHandler(editor)
+})
+
+
