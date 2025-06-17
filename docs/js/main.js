@@ -64,38 +64,66 @@ const createFooter = (idName = null, classNames = []) => {
 };
 
 class AccessoryWidgets {
-  constructor(cmEditor, isMobile) {
-    this.editor = cmEditor;
+  constructor(isMobile) {
     this.isMobile = isMobile;
     this.header = createHeader('header');
     if (this.isMobile) {
       this.footer = createFooter('footer');
-      this.footer.style.display = 'none';
+      //this.footer.style.display = 'none';
     }
   }
   
   #setupItems = (items, parent) => items.forEach((item) => parent?.appendChild(item));
   
   setupHeader(items) {
-    this.#setupItems(items, this.header);
+    //this.#setupItems(items, this.header);
+    items.forEach((item) => this.header.appendChild(item));
   }
   
   setupFooter(items) {
     if (!this.isMobile) {
       return
     }
-    this.#setupItems(items, this.footer);
+    //this.#setupItems(items, this.footer);
+    items.forEach((item) => this.footer.appendChild(item));
+  }
+  
+  
+  eventtHandler(targetEditor) {
+    const visualViewportHandler = () => {
+      console.log(targetEditor.hasFocus)
+      this.header.style.top = `${window.visualViewport.offsetTop}px`;
+      
+      //this.footer.style.display = targetEditor.hasFocus ? 'flex' : 'none';
+      const upBottom = window.innerHeight
+        - window.visualViewport.height
+        + window.visualViewport.offsetTop
+        - window.visualViewport.pageTop;
+      
+      console.log(upBottom)
+      this.footer.style.button = `${upBottom}px`;
+    }
+    
+    window.visualViewport.addEventListener('resize', visualViewportHandler);
+    window.visualViewport.addEventListener('scroll', visualViewportHandler);
+    
   }
   
   
   
 
-  visualViewportHandler() {
+  /*
+  visualViewportHandler(e) {
+    
     //this.header.style.top = `${window.visualViewport.offsetTop}px`;
+    
     if (!this.isMobile) {
       return;
     }
-    this.footer.style.display = this.editor?.hasFocus ? 'flex' : 'none';
+    
+    
+    console.log(this)
+    this.footer.style.display = e?.hasFocus ? 'flex' : 'none';
     const upBottom = window.innerHeight
       - window.visualViewport.height
       + window.visualViewport.offsetTop
@@ -103,9 +131,10 @@ class AccessoryWidgets {
     this.footer.style.button = `${upBottom}px`;
 
   }
+  */
 
 }
-
+/*
 
 function visualViewportHandler() {
   //footerDiv.style.display = editor.hasFocus ? 'flex' : 'none';
@@ -119,6 +148,7 @@ function visualViewportHandler() {
   headerDiv.style.top = `${visualViewport.offsetTop}px`;
   footerDiv.style.bottom = `${upBottom}px`;
 }
+*%
 
 
 /* -- load Source */
@@ -235,7 +265,7 @@ const [
 });
 
 
-const accessory = new AccessoryWidgets(editor, iOS);
+const accessory = new AccessoryWidgets(iOS);
 accessory.setupHeader([h1Tag]);
 accessory.setupFooter([
   commentButton,
@@ -255,6 +285,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(rootDiv);
   initializeMainCall(codeFilePath).then((loadedSource) => {
     editor = new Editor(editorDiv, loadedSource);
+    accessory.eventtHandler(editor)
+    
+    
+    // {name: editor, handleEvent: accessory.visualViewportHandler}
+    //window.visualViewport.addEventListener('resize', {name: editor, handleEvent: accessory.visualViewportHandler});
+    //window.visualViewport.addEventListener('scroll', {name: editor, handleEvent: accessory.visualViewportHandler});
+
+    
   });
 
 
@@ -266,7 +304,18 @@ document.addEventListener('DOMContentLoaded', () => {
   */
 
   
-  window.visualViewport.addEventListener('resize', accessory.visualViewportHandler);
-  window.visualViewport.addEventListener('scroll', accessory.visualViewportHandler);
+  //window.visualViewport.addEventListener('resize', accessory.visualViewportHandler(editor));
+  //window.visualViewport.addEventListener('scroll', accessory.visualViewportHandler(editor));
+  //window.visualViewport.addEventListener('resize', {name: editor, handleEvent: accessory.visualViewportHandler});
+  //window.visualViewport.addEventListener('scroll', {name: editor, handleEvent: accessory.visualViewportHandler});
 
 });
+
+/*
+window.addEventListener('load', ()=>{
+
+console.log(editor)
+window.visualViewport.addEventListener('resize', {name: editor, handleEvent: accessory.visualViewportHandler});
+window.visualViewport.addEventListener('scroll', {name: editor, handleEvent: accessory.visualViewportHandler});
+});
+*/
