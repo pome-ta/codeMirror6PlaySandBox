@@ -14,7 +14,13 @@ class Elementer {
     classNames.forEach((name) => {
       this.#element.classList.add(name);
     });
-    this.addStyles();
+    //this.addStyles();
+    this.#element.style.cssText = `
+      position: sticky;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    `;
   }
 
   get element() {
@@ -71,16 +77,16 @@ class AccessoryWidgets {
   #setupItems = (items, parent) => items.forEach((item) => parent?.appendChild(item));
   
   setupHeader(items) {
-    //this.#setupItems(items, this.header);
-    items.forEach((item) => this.header.appendChild(item));
+    this.#setupItems(items, this.header);
+    //items.forEach((item) => this.header.appendChild(item));
   }
   
   setupFooter(items) {
     if (!this.isMobile) {
       return
     }
-    //this.#setupItems(items, this.footer);
-    items.forEach((item) => this.footer.appendChild(item));
+    this.#setupItems(items, this.footer);
+    //items.forEach((item) => this.footer.appendChild(item));
   }
   
   eventtHandler(targetEditor) {
@@ -97,11 +103,9 @@ class AccessoryWidgets {
         + window.visualViewport.offsetTop
         - window.visualViewport.pageTop;
       
-      console.log(`accessory: ${upBottom}`)
-      console.log(`accessory: ${this.footer}`)
+      //console.log(window.visualViewport.pageTop)
       
       this.footer.style.bottom = `${upBottom}px`;
-      //this.footer.style.button = `${0}px`;
     }
     
     window.visualViewport.addEventListener('resize', visualViewportHandler);
