@@ -167,7 +167,7 @@ function createRootDiv() {
   element.classList.add('scrollable');
   element.style.cssText = `height: 100svh; width: 100%;`;
   //element.style.cssText = `height: 100%; width: 100%;`;
-  //element.style.overflowY = 'scroll';
+  element.style.overflowY = 'scroll';
 
   return element;
 }
