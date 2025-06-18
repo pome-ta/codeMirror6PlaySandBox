@@ -14,7 +14,8 @@ async function insertFetchDoc(filePath) {
 function createRootDiv() {
   const element = document.createElement('div');
   element.id = 'root';
-  element.style.cssText = `height: 50svh; width: 100%;`;
+  element.style.cssText = `height: 100svh; width: 100%;`;
+  //element.style.cssText = `height: 100%; width: 100%;`;
   element.style.overflowY = 'scroll';
 
   return element;
@@ -23,7 +24,8 @@ function createRootDiv() {
 function createEditorDiv() {
   const element = document.createElement('div');
   element.id = 'editor-div';
-  element.style.cssText = `height: 100%; width: 100%;`;
+  //element.style.cssText = `height: 100%; width: 100%;`;
+  element.style.cssText = `height: 100svh; width: 100%;`;
   //  element.style.backgroundColor = 'maroon';
 
   return element;
@@ -57,7 +59,6 @@ function createHeader() {
   element.style.top = '0';
   element.style.backgroundColor = 'maroon';
   element.style.zIndex = 1;
-  //element.style.cssText = accessoryStyle;
   
   element.appendChild(h1Tag);
   
@@ -75,7 +76,7 @@ function createFooter() {
   element.style.cssText = accessoryStyle;
   element.style.bottom = '0';
   element.style.backgroundColor = 'navy';
-  element.style.zIndex = 1;
+  //element.style.zIndex = 1;
   //element.style.cssText = accessoryStyle;
   
   element.appendChild(h1Tag);
@@ -92,6 +93,24 @@ element.style.position = 'sticky';
 */
 const accessoryHeader = createHeader();
 const accessoryFooter = createFooter();
+
+
+const visualViewportHandler = () => {
+console.log('---');
+console.log(`window.innerHeight:${window.innerHeight}`);
+console.log(`window.visualViewport.height:${window.visualViewport.height}`);
+console.log(`window.visualViewport.height:${window.visualViewport.offsetTop}`);
+    
+  const offsetTop = visualViewport.offsetTop;
+  const offsetBottom = window.innerHeight - window.visualViewport.height + offsetTop - window.visualViewport.pageTop;
+  accessoryHeader.style.top = `${offsetTop}px`;
+  accessoryFooter.style.bottom = `${offsetBottom}px`;
+}
+
+
+window.visualViewport.addEventListener('resize', visualViewportHandler);
+window.visualViewport.addEventListener('scroll', visualViewportHandler);
+
 
 document.addEventListener('DOMContentLoaded', () => {
   rootDiv.appendChild(accessoryHeader);
