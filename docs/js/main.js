@@ -1,9 +1,7 @@
 import Editor from './editor/index.js';
 
-
 class Elementer {
   // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
-
   #element;
 
   constructor(type, idName = null, classNames = []) {
@@ -14,7 +12,6 @@ class Elementer {
     classNames.forEach((name) => {
       this.#element.classList.add(name);
     });
-    //this.addStyles();
     this.#element.style.cssText = `
       position: sticky;
       display: flex;
@@ -31,15 +28,7 @@ class Elementer {
     const instance = new this(type, idName, classNames);
     return instance.element;
   }
-
-  addStyles() {
-    this.#element.style.position = 'sticky';
-    this.#element.style.display = 'flex';
-    this.#element.style.alignItems = 'center';
-    this.#element.style.width = '100%';
-  }
 }
-
 
 const createHeader = (idName = null, classNames = []) => {
   const element = Elementer.of('header', idName, classNames);
@@ -49,7 +38,6 @@ const createHeader = (idName = null, classNames = []) => {
 
   return element;
 };
-
 
 const createFooter = (idName = null, classNames = []) => {
   const element = Elementer.of('footer', idName, classNames);
@@ -61,8 +49,6 @@ const createFooter = (idName = null, classNames = []) => {
   return element;
 };
 
-
-
 class AccessoryWidgets {
   constructor(isMobile) {
     this.isMobile = isMobile;
@@ -71,51 +57,42 @@ class AccessoryWidgets {
       this.footer = createFooter('footer');
       //this.footer.style.display = 'none';
     }
-    this.targetEditor = null
+    this.targetEditor = null;
   }
-  
-  #setupItems = (items, parent) => items.forEach((item) => parent?.appendChild(item));
-  
+
+  #setupItems = (items, parent) =>
+    items.forEach((item) => parent?.appendChild(item));
+
   setupHeader(items) {
     this.#setupItems(items, this.header);
-    //items.forEach((item) => this.header.appendChild(item));
   }
-  
+
   setupFooter(items) {
     if (!this.isMobile) {
-      return
+      return;
     }
     this.#setupItems(items, this.footer);
-    //items.forEach((item) => this.footer.appendChild(item));
   }
-  
+
   eventtHandler(targetEditor) {
     if (this.targetEditor === null) {
       this.targetEditor = targetEditor;
     }
     const visualViewportHandler = () => {
-      //console.log(this.targetEditor.hasFocus)
-      this.header.style.top = `${window.visualViewport.offsetTop}px`;
-      
-      //this.footer.style.display = targetEditor.hasFocus ? 'flex' : 'none';
-      const upBottom = window.innerHeight
-        - window.visualViewport.height
-        + window.visualViewport.offsetTop
-        - window.visualViewport.pageTop;
-      
-      //console.log(window.visualViewport.pageTop)
-      
-      this.footer.style.bottom = `${upBottom}px`;
-    }
-    
+      const offsetTop = window.visualViewport.offsetTop;
+      const offsetBottom =
+        window.innerHeight -
+        window.visualViewport.height +
+        offsetTop -
+        window.visualViewport.pageTop;
+
+      this.header.style.top = `${offsetTop}px`;
+      this.footer.style.bottom = `${offsetBottom}px`;
+    };
     window.visualViewport.addEventListener('resize', visualViewportHandler);
     window.visualViewport.addEventListener('scroll', visualViewportHandler);
-    
   }
-  
-  
 }
-
 
 const btnW = '2.5rem';
 const btnRadius = '16%';
@@ -152,8 +129,6 @@ function createActionButton(iconChar) {
   return wrap;
 }
 
-
-
 /* --- load Source */
 async function insertFetchDoc(filePath) {
   const fetchFilePath = async (path) => {
@@ -170,7 +145,6 @@ function createRootDiv() {
   element.id = 'root';
   element.classList.add('scrollable');
   element.style.cssText = `height: 100svh; width: 100%;`;
-  //element.style.cssText = `height: 100%; width: 100%;`;
   element.style.overflowY = 'scroll';
 
   return element;
@@ -179,9 +153,6 @@ function createRootDiv() {
 function createEditorDiv() {
   const element = document.createElement('div');
   element.id = 'editor-div';
-  //element.style.cssText = `height: 100%; width: 100%;`;
-  //element.style.cssText = `height: 100svh; width: 100%;`;
-  //  element.style.backgroundColor = 'maroon';
   element.style.width = '100%';
 
   return element;
@@ -193,7 +164,6 @@ const codeFilePath = './js/main.js';
 const rootDiv = createRootDiv();
 const editorDiv = createEditorDiv();
 const editor = Editor.create(editorDiv);
-
 
 /* --- accessory */
 const h1Tag = document.createElement('h1');
@@ -217,7 +187,8 @@ const [
   return ele;
 });
 
-const buttons = [commentButton,
+const buttons = [
+  commentButton,
   selectLineButton,
   leftButton,
   downButton,
@@ -225,23 +196,18 @@ const buttons = [commentButton,
   rightButton,
   selectAllButton,
   redoButton,
-  undoButton,];
-
+  undoButton,
+];
 
 const accessory = new AccessoryWidgets(true);
 accessory.setupHeader([h1Tag]);
 accessory.setupFooter(buttons);
-
-
 
 document.addEventListener('DOMContentLoaded', () => {
   rootDiv.appendChild(accessory.header);
   rootDiv.appendChild(editorDiv);
   rootDiv.appendChild(accessory.footer);
   document.body.appendChild(rootDiv);
-  
-  
-  
 
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
@@ -252,5 +218,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
-   accessory.eventtHandler(editor)
+  accessory.eventtHandler(editor);
 });
