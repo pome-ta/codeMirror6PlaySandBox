@@ -14,9 +14,9 @@ async function insertFetchDoc(filePath) {
 function createRootDiv() {
   const element = document.createElement('div');
   element.id = 'root';
-  element.style.cssText = `height: 100svh; width: 100%;`;
-  //element.style.cssText = `height: 100%; width: 100%;`;
-  element.style.overflowY = 'scroll';
+  //element.style.cssText = `height: 100svh; width: 100%;`;
+  element.style.cssText = `height: 100%; width: 100%;`;
+  //element.style.overflowY = 'scroll';
 
   return element;
 }
@@ -24,8 +24,8 @@ function createRootDiv() {
 function createEditorDiv() {
   const element = document.createElement('div');
   element.id = 'editor-div';
-  //element.style.cssText = `height: 100%; width: 100%;`;
-  element.style.cssText = `height: 100svh; width: 100%;`;
+  element.style.cssText = `height: 100%; width: 100%;`;
+  //element.style.cssText = `height: 100svh; width: 100%;`;
   //  element.style.backgroundColor = 'maroon';
 
   return element;
@@ -103,8 +103,10 @@ console.log(`window.visualViewport.height:${window.visualViewport.offsetTop}`);
     
   const offsetTop = visualViewport.offsetTop;
   const offsetBottom = window.innerHeight - window.visualViewport.height + offsetTop - window.visualViewport.pageTop;
+  
   accessoryHeader.style.top = `${offsetTop}px`;
   accessoryFooter.style.bottom = `${offsetBottom}px`;
+  //accessoryFooter.style.bottom = `${window.visualViewport.height}px`;
 }
 
 
