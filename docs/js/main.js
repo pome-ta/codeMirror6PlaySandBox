@@ -95,7 +95,7 @@ class AccessoryWidgets {
       this.targetEditor = targetEditor;
     }
     const visualViewportHandler = () => {
-      console.log(this.targetEditor.hasFocus)
+      //console.log(this.targetEditor.hasFocus)
       this.header.style.top = `${window.visualViewport.offsetTop}px`;
       
       //this.footer.style.display = targetEditor.hasFocus ? 'flex' : 'none';
@@ -104,8 +104,8 @@ class AccessoryWidgets {
         + window.visualViewport.offsetTop
         - window.visualViewport.pageTop;
       
-      console.log(`accessory: ${upBottom}`)
-      console.log(`accessory: ${this.footer}`)
+      //console.log(`accessory: ${upBottom}`)
+      //console.log(`accessory: ${this.footer}`)
       
       this.footer.style.bottom = `${upBottom}px`;
       //this.footer.style.button = `${0}px`;
@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
   //window.visualViewport.addEventListener('scroll', {name: editor, handleEvent: accessory.visualViewportHandler});
 
 });
-
+/*
 window.visualViewport.addEventListener('resize', () => {
   const upBottom = window.innerHeight
         - window.visualViewport.height
@@ -328,6 +328,7 @@ window.visualViewport.addEventListener('resize', () => {
         console.log(`visualViewport: ${upBottom}`)
   
 });
+*/
 
 
 /*
