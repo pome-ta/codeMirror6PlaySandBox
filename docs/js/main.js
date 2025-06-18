@@ -107,7 +107,7 @@ class AccessoryWidgets {
       console.log(`accessory: ${upBottom}`)
       console.log(`accessory: ${this.footer}`)
       
-      //this.footer.style.button = `${upBottom}px`;
+      this.footer.style.bottom = `${upBottom}px`;
       //this.footer.style.button = `${0}px`;
     }
     
