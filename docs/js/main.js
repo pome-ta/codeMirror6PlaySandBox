@@ -58,14 +58,14 @@ const createFooter = (idName = null, classNames = []) => {
 
 
 class AccessoryWidgets {
-  constructor(targetEditor, isMobile) {
-    this.targetEditor = targetEditor
+  constructor(isMobile) {
     this.isMobile = isMobile;
     this.header = createHeader('header');
     if (this.isMobile) {
       this.footer = createFooter('footer');
       //this.footer.style.display = 'none';
     }
+    this.targetEditor = null
   }
   
   #setupItems = (items, parent) => items.forEach((item) => parent?.appendChild(item));
@@ -83,21 +83,12 @@ class AccessoryWidgets {
     items.forEach((item) => this.footer.appendChild(item));
   }
   
-  
-  visualViewportHandler() {
-    this.header.style.top = `${window.visualViewport.offsetTop}px`;
-    const upBottom = window.innerHeight
-        - window.visualViewport.height
-        + window.visualViewport.offsetTop
-        - window.visualViewport.pageTop;
-    
-    this.footer.style.bottom = `${upBottom}px`;
-  }
-  
-  /*
-  eventtHandler() {
+  eventtHandler(targetEditor) {
+    if (this.targetEditor === null) {
+      this.targetEditor = targetEditor;
+    }
     const visualViewportHandler = () => {
-      console.log(this.targetEditor.hasFocus)
+      //console.log(this.targetEditor.hasFocus)
       this.header.style.top = `${window.visualViewport.offsetTop}px`;
       
       //this.footer.style.display = targetEditor.hasFocus ? 'flex' : 'none';
@@ -115,9 +106,10 @@ class AccessoryWidgets {
     
     window.visualViewport.addEventListener('resize', visualViewportHandler);
     window.visualViewport.addEventListener('scroll', visualViewportHandler);
+    
   }
-  */
-
+  
+  
 }
 
 
@@ -172,8 +164,9 @@ async function insertFetchDoc(filePath) {
 function createRootDiv() {
   const element = document.createElement('div');
   element.id = 'root';
-  //element.style.cssText = `height: 100svh; width: 100%;`;
-  element.style.cssText = `height: 100%; width: 100%;`;
+  element.classList.add('scrollable');
+  element.style.cssText = `height: 100svh; width: 100%;`;
+  //element.style.cssText = `height: 100%; width: 100%;`;
   //element.style.overflowY = 'scroll';
 
   return element;
@@ -182,9 +175,10 @@ function createRootDiv() {
 function createEditorDiv() {
   const element = document.createElement('div');
   element.id = 'editor-div';
-  element.style.cssText = `height: 100%; width: 100%;`;
+  //element.style.cssText = `height: 100%; width: 100%;`;
   //element.style.cssText = `height: 100svh; width: 100%;`;
   //  element.style.backgroundColor = 'maroon';
+  element.style.width = '100%';
 
   return element;
 }
@@ -230,7 +224,7 @@ const buttons = [commentButton,
   undoButton,];
 
 
-const accessory = new AccessoryWidgets(editor,true);
+const accessory = new AccessoryWidgets(true);
 accessory.setupHeader([h1Tag]);
 accessory.setupFooter(buttons);
 
@@ -254,6 +248,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
-   window.visualViewport.addEventListener('resize', accessory.visualViewportHandler());
-  window.visualViewport.addEventListener('scroll', accessory.visualViewportHandler());
+   accessory.eventtHandler(editor)
 });
