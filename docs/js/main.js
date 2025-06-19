@@ -162,21 +162,19 @@ function createEditorDiv() {
   return element;
 }
 
-function setLayout(){
+function setLayout() {
   const rootMain = document.createElement('main');
   rootMain.style.display = 'grid';
   rootMain.style.gridTemplateRows = 'auto 1fr auto';
   rootMain.style.height = '100%';
-  
+
   rootMain.style.overflow = 'auto';
-  
+
   rootMain.appendChild(accessory.header);
   rootMain.appendChild(editorDiv);
   rootMain.appendChild(accessory.footer);
   document.body.appendChild(rootMain);
 }
-
-
 
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
@@ -233,16 +231,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(wrapMain);
   */
   setLayout();
-  
 
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
-    
+
     editor.dispatch({
       changes: { from: editor.state.doc.length, insert: loadedSource },
     });
-    
-    
   });
 });
 
