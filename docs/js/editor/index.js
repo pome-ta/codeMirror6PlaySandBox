@@ -1,5 +1,5 @@
-import {minimalSetup} from './codemirror/codemirror.js';
-import {Compartment, EditorState} from './codemirror/state.js';
+import { minimalSetup } from './codemirror/codemirror.js';
+import { Compartment, EditorState } from './codemirror/state.js';
 import {
   dropCursor,
   EditorView,
@@ -8,11 +8,11 @@ import {
   highlightWhitespace,
   lineNumbers,
 } from './codemirror/view.js';
-import {autocompletion, closeBrackets} from './codemirror/autocomplete.js';
-import {bracketMatching} from './codemirror/language.js';
+import { autocompletion, closeBrackets } from './codemirror/autocomplete.js';
+import { bracketMatching } from './codemirror/language.js';
 
-import {javascript} from './codemirror/lang-javascript.js';
-import {oneDark} from './codemirror/theme-one-dark.js';
+import { javascript } from './codemirror/lang-javascript.js';
+import { oneDark } from './codemirror/theme-one-dark.js';
 
 /*
 const basicSetup = (() => [
@@ -101,20 +101,27 @@ const initializeSetup = [
 ];
 
 class Editor {
+  #editorView;
+
   constructor(editorDiv, doc = '') {
-    this.state = EditorState.create({
+    const state = EditorState.create({
       doc: doc,
       extensions: initializeSetup,
-      //extensions: basicSetup,
     });
-    this.editor = new EditorView({
-      state: this.state,
+
+    this.#editorView = new EditorView({
+      state: state,
       parent: editorDiv,
     });
   }
 
-  get hasFocus() {
-    return this.editor.hasFocus;
+  get editorView() {
+    return this.#editorView;
+  }
+
+  static create(editorDiv, doc = '') {
+    const instance = new this(editorDiv, doc);
+    return instance.editorView;
   }
 }
 
