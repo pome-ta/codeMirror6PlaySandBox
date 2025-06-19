@@ -1,8 +1,6 @@
 import Editor from './editor/index.js';
 
-const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches
-  ? true
-  : false;
+const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 class Elementer {
   // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
@@ -78,7 +76,7 @@ class AccessoryWidgets {
     this.#setupItems(items, this.footer);
   }
 
-  eventtHandler(targetEditor) {
+  eventHandler(targetEditor) {
     if (this.targetEditor === null) {
       this.targetEditor = targetEditor;
     }
@@ -221,26 +219,19 @@ const setLayout = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  /*
-  wrapMain.appendChild(accessory.header);
-  wrapMain.appendChild(editorDiv);
-  wrapMain.appendChild(accessory.footer);
-  document.body.appendChild(wrapMain);
-  */
   setLayout();
-
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
 
     editor.dispatch({
-      changes: { from: editor.state.doc.length, insert: loadedSource },
+      changes: {from: editor.state.doc.length, insert: loadedSource},
     });
   });
 
-  accessory.eventtHandler(editor);
+  accessory.eventHandler(editor);
 });
 
 // window.addEventListener('load', () => {
 //   // 別にここでなくてもいい
-//   accessory.eventtHandler(editor);
+//   accessory.eventHandler(editor);
 // });
