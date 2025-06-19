@@ -1,4 +1,8 @@
-import Editor from './editor/index.js';
+//import Editor from './editor/index.js';
+import createEditorView from './editor/index.js';
+
+
+
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
@@ -190,7 +194,9 @@ function createEditorDiv() {
 const codeFilePath = './js/main.js';
 
 const editorDiv = createEditorDiv();
-const editor = Editor.create(editorDiv);
+//const editor = Editor.create(editorDiv);
+const editor = createEditorView(editorDiv);
+
 
 /* --- accessory */
 const h1Tag = document.createElement('h1');

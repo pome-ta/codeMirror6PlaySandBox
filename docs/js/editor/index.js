@@ -14,7 +14,7 @@ import { bracketMatching } from './codemirror/language.js';
 import { javascript } from './codemirror/lang-javascript.js';
 import { oneDark } from './codemirror/theme-one-dark.js';
 
-/*
+/* ref: `basicSetup` の宣言内容
 const basicSetup = (() => [
     lineNumbers(),
     highlightActiveLineGutter(),
@@ -44,7 +44,7 @@ const basicSetup = (() => [
     ])
 ])();
 */
-/*
+/*  ref: `minimalSetup` の宣言内容
 const minimalSetup = (() => [
     highlightSpecialChars(),
     history(),
@@ -100,6 +100,7 @@ const initializeSetup = [
   initTheme,
 ];
 
+/*
 class Editor {
   #editorView;
 
@@ -126,3 +127,20 @@ class Editor {
 }
 
 export default Editor;
+*/
+
+const createEditorView = (editorDiv, doc = '', customSetup = null) => {
+  const extensions = customSetup === null ? initializeSetup : customSetup;
+  const state = EditorState.create({
+    doc: doc,
+    extensions: extensions,
+  });
+  const editorView = new EditorView({
+    state: state,
+    parent: editorDiv,
+  });
+  
+  return editorView;
+}
+
+export default createEditorView;
