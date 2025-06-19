@@ -143,8 +143,10 @@ async function insertFetchDoc(filePath) {
 function createRootDiv() {
   const element = document.createElement('div');
   element.id = 'root';
-  element.classList.add('scrollable');
-  element.style.cssText = `height: 100svh; width: 100%;`;
+  ///element.classList.add('scrollable');
+  //element.style.cssText = `height: 100%; width: 100%; display: inline-block; margin: 0;`;
+  element.style.cssText = `height: 100%; width: 100%;`;
+  element.style.backgroundColor = 'navy';
   element.style.overflowY = 'scroll';
 
   return element;
@@ -211,9 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
+    
     editor.dispatch({
       changes: { from: editor.state.doc.length, insert: loadedSource },
     });
+    
   });
 });
 
