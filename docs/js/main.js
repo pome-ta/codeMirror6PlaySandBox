@@ -1,5 +1,8 @@
 import Editor from './editor/index.js';
 
+const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches ? true : false;
+
+
 class Elementer {
   // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
   #element;
@@ -16,7 +19,6 @@ class Elementer {
       position: sticky;
       display: flex;
       align-items: center;
-      /*height: 1.6rem;*/
       width: 100%;
     `;
   }
@@ -51,12 +53,12 @@ const createFooter = (idName = null, classNames = []) => {
 };
 
 class AccessoryWidgets {
-  constructor(isMobile) {
-    this.isMobile = isMobile;
+  constructor(isTouchDevice) {
+    this.isTouchDevice = isTouchDevice;
     this.header = createHeader('header');
-    if (this.isMobile) {
+    if (this.isTouchDevice) {
       this.footer = createFooter('footer');
-      //this.footer.style.display = 'none';
+      this.footer.style.display = 'none';
     }
     this.targetEditor = null;
   }
@@ -69,7 +71,7 @@ class AccessoryWidgets {
   }
 
   setupFooter(items) {
-    if (!this.isMobile) {
+    if (!this.isTouchDevice) {
       return;
     }
     this.#setupItems(items, this.footer);
@@ -81,14 +83,21 @@ class AccessoryWidgets {
     }
     const visualViewportHandler = () => {
       const offsetTop = window.visualViewport.offsetTop;
-      const offsetBottom =
-        window.innerHeight -
-        window.visualViewport.height +
-        offsetTop -
-        window.visualViewport.pageTop;
-
       this.header.style.top = `${offsetTop}px`;
-      this.footer.style.bottom = `${offsetBottom}px`;
+      
+      if (this.isTouchDevice) {
+        this.footer.style.display = this.targetEditor.hasFocus ? 'flex' : 'none';
+      
+      
+        const offsetBottom =
+          window.innerHeight -
+          window.visualViewport.height +
+          offsetTop -
+          window.visualViewport.pageTop;
+        this.footer.style.bottom = `${offsetBottom}px`;
+        
+        }
+      
     };
     window.visualViewport.addEventListener('resize', visualViewportHandler);
     window.visualViewport.addEventListener('scroll', visualViewportHandler);
@@ -141,17 +150,6 @@ async function insertFetchDoc(filePath) {
 
 /* --- window-document */
 
-function createWrapMain() {
-  const element = document.createElement('main');
-  element.id = 'root';
-  ///element.classList.add('scrollable');
-  //element.style.cssText = `height: 100%; width: 100%; display: inline-block; margin: 0;`;
-  element.style.cssText = `height: 100%; width: 100%;`;
-  element.style.backgroundColor = 'navy';
-  element.style.overflowY = 'scroll';
-
-  return element;
-}
 
 function createEditorDiv() {
   const element = document.createElement('div');
@@ -162,24 +160,11 @@ function createEditorDiv() {
   return element;
 }
 
-function setLayout() {
-  const rootMain = document.createElement('main');
-  rootMain.style.display = 'grid';
-  rootMain.style.gridTemplateRows = 'auto 1fr auto';
-  rootMain.style.height = '100%';
-
-  rootMain.style.overflow = 'auto';
-
-  rootMain.appendChild(accessory.header);
-  rootMain.appendChild(editorDiv);
-  rootMain.appendChild(accessory.footer);
-  document.body.appendChild(rootMain);
-}
 
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
-const wrapMain = createWrapMain();
+
 const editorDiv = createEditorDiv();
 const editor = Editor.create(editorDiv);
 
@@ -217,11 +202,30 @@ const buttons = [
   undoButton,
 ];
 
-const accessory = new AccessoryWidgets(true);
+const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([h1Tag]);
 accessory.setupFooter(buttons);
 
 //accessory.footer.style.display = 'none';
+
+
+const setLayout = () => {
+  const rootMain = document.createElement('main');
+  rootMain.id = 'rootMain';
+  rootMain.style.display = 'grid';
+  rootMain.style.gridTemplateRows = 'auto 1fr auto';
+  rootMain.style.height = '100%';
+
+  rootMain.style.overflow = 'auto';
+
+  rootMain.appendChild(accessory.header);
+  rootMain.appendChild(editorDiv);
+  rootMain.appendChild(accessory.footer);
+  document.body.appendChild(rootMain);
+}
+
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
   /*
@@ -239,8 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: { from: editor.state.doc.length, insert: loadedSource },
     });
   });
+  
+  accessory.eventtHandler(editor);
 });
 
 window.addEventListener('load', () => {
-  accessory.eventtHandler(editor);
+  //accessory.eventtHandler(editor);
 });
