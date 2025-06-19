@@ -16,6 +16,7 @@ class Elementer {
       position: sticky;
       display: flex;
       align-items: center;
+      /*height: 1.6rem;*/
       width: 100%;
     `;
   }
@@ -140,8 +141,8 @@ async function insertFetchDoc(filePath) {
 
 /* --- window-document */
 
-function createRootDiv() {
-  const element = document.createElement('div');
+function createWrapMain() {
+  const element = document.createElement('main');
   element.id = 'root';
   ///element.classList.add('scrollable');
   //element.style.cssText = `height: 100%; width: 100%; display: inline-block; margin: 0;`;
@@ -156,14 +157,31 @@ function createEditorDiv() {
   const element = document.createElement('div');
   element.id = 'editor-div';
   element.style.width = '100%';
+  //element.style.height = '100%';
 
   return element;
 }
 
+function setLayout(){
+  const rootMain = document.createElement('main');
+  rootMain.style.display = 'grid';
+  rootMain.style.gridTemplateRows = 'auto 1fr auto';
+  rootMain.style.height = '100%';
+  
+  rootMain.style.overflow = 'auto';
+  
+  rootMain.appendChild(accessory.header);
+  rootMain.appendChild(editorDiv);
+  rootMain.appendChild(accessory.footer);
+  document.body.appendChild(rootMain);
+}
+
+
+
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
-const rootDiv = createRootDiv();
+const wrapMain = createWrapMain();
 const editorDiv = createEditorDiv();
 const editor = Editor.create(editorDiv);
 
@@ -205,11 +223,17 @@ const accessory = new AccessoryWidgets(true);
 accessory.setupHeader([h1Tag]);
 accessory.setupFooter(buttons);
 
+//accessory.footer.style.display = 'none';
+
 document.addEventListener('DOMContentLoaded', () => {
-  rootDiv.appendChild(accessory.header);
-  rootDiv.appendChild(editorDiv);
-  rootDiv.appendChild(accessory.footer);
-  document.body.appendChild(rootDiv);
+  /*
+  wrapMain.appendChild(accessory.header);
+  wrapMain.appendChild(editorDiv);
+  wrapMain.appendChild(accessory.footer);
+  document.body.appendChild(wrapMain);
+  */
+  setLayout();
+  
 
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
@@ -217,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.dispatch({
       changes: { from: editor.state.doc.length, insert: loadedSource },
     });
+    
     
   });
 });
