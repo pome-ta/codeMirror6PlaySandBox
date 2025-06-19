@@ -1,7 +1,8 @@
 import Editor from './editor/index.js';
 
-const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches ? true : false;
-
+const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches
+  ? true
+  : false;
 
 class Elementer {
   // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
@@ -84,20 +85,19 @@ class AccessoryWidgets {
     const visualViewportHandler = () => {
       const offsetTop = window.visualViewport.offsetTop;
       this.header.style.top = `${offsetTop}px`;
-      
+
       if (this.isTouchDevice) {
-        this.footer.style.display = this.targetEditor.hasFocus ? 'flex' : 'none';
-      
-      
+        this.footer.style.display = this.targetEditor.hasFocus
+          ? 'flex'
+          : 'none';
+
         const offsetBottom =
           window.innerHeight -
           window.visualViewport.height +
           offsetTop -
           window.visualViewport.pageTop;
         this.footer.style.bottom = `${offsetBottom}px`;
-        
-        }
-      
+      }
     };
     window.visualViewport.addEventListener('resize', visualViewportHandler);
     window.visualViewport.addEventListener('scroll', visualViewportHandler);
@@ -139,40 +139,6 @@ function createActionButton(iconChar) {
   return wrap;
 }
 
-/* --- load Source */
-async function insertFetchDoc(filePath) {
-  const fetchFilePath = async (path) => {
-    const res = await fetch(path);
-    return await res.text();
-  };
-  return await fetchFilePath(filePath);
-}
-
-/* --- window-document */
-
-
-function createEditorDiv() {
-  const element = document.createElement('div');
-  element.id = 'editor-div';
-  element.style.width = '100%';
-  //element.style.height = '100%';
-
-  return element;
-}
-
-
-// const codeFilePath = './js/editor/index.js';
-const codeFilePath = './js/main.js';
-
-
-const editorDiv = createEditorDiv();
-const editor = Editor.create(editorDiv);
-
-/* --- accessory */
-const h1Tag = document.createElement('h1');
-h1Tag.style.fontSize = '1.5rem';
-h1Tag.textContent = 'Safari Virtual Keyboard Demo';
-
 const [
   commentButton,
   selectLineButton,
@@ -202,12 +168,40 @@ const buttons = [
   undoButton,
 ];
 
+/* --- load Source */
+async function insertFetchDoc(filePath) {
+  const fetchFilePath = async (path) => {
+    const res = await fetch(path);
+    return await res.text();
+  };
+  return await fetchFilePath(filePath);
+}
+
+/* --- window-document */
+
+function createEditorDiv() {
+  const element = document.createElement('div');
+  element.id = 'editor-div';
+  element.style.width = '100%';
+  //element.style.height = '100%';
+
+  return element;
+}
+
+// const codeFilePath = './js/editor/index.js';
+const codeFilePath = './js/main.js';
+
+const editorDiv = createEditorDiv();
+const editor = Editor.create(editorDiv);
+
+/* --- accessory */
+const h1Tag = document.createElement('h1');
+h1Tag.style.fontSize = '1.5rem';
+h1Tag.textContent = 'Safari Virtual Keyboard Demo';
+
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([h1Tag]);
 accessory.setupFooter(buttons);
-
-//accessory.footer.style.display = 'none';
-
 
 const setLayout = () => {
   const rootMain = document.createElement('main');
@@ -220,12 +214,11 @@ const setLayout = () => {
 
   rootMain.appendChild(accessory.header);
   rootMain.appendChild(editorDiv);
-  rootMain.appendChild(accessory.footer);
+  if (IS_TOUCH_DEVICE) {
+    rootMain.appendChild(accessory.footer);
+  }
   document.body.appendChild(rootMain);
-}
-
-
-
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   /*
@@ -243,10 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: { from: editor.state.doc.length, insert: loadedSource },
     });
   });
-  
+
   accessory.eventtHandler(editor);
 });
 
-window.addEventListener('load', () => {
-  //accessory.eventtHandler(editor);
-});
+// window.addEventListener('load', () => {
+//   // 別にここでなくてもいい
+//   accessory.eventtHandler(editor);
+// });
