@@ -1,9 +1,6 @@
 //import Editor from './editor/index.js';
 import createEditorView from './editor/index.js';
 
-
-
-
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 class Elementer {
@@ -197,7 +194,6 @@ const editorDiv = createEditorDiv();
 //const editor = Editor.create(editorDiv);
 const editor = createEditorView(editorDiv);
 
-
 /* --- accessory */
 const h1Tag = document.createElement('h1');
 h1Tag.style.fontSize = '1.5rem';
@@ -230,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
 
     editor.dispatch({
-      changes: {from: editor.state.doc.length, insert: loadedSource},
+      changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
   });
 

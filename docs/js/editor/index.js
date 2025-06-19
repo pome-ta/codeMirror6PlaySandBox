@@ -135,12 +135,10 @@ const createEditorView = (editorDiv, doc = '', customSetup = null) => {
     doc: doc,
     extensions: extensions,
   });
-  const editorView = new EditorView({
+  return new EditorView({
     state: state,
     parent: editorDiv,
   });
-  
-  return editorView;
-}
+};
 
 export default createEditorView;
