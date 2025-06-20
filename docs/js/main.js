@@ -1,6 +1,19 @@
 //import Editor from './editor/index.js';
 import createEditorView from './editor/index.js';
 
+import {
+  undo,
+  redo,
+  selectAll,
+  selectLine,
+  indentSelection,
+  cursorLineUp,
+  cursorLineDown,
+  cursorCharLeft,
+  cursorCharRight,
+  toggleComment,
+} from './editor/codemirror/commands.js';
+
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 class Elementer {
@@ -36,7 +49,8 @@ class Elementer {
 const createHeader = (idName = null, classNames = []) => {
   const element = Elementer.of('header', idName, classNames);
   element.style.top = '0';
-  element.style.backgroundColor = 'maroon';
+  //element.style.backgroundColor = 'maroon';
+  element.style.backgroundColor = `var(--backGround-color-scheme)`;
   element.style.zIndex = '1';
 
   return element;
@@ -46,7 +60,8 @@ const createFooter = (idName = null, classNames = []) => {
   const element = Elementer.of('footer', idName, classNames);
   element.style.padding = '0.6rem 0';
   element.style.justifyContent = 'space-around';
-  element.style.backgroundColor = 'maroon';
+  //element.style.backgroundColor = 'maroon';
+  element.style.backgroundColor = `var(--backGround-color-scheme)`;
   element.style.bottom = '0';
 
   return element;
@@ -154,6 +169,13 @@ const [
   //footerDiv.appendChild(ele);
   return ele;
 });
+
+
+leftButton.addEventListener('click', () => {
+    cursorCharLeft(editor);
+    editor.focus();
+  });
+
 
 const buttons = [
   commentButton,
