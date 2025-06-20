@@ -11,4 +11,3 @@ const createFooter = (idName = null, classNames = []) => {
 };
 
 export default createHeader;
-

@@ -12,9 +12,8 @@ const createBaseDom = (type, idName = null, classNames = []) => {
     align-items: center;
     width: 100%;
   `;
-  
-  return element;
-}
 
+  return element;
+};
 
 export default createBaseDom;

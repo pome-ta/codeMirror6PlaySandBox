@@ -1,28 +1,25 @@
 import createHeader from './headerArea.js';
 import createFooter from './footerArea.js';
 
-
 class AccessoryWidgets {
-
   #header;
   #footer;
 
-
-  constructor(isTouchDevice,header=null,footer=null) {
+  constructor(isTouchDevice, header = null, footer = null) {
     this.isTouchDevice = isTouchDevice;
     this.#header = header === null ? createHeader('header') : header;
-    
+
     if (this.isTouchDevice) {
       this.#footer = footer === null ? createFooter('footer') : footer;
       this.#footer.style.display = 'none';
     }
     this.targetEditor = null;
   }
-  
+
   get header() {
     return this.#header;
   }
-  
+
   get footer() {
     return this.#footer;
   }
@@ -66,3 +63,5 @@ class AccessoryWidgets {
     window.visualViewport.addEventListener('scroll', visualViewportHandler);
   }
 }
+
+export { AccessoryWidgets };

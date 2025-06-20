@@ -9,6 +9,4 @@ const createHeader = (idName = null, classNames = []) => {
   return element;
 };
 
-
 export default createHeader;
-
