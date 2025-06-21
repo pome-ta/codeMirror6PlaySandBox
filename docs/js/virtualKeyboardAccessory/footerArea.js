@@ -10,4 +10,4 @@ const createFooter = (idName = null, classNames = []) => {
   return element;
 };
 
-export default createHeader;
+export default createFooter;

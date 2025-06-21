@@ -14,109 +14,11 @@ import {
   toggleComment,
 } from './editor/codemirror/commands.js';
 
+
+import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
+
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
-class Elementer {
-  // header footer をいい感じに管理したい(Elementor じゃなくてもいいか、、)
-  #element;
-
-  constructor(type, idName = null, classNames = []) {
-    this.#element = document.createElement(type);
-    if (idName !== null) {
-      this.#element.id = idName;
-    }
-    classNames.forEach((name) => {
-      this.#element.classList.add(name);
-    });
-    this.#element.style.cssText = `
-      position: sticky;
-      display: flex;
-      align-items: center;
-      width: 100%;
-    `;
-  }
-
-  get element() {
-    return this.#element;
-  }
-
-  static of(type, idName, classNames) {
-    const instance = new this(type, idName, classNames);
-    return instance.element;
-  }
-}
-
-const createHeader = (idName = null, classNames = []) => {
-  const element = Elementer.of('header', idName, classNames);
-  element.style.top = '0';
-  //element.style.backgroundColor = 'maroon';
-  element.style.backgroundColor = `var(--backGround-color-scheme)`;
-  element.style.zIndex = '1';
-
-  return element;
-};
-
-const createFooter = (idName = null, classNames = []) => {
-  const element = Elementer.of('footer', idName, classNames);
-  element.style.padding = '0.6rem 0';
-  element.style.justifyContent = 'space-around';
-  //element.style.backgroundColor = 'maroon';
-  element.style.backgroundColor = `var(--backGround-color-scheme)`;
-  element.style.bottom = '0';
-
-  return element;
-};
-
-class AccessoryWidgets {
-  constructor(isTouchDevice) {
-    this.isTouchDevice = isTouchDevice;
-    this.header = createHeader('header');
-    if (this.isTouchDevice) {
-      this.footer = createFooter('footer');
-      this.footer.style.display = 'none';
-    }
-    this.targetEditor = null;
-  }
-
-  #setupItems = (items, parent) =>
-    items.forEach((item) => parent?.appendChild(item));
-
-  setupHeader(items) {
-    this.#setupItems(items, this.header);
-  }
-
-  setupFooter(items) {
-    if (!this.isTouchDevice) {
-      return;
-    }
-    this.#setupItems(items, this.footer);
-  }
-
-  eventHandler(targetEditor) {
-    if (this.targetEditor === null) {
-      this.targetEditor = targetEditor;
-    }
-    const visualViewportHandler = () => {
-      const offsetTop = window.visualViewport.offsetTop;
-      this.header.style.top = `${offsetTop}px`;
-
-      if (this.isTouchDevice) {
-        this.footer.style.display = this.targetEditor.hasFocus
-          ? 'flex'
-          : 'none';
-
-        const offsetBottom =
-          window.innerHeight -
-          window.visualViewport.height +
-          offsetTop -
-          window.visualViewport.pageTop;
-        this.footer.style.bottom = `${offsetBottom}px`;
-      }
-    };
-    window.visualViewport.addEventListener('resize', visualViewportHandler);
-    window.visualViewport.addEventListener('scroll', visualViewportHandler);
-  }
-}
 
 const btnW = '2.5rem';
 const btnRadius = '16%';
@@ -170,12 +72,24 @@ const [
   return ele;
 });
 
-
+/*
 leftButton.addEventListener('click', () => {
     cursorCharLeft(editor);
     editor.focus();
   });
 
+leftButton.bind((this.addEventListener('click', () => {
+    cursorCharLeft(editor);
+    editor.focus();
+  })))
+*/
+
+const hoge = () => {
+  console.log('hoge')
+}
+
+
+hoge(null)
 
 const buttons = [
   commentButton,
