@@ -8,8 +8,8 @@ const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 
 const buttonFactory = (buttonIconChar) => {
-  
-  const createFrame = (width, height)=> {
+
+  const createFrame = (width, height) => {
     const element = document.createElement('div');
     // wip: 最大数問題 調整してサイズ作る？
     element.style.minWidth = width;
@@ -18,50 +18,42 @@ const buttonFactory = (buttonIconChar) => {
     element.style.justifyContent = 'center';
     element.style.alignItems = 'center';
     return element;
-  }
-  
-  
-  const createIcon = (char)=> {
+  };
+
+
+  const createIcon = (char) => {
     const element = document.createElement('span');
     element.textContent = char;
     element.style.fontSize = '1.0rem';
     element.style.color = '#f2f2f7'; // gray6
     return element;
-  }
-  
+  };
+
   const btnW = '2.5rem';
   const btnRadius = '16%';
-  
 
-  const createActionButton=(iconChar)=> {
+
+  const createActionButton = (iconChar) => {
     const button = createFrame('90%', '90%');
     button.style.borderRadius = btnRadius;
     button.style.backgroundColor = '#8e8e93'; // light gray
     button.style.filter = 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))';
-    
+
     const icon = createIcon(iconChar);
     button.appendChild(icon);
-    
-    
+
+
     const wrap = createFrame(btnW, '100%');
     wrap.style.cursor = 'pointer';
     wrap.appendChild(button);
     return wrap;
-  }
-  
-  
+  };
+
 
   const actionButton = createActionButton(buttonIconChar);
   return actionButton;
 
 };
-
-
-const hoge = (function () {
-  console.log(this)
-}).call(document.createElement('span'))
-
-
 
 
 const [
@@ -126,10 +118,18 @@ function createEditorDiv() {
   return element;
 }
 
+
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
-const editorDiv = createEditorDiv();
+// const editorDiv = createEditorDiv();
+const editorDiv = (function () {
+  this.id = 'editor-div';
+  this.style.width = '100%';
+  return this;
+}).call(document.createElement('div'));
+
+
 //const editor = Editor.create(editorDiv);
 const editor = createEditorView(editorDiv);
 
@@ -157,6 +157,7 @@ const setLayout = () => {
   }
   document.body.appendChild(rootMain);
 };
+
 
 document.addEventListener('DOMContentLoaded', () => {
   setLayout();
