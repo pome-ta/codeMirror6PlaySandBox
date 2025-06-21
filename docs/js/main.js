@@ -20,39 +20,46 @@ import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 
-const btnW = '2.5rem';
-const btnRadius = '16%';
 
-function _createButtonWrap(width, height) {
-  const wrap = document.createElement('div');
-  // xxx: 最大数問題
-  wrap.style.minWidth = width;
-  wrap.style.height = height;
-  wrap.style.display = 'flex';
-  wrap.style.justifyContent = 'center';
-  wrap.style.alignItems = 'center';
-  return wrap;
-}
+const buttonFactory = (buttonIconChar) => {
+  const btnW = '2.5rem';
+  const btnRadius = '16%';
+  
+  function _createButtonWrap(width, height) {
+    const wrap = document.createElement('div');
+    // xxx: 最大数問題
+    wrap.style.minWidth = width;
+    wrap.style.height = height;
+    wrap.style.display = 'flex';
+    wrap.style.justifyContent = 'center';
+    wrap.style.alignItems = 'center';
+    return wrap;
+  }
+  
+  function createIcon(char) {
+    const icon = document.createElement('span');
+    icon.textContent = char;
+    icon.style.fontSize = '1.0rem';
+    icon.style.color = '#f2f2f7'; // gray6
+    return icon;
+  }
+  
+  function createActionButton(iconChar) {
+    const wrap = _createButtonWrap(btnW, '100%');
+    const button = _createButtonWrap('90%', '90%');
+    const icon = createIcon(iconChar);
+    wrap.appendChild(button);
+    wrap.style.cursor = 'pointer';
+    button.style.borderRadius = btnRadius;
+    button.style.backgroundColor = '#8e8e93'; // light gray
+    button.style.filter = 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))';
+    button.appendChild(icon);
+    return wrap;
+  }
+  
+  const actionButton = createActionButton(buttonIconChar);
+  return actionButton;
 
-function createIcon(char) {
-  const icon = document.createElement('span');
-  icon.textContent = char;
-  icon.style.fontSize = '1.0rem';
-  icon.style.color = '#f2f2f7'; // gray6
-  return icon;
-}
-
-function createActionButton(iconChar) {
-  const wrap = _createButtonWrap(btnW, '100%');
-  const button = _createButtonWrap('90%', '90%');
-  const icon = createIcon(iconChar);
-  wrap.appendChild(button);
-  wrap.style.cursor = 'pointer';
-  button.style.borderRadius = btnRadius;
-  button.style.backgroundColor = '#8e8e93'; // light gray
-  button.style.filter = 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))';
-  button.appendChild(icon);
-  return wrap;
 }
 
 const [
@@ -67,7 +74,7 @@ const [
   undoButton,
   //reIndentButton,
 ] = ['//', '▭', '←', '↓', '↑', '→', '⎁', '⤻', '⤺'].map((str) => {
-  const ele = createActionButton(str);
+  const ele = buttonFactory(str);
   //footerDiv.appendChild(ele);
   return ele;
 });
