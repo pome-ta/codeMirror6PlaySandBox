@@ -1,30 +1,16 @@
 //import Editor from './editor/index.js';
 import createEditorView from './editor/index.js';
 
-import {
-  undo,
-  redo,
-  selectAll,
-  selectLine,
-  indentSelection,
-  cursorLineUp,
-  cursorLineDown,
-  cursorCharLeft,
-  cursorCharRight,
-  toggleComment,
-} from './editor/codemirror/commands.js';
-
 
 import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 
-
 const buttonFactory = (buttonIconChar) => {
   const btnW = '2.5rem';
   const btnRadius = '16%';
-  
+
   function _createButtonWrap(width, height) {
     const wrap = document.createElement('div');
     // xxx: 最大数問題
@@ -35,7 +21,7 @@ const buttonFactory = (buttonIconChar) => {
     wrap.style.alignItems = 'center';
     return wrap;
   }
-  
+
   function createIcon(char) {
     const icon = document.createElement('span');
     icon.textContent = char;
@@ -43,7 +29,7 @@ const buttonFactory = (buttonIconChar) => {
     icon.style.color = '#f2f2f7'; // gray6
     return icon;
   }
-  
+
   function createActionButton(iconChar) {
     const wrap = _createButtonWrap(btnW, '100%');
     const button = _createButtonWrap('90%', '90%');
@@ -56,11 +42,11 @@ const buttonFactory = (buttonIconChar) => {
     button.appendChild(icon);
     return wrap;
   }
-  
+
   const actionButton = createActionButton(buttonIconChar);
   return actionButton;
 
-}
+};
 
 const [
   commentButton,
@@ -91,12 +77,6 @@ leftButton.bind((this.addEventListener('click', () => {
   })))
 */
 
-const hoge = () => {
-  console.log('hoge')
-}
-
-
-hoge(null)
 
 const buttons = [
   commentButton,
@@ -152,7 +132,6 @@ const setLayout = () => {
   rootMain.style.display = 'grid';
   rootMain.style.gridTemplateRows = 'auto 1fr auto';
   rootMain.style.height = '100%';
-
   rootMain.style.overflow = 'auto';
 
   rootMain.appendChild(accessory.header);
@@ -167,16 +146,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setLayout();
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
-
     editor.dispatch({
-      changes: { from: editor.state?.doc.length, insert: loadedSource },
+      changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
   });
 
   accessory.eventHandler(editor);
 });
 
-// window.addEventListener('load', () => {
-//   // 別にここでなくてもいい
-//   accessory.eventHandler(editor);
-// });
