@@ -119,6 +119,22 @@ function createEditorDiv() {
 }
 
 
+class DOM {
+  #el;
+  constructor(tag) { this.#el = document.createElement(tag); }
+  setId(id) { this.#el.id = id; return this; }
+  setStyle(prop, val) { this.#el.style[prop] = val; return this; }
+  setAttr(name, val) { this.#el.setAttribute(name, val); return this; }
+  get() { return this.#el; }
+}
+
+// 使い方
+const aeditorDiv = new DOM('div')
+  .setId('editor-div')
+  .setStyle('width', '100%')
+  .setStyle('height', '100%')
+  .get();
+
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
