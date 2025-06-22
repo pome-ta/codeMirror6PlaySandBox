@@ -121,11 +121,15 @@ class Dom {
 
   static create(tag, options) {
     const instance = new this(tag);
+    Object.entries(options).forEach(([key, value]) => instance[key](value))
+    
+    /*
     console.log(Object.entries(options))
     
     options.attrs ? instance.setAttrs(options.attrs) : null;
     options.styles ? instance.setStyles(options.styles) : null;
     options.classNames ? instance.addClassList(options.classNames) : null;
+    */
 
     return instance.element;
   }
@@ -180,8 +184,8 @@ console.log(typeof aa);
 
 //const aeditorDiv = Dom.create('div', {attrs: {'id': 'divid'}, styles:, classNames:,});
 const aeditorDiv = Dom.create('div', {
-  attrs: {id: 'divid'},
-  classNames: ['hoge', 'fuga'],
+  setAttrs: {id: 'divid'},
+  addClassList: ['hoge', 'fuga'],
 });
 console.log(aeditorDiv);
 
