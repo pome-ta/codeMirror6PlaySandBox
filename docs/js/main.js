@@ -121,6 +121,8 @@ class Dom {
 
   static create(tag, options) {
     const instance = new this(tag);
+    console.log(Object.entries(options))
+    
     options.attrs ? instance.setAttrs(options.attrs) : null;
     options.styles ? instance.setStyles(options.styles) : null;
     options.classNames ? instance.addClassList(options.classNames) : null;
