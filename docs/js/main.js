@@ -120,12 +120,45 @@ function createEditorDiv() {
 
 
 class DOM {
-  #el;
-  constructor(tag) { this.#el = document.createElement(tag); }
-  setId(id) { this.#el.id = id; return this; }
-  setStyle(prop, val) { this.#el.style[prop] = val; return this; }
-  setAttr(name, val) { this.#el.setAttribute(name, val); return this; }
-  get() { return this.#el; }
+  #element;
+
+  constructor(tag) {
+    this.#element = document.createElement(tag);
+  }
+
+  setId(id) {
+    this.#element.id = id;
+    return this;
+  }
+
+  setStyle(prop, val) {
+    // this.#element.style[prop] = val;
+    this.#element.style.setProperty(prop, val);
+    return this;
+  }
+
+  setStyles(keyValList) {
+    [...keyValList].forEach((item) => {
+      const [key, value] = Object.entries(item);
+      this.setStyle(key, value);
+      return this;
+    });
+    return this;
+  }
+
+  addClassList(list) {
+    this.#element.classList.add(...list);
+    return this;
+  }
+
+  setAttr(name, val) {
+    this.#element.setAttribute(name, val);
+    return this;
+  }
+
+  get() {
+    return this.#element;
+  }
 }
 
 // 使い方
@@ -134,6 +167,13 @@ const aeditorDiv = new DOM('div')
   .setStyle('width', '100%')
   .setStyle('height', '100%')
   .get();
+
+
+console.log(aeditorDiv);
+console.log(typeof aeditorDiv);
+const aa = 'aaa';
+console.log(typeof aa);
+
 
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
@@ -153,6 +193,7 @@ const editor = createEditorView(editorDiv);
 const h1Tag = document.createElement('h1');
 h1Tag.style.fontSize = '1.5rem';
 h1Tag.textContent = 'Safari Virtual Keyboard Demo';
+
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([h1Tag]);
