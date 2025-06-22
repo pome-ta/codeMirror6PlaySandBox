@@ -133,7 +133,9 @@ class Dom {
   
   setAttrs(keyValList) {
     [...keyValList].forEach((item) => {
+      
       const [key, value] = Object.entries(item);
+      console.log(key)
       this.setAttr(key, value);
       return this;
     });
@@ -166,17 +168,17 @@ class Dom {
     return this.#element;
   }
   
-  static create(tag, attrs=[], styles=[], classNames=[]) {
+  static create(tag, options) {
     const instance = new this(tag);
     console.log(instance)
-    if (attrs.length > 0) {
-      instance = instance.setAttrs(attrs);
+    if (options.attrs) {
+      instance = instance.setAttrs(options.attrs);
     }
-    if (styles.length > 0) {
-      instance = instance.setStyles(styles);
+    if (options.styles) {
+      instance = instance.setStyles(options.styles);
     }
-    if (classNames.length > 0) {
-      instance = instance.addClassList(classNames);
+    if (options.classNames) {
+      instance = instance.addClassList(options.classNames);
     }
     return instance.element
   }
@@ -197,7 +199,8 @@ const aa = 'aaa';
 console.log(typeof aa);
 */
 
-const aeditorDiv = Dom.create('div', {'id':'divid'});
+//const aeditorDiv = Dom.create('div', {attrs: {'id': 'divid'}, styles:, classNames:,});
+const aeditorDiv = Dom.create('div', {attrs: {'id': 'divid'},});
 console.log(aeditorDiv);
 
 
