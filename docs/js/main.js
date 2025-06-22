@@ -119,15 +119,24 @@ function createEditorDiv() {
 }
 
 
-class DOM {
+class Dom {
   #element;
 
   constructor(tag) {
-    this.#element = document.createElement(tag);
+    this.#element = typeof tag === 'string' ? document.createElement(tag) : tag;
   }
 
-  setId(id) {
-    this.#element.id = id;
+  setAttr(name, val) {
+    this.#element.setAttribute(name, val);
+    return this;
+  }
+  
+  setAttrs(keyValList) {
+    [...keyValList].forEach((item) => {
+      const [key, value] = Object.entries(item);
+      this.setAttr(key, value);
+      return this;
+    });
     return this;
   }
 
@@ -151,17 +160,30 @@ class DOM {
     return this;
   }
 
-  setAttr(name, val) {
-    this.#element.setAttribute(name, val);
-    return this;
-  }
 
-  get() {
+  
+  get element() {
     return this.#element;
+  }
+  
+  static create(tag, attrs=[], styles=[], classNames=[]) {
+    const instance = new this(tag);
+    console.log(instance)
+    if (attrs.length > 0) {
+      instance = instance.setAttrs(attrs);
+    }
+    if (styles.length > 0) {
+      instance = instance.setStyles(styles);
+    }
+    if (classNames.length > 0) {
+      instance = instance.addClassList(classNames);
+    }
+    return instance.element
   }
 }
 
 // 使い方
+/*
 const aeditorDiv = new DOM('div')
   .setId('editor-div')
   .setStyle('width', '100%')
@@ -173,6 +195,10 @@ console.log(aeditorDiv);
 console.log(typeof aeditorDiv);
 const aa = 'aaa';
 console.log(typeof aa);
+*/
+
+const aeditorDiv = Dom.create('div', {'id':'divid'});
+console.log(aeditorDiv);
 
 
 // const codeFilePath = './js/editor/index.js';
