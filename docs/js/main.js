@@ -1,14 +1,11 @@
 //import Editor from './editor/index.js';
 import createEditorView from './editor/index.js';
 
-
 import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
-
 const buttonFactory = (buttonIconChar) => {
-
   const createFrame = (width, height) => {
     const element = document.createElement('div');
     // wip: 最大数問題 調整してサイズ作る？
@@ -19,7 +16,6 @@ const buttonFactory = (buttonIconChar) => {
     element.style.alignItems = 'center';
     return element;
   };
-
 
   const createIcon = (char) => {
     const element = document.createElement('span');
@@ -32,7 +28,6 @@ const buttonFactory = (buttonIconChar) => {
   const btnW = '2.5rem';
   const btnRadius = '16%';
 
-
   const createActionButton = (iconChar) => {
     const button = createFrame('90%', '90%');
     button.style.borderRadius = btnRadius;
@@ -42,19 +37,15 @@ const buttonFactory = (buttonIconChar) => {
     const icon = createIcon(iconChar);
     button.appendChild(icon);
 
-
     const wrap = createFrame(btnW, '100%');
     wrap.style.cursor = 'pointer';
     wrap.appendChild(button);
     return wrap;
   };
 
-
   const actionButton = createActionButton(buttonIconChar);
   return actionButton;
-
 };
-
 
 const [
   commentButton,
@@ -84,7 +75,6 @@ leftButton.bind((this.addEventListener('click', () => {
     editor.focus();
   })))
 */
-
 
 const buttons = [
   commentButton,
@@ -118,7 +108,6 @@ function createEditorDiv() {
   return element;
 }
 
-
 class Dom {
   #element;
 
@@ -126,19 +115,29 @@ class Dom {
     this.#element = typeof tag === 'string' ? document.createElement(tag) : tag;
   }
 
+  get element() {
+    return this.#element;
+  }
+
+  static create(tag, options) {
+    const instance = new this(tag);
+    options.attrs ? instance.setAttrs(options.attrs) : null;
+    options.styles ? instance.setStyles(options.styles) : null;
+    options.classNames ? instance.addClassList(options.classNames) : null;
+
+    return instance.element;
+  }
+
   setAttr(name, val) {
     this.#element.setAttribute(name, val);
     return this;
   }
-  
+
   setAttrs(keyValList) {
-    [...keyValList].forEach((item) => {
-      
-      const [key, value] = Object.entries(item);
-      console.log(key)
+    Object.entries(keyValList).forEach(([key, value]) => {
       this.setAttr(key, value);
-      return this;
     });
+
     return this;
   }
 
@@ -149,38 +148,16 @@ class Dom {
   }
 
   setStyles(keyValList) {
-    [...keyValList].forEach((item) => {
-      const [key, value] = Object.entries(item);
+    Object.entries(keyValList).forEach(([key, value]) => {
       this.setStyle(key, value);
-      return this;
     });
+
     return this;
   }
 
   addClassList(list) {
     this.#element.classList.add(...list);
     return this;
-  }
-
-
-  
-  get element() {
-    return this.#element;
-  }
-  
-  static create(tag, options) {
-    const instance = new this(tag);
-    console.log(instance)
-    if (options.attrs) {
-      instance = instance.setAttrs(options.attrs);
-    }
-    if (options.styles) {
-      instance = instance.setStyles(options.styles);
-    }
-    if (options.classNames) {
-      instance = instance.addClassList(options.classNames);
-    }
-    return instance.element
   }
 }
 
@@ -200,20 +177,21 @@ console.log(typeof aa);
 */
 
 //const aeditorDiv = Dom.create('div', {attrs: {'id': 'divid'}, styles:, classNames:,});
-const aeditorDiv = Dom.create('div', {attrs: {'id': 'divid'},});
+const aeditorDiv = Dom.create('div', {
+  attrs: {id: 'divid'},
+  classNames: ['hoge', 'fuga'],
+});
 console.log(aeditorDiv);
-
 
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
 // const editorDiv = createEditorDiv();
-const editorDiv = (function () {
+const editorDiv = function () {
   this.id = 'editor-div';
   this.style.width = '100%';
   return this;
-}).call(document.createElement('div'));
-
+}.call(document.createElement('div'));
 
 //const editor = Editor.create(editorDiv);
 const editor = createEditorView(editorDiv);
@@ -222,7 +200,6 @@ const editor = createEditorView(editorDiv);
 const h1Tag = document.createElement('h1');
 h1Tag.style.fontSize = '1.5rem';
 h1Tag.textContent = 'Safari Virtual Keyboard Demo';
-
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([h1Tag]);
@@ -244,7 +221,6 @@ const setLayout = () => {
   document.body.appendChild(rootMain);
 };
 
-
 document.addEventListener('DOMContentLoaded', () => {
   setLayout();
   insertFetchDoc(codeFilePath).then((loadedSource) => {
@@ -256,4 +232,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
   accessory.eventHandler(editor);
 });
-
