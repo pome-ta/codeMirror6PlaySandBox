@@ -1,3 +1,6 @@
+import Dom from '../utils/dom.js';
+
+
 const createBaseDom = (type, idName = null, classNames = []) => {
   const element = document.createElement(type);
   if (idName !== null) {

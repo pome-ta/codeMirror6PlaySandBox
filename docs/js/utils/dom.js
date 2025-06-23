@@ -1,8 +1,8 @@
 export default class Dom {
   #element;
 
-  constructor(tag) {
-    this.#element = typeof tag === 'string' ? document.createElement(tag) : tag;
+  constructor(domTag) {
+    this.#element = typeof domTag === 'string' ? document.createElement(domTag) : domTag;
   }
 
   get element() {
@@ -37,8 +37,8 @@ export default class Dom {
     return this;
   }
 
-  addClassList(list) {
-    this.#element.classList.add(...list);
+  addClassList(nameList) {
+    this.#element.classList.add(...nameList);
     return this;
   }
 }

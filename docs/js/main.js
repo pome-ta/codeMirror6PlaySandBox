@@ -1,4 +1,6 @@
-//import Editor from './editor/index.js';
+import Dom from './utils/dom.js';
+
+
 import createEditorView from './editor/index.js';
 
 import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
@@ -108,81 +110,7 @@ function createEditorDiv() {
   return element;
 }
 
-class Dom {
-  #element;
 
-  constructor(tag) {
-    this.#element = typeof tag === 'string' ? document.createElement(tag) : tag;
-  }
-
-  get element() {
-    return this.#element;
-  }
-
-  static create(tag, options) {
-    const instance = new this(tag);
-    Object.entries(options).forEach(([key, value]) => instance[key](value))
-    
-    /*
-    console.log(Object.entries(options))
-    
-    options.attrs ? instance.setAttrs(options.attrs) : null;
-    options.styles ? instance.setStyles(options.styles) : null;
-    options.classNames ? instance.addClassList(options.classNames) : null;
-    */
-
-    return instance.element;
-  }
-
-  setAttr(name, val) {
-    this.#element.setAttribute(name, val);
-    return this;
-  }
-
-  setAttrs(keyValList) {
-    Object.entries(keyValList).forEach(([key, value]) => {
-      this.setAttr(key, value);
-    });
-
-    return this;
-  }
-
-  setStyle(prop, val) {
-    // this.#element.style[prop] = val;
-    this.#element.style.setProperty(prop, val);
-    return this;
-  }
-
-  setStyles(keyValList) {
-    Object.entries(keyValList).forEach(([key, value]) => {
-      this.setStyle(key, value);
-    });
-
-    return this;
-  }
-
-  addClassList(list) {
-    this.#element.classList.add(...list);
-    return this;
-  }
-}
-
-// 使い方
-/*
-const aeditorDiv = new DOM('div')
-  .setId('editor-div')
-  .setStyle('width', '100%')
-  .setStyle('height', '100%')
-  .get();
-
-
-console.log(aeditorDiv);
-console.log(typeof aeditorDiv);
-const aa = 'aaa';
-console.log(typeof aa);
-*/
-
-//const aeditorDiv = Dom.create('div', {attrs: {'id': 'divid'}, styles:, classNames:,});
 const aeditorDiv = Dom.create('div', {
   setAttrs: {id: 'divid'},
   addClassList: ['hoge', 'fuga'],
