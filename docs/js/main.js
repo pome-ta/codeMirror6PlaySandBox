@@ -4,17 +4,18 @@ import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
-const buttonFactory = (buttonIconChar) => {
-  const createFrame = (width, height) =>
-    Dom.create('div', {
+const buttonFactory = (buttonIconChar, actionHandle, targetEditor) => {
+  function createFrame(width, height){
+    return Dom.create('div', {
       setStyles: {
         'min-width': `${width}`,
-        height: `${height}`,
-        display: 'flex',
+        'height': `${height}`,
+        'display': 'flex',
         'justify-content': 'center',
         'align-items': 'center',
       },
     });
+  }
 
   const btnW = '2.5rem';
   const btnRadius = '16%';
@@ -39,7 +40,7 @@ const buttonFactory = (buttonIconChar) => {
 
     const wrap = Dom.create(createFrame(btnW, '100%'), {
       setStyles: {
-        cursor: 'pointer',
+        'cursor': 'pointer',
       },
     });
 
@@ -48,9 +49,14 @@ const buttonFactory = (buttonIconChar) => {
   };
 
   const actionButton = createActionButton(buttonIconChar);
+  actionButton.addEventListener('click', () => {
+      console.log(this)
+    })
+  
   return actionButton;
 };
 
+/*
 const [
   commentButton,
   selectLineButton,
@@ -66,6 +72,13 @@ const [
   //footerDiv.appendChild(ele);
   return ele;
 });
+*/
+
+
+
+
+
+
 
 /*
 leftButton.addEventListener('click', () => {
@@ -79,6 +92,7 @@ leftButton.bind((this.addEventListener('click', () => {
   })))
 */
 
+/*
 const buttons = [
   commentButton,
   selectLineButton,
@@ -90,7 +104,7 @@ const buttons = [
   redoButton,
   undoButton,
 ];
-
+*/
 /* --- load Source */
 async function insertFetchDoc(filePath) {
   const fetchFilePath = async (path) => {
@@ -110,6 +124,16 @@ const editorDiv = Dom.create('div', {
 const editor = createEditorView(editorDiv);
 
 /* --- accessory */
+const buttons = Object.entries({
+  '//': ()=>{console.log('hoge')},
+  '▭':null,
+  '←':null,
+}).map(([str, fnc]) => {
+  const ele = buttonFactory(str, fnc, editor);
+  //footerDiv.appendChild(ele);
+  return ele;
+});
+
 
 const h1Tag = Dom.create('h1', {
   textContent: 'Safari Virtual Keyboard Demo',
