@@ -42,15 +42,21 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         filter: 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
       },
     });
-
-    const icon = Dom.create('span', {
+    //
+    // const icon = Dom.create('span', {
+    //   textContent: `${iconChar}`,
+    //   setStyles: {
+    //     'font-size': '1.0rem',
+    //     color: '#f2f2f7',
+    //   },
+    // });
+    button.appendChild(Dom.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
         'font-size': '1.0rem',
         color: '#f2f2f7',
       },
-    });
-    button.appendChild(icon);
+    }));
 
     const wrap = Dom.create(createFrame(btnW, '100%'), {
       setStyles: {
@@ -68,49 +74,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
   return actionButton;
 };
 
-/*
-const [
-  commentButton,
-  selectLineButton,
-  leftButton,
-  downButton,
-  upButton,
-  rightButton,
-  selectAllButton,
-  redoButton,
-  undoButton, //reIndentButton,
-] = ['//', '▭', '←', '↓', '↑', '→', '⎁', '⤻', '⤺'].map((str) => {
-  const ele = buttonFactory(str);
-  //footerDiv.appendChild(ele);
-  return ele;
-});
-*/
 
-/*
-leftButton.addEventListener('click', () => {
-    cursorCharLeft(editor);
-    editor.focus();
-  });
-
-leftButton.bind((this.addEventListener('click', () => {
-    cursorCharLeft(editor);
-    editor.focus();
-  })))
-*/
-
-/*
-const buttons = [
-  commentButton,
-  selectLineButton,
-  leftButton,
-  downButton,
-  upButton,
-  rightButton,
-  selectAllButton,
-  redoButton,
-  undoButton,
-];
-*/
 
 /* --- load Source */
 async function insertFetchDoc(filePath) {
@@ -131,6 +95,8 @@ const editorDiv = Dom.create('div', {
 const editor = createEditorView(editorDiv);
 
 /* --- accessory */
+
+// ] = ['//', '▭', '←', '↓', '↑', '→', '⎁', '⤻', '⤺'].map((str) => {
 const buttons = Object.entries({
   '//': {
     targetEditor: editor,
