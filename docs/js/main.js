@@ -23,8 +23,8 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     return Dom.create('div', {
       setStyles: {
         'min-width': `${width}`,
-        height: `${height}`,
-        display: 'flex',
+        'height': `${height}`,
+        'display': 'flex',
         'justify-content': 'center',
         'align-items': 'center',
       },
@@ -39,28 +39,23 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
       setStyles: {
         'border-radius': `${btnRadius}`,
         'background-color': '#8e8e93', // light gray
-        filter: 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
+        'filter': 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
       },
     });
-    //
-    // const icon = Dom.create('span', {
-    //   textContent: `${iconChar}`,
-    //   setStyles: {
-    //     'font-size': '1.0rem',
-    //     color: '#f2f2f7',
-    //   },
-    // });
-    button.appendChild(Dom.create('span', {
+    
+    const icon = Dom.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
         'font-size': '1.0rem',
-        color: '#f2f2f7',
+        'color': '#f2f2f7',
       },
-    }));
+    });
+    
+    button.appendChild(icon);
 
     const wrap = Dom.create(createFrame(btnW, '100%'), {
       setStyles: {
-        cursor: 'pointer',
+        'cursor': 'pointer',
       },
     });
 
@@ -95,8 +90,6 @@ const editorDiv = Dom.create('div', {
 const editor = createEditorView(editorDiv);
 
 /* --- accessory */
-
-// ] = ['//', '▭', '←', '↓', '↑', '→', '⎁', '⤻', '⤺'].map((str) => {
 const buttons = Object.entries({
   '//': {
     targetEditor: editor,
@@ -105,8 +98,63 @@ const buttons = Object.entries({
       this.targetEditor.focus();
     },
   },
-  '▭': null,
-  '←': null,
+  '▭': {
+    targetEditor: editor,
+    handleEvent: function () {
+      selectLine(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  '←': {
+    targetEditor: editor,
+    handleEvent: function () {
+      cursorCharLeft(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  '↓': {
+    targetEditor: editor,
+    handleEvent: function () {
+      cursorLineDown(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  '↑': {
+    targetEditor: editor,
+    handleEvent: function () {
+      cursorLineUp(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  '→': {
+    targetEditor: editor,
+    handleEvent: function () {
+      cursorCharRight(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  '⎁': {
+    targetEditor: editor,
+    handleEvent: function () {
+      selectAll(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  '⤻' :{
+    targetEditor: editor,
+    handleEvent: function () {
+      redo(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  '⤺': {
+    targetEditor: editor,
+    handleEvent: function () {
+      undo(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+
 }).map(([str, fnc]) => {
   return buttonFactory(str, fnc, editor);
 });
@@ -122,12 +170,12 @@ accessory.setupFooter(buttons);
 
 const setLayout = () => {
   const rootMain = Dom.create('div', {
-    setAttrs: {id: 'rootMain'},
+    setAttrs: {'id': 'rootMain'},
     setStyles: {
-      display: 'grid',
+      'display': 'grid',
       'grid-template-rows': 'auto 1fr auto',
-      height: '100%',
-      overflow: 'auto',
+      'height': '100%',
+      'overflow': 'auto',
     },
   });
 
