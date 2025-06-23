@@ -11,7 +11,7 @@ class AccessoryWidgets {
 
     if (this.isTouchDevice) {
       this.#footer = footer === null ? createFooter('footer') : footer;
-      // this.#footer.style.display = 'none';
+      this.#footer.style.display = 'none';
     }
     this.targetEditor = null;
   }
