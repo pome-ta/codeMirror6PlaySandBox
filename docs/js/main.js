@@ -5,17 +5,16 @@ import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 const buttonFactory = (buttonIconChar) => {
-
-  const createFrame = (width, height) => Dom.create('div', {
-    setStyles: {
-      'min-width': `${width}`,
-      'height': `${height}`,
-      'display': 'flex',
-      'justify-content': 'center',
-      'align-items': 'center',
-    }
-  });
-
+  const createFrame = (width, height) =>
+    Dom.create('div', {
+      setStyles: {
+        'min-width': `${width}`,
+        height: `${height}`,
+        display: 'flex',
+        'justify-content': 'center',
+        'align-items': 'center',
+      },
+    });
 
   const btnW = '2.5rem';
   const btnRadius = '16%';
@@ -24,25 +23,24 @@ const buttonFactory = (buttonIconChar) => {
     const button = Dom.create(createFrame('90%', '90%'), {
       setStyles: {
         'border-radius': `${btnRadius}`,
-        'background-color': '#8e8e93',// light gray
-        'filter': 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
-      }
+        'background-color': '#8e8e93', // light gray
+        filter: 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
+      },
     });
-
 
     const icon = Dom.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
         'font-size': '1.0rem',
-        'color': '#f2f2f7',
-      }
+        color: '#f2f2f7',
+      },
     });
     button.appendChild(icon);
 
     const wrap = Dom.create(createFrame(btnW, '100%'), {
       setStyles: {
-        'cursor': 'pointer',
-      }
+        cursor: 'pointer',
+      },
     });
 
     wrap.appendChild(button);
@@ -93,7 +91,6 @@ const buttons = [
   undoButton,
 ];
 
-
 /* --- load Source */
 async function insertFetchDoc(filePath) {
   const fetchFilePath = async (path) => {
@@ -116,9 +113,8 @@ const editor = createEditorView(editorDiv);
 
 const h1Tag = Dom.create('h1', {
   textContent: 'Safari Virtual Keyboard Demo',
-  setStyles: {fontSize: '1.5rem'},
+  setStyles: {'font-size': '1.5rem'},
 });
-
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([h1Tag]);
@@ -126,12 +122,12 @@ accessory.setupFooter(buttons);
 
 const setLayout = () => {
   const rootMain = Dom.create('div', {
-    setAttrs: {'id': 'rootMain',},
+    setAttrs: {id: 'rootMain'},
     setStyles: {
-      'display': 'grid',
+      display: 'grid',
       'grid-template-rows': 'auto 1fr auto',
-      'height': '100%',
-      'overflow': 'auto',
+      height: '100%',
+      overflow: 'auto',
     },
   });
 

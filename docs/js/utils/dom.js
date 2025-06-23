@@ -1,9 +1,9 @@
 export default class Dom {
-
   #element;
 
   constructor(domTag) {
-    this.#element = typeof domTag === 'string' ? document.createElement(domTag) : domTag;
+    this.#element =
+      typeof domTag === 'string' ? document.createElement(domTag) : domTag;
   }
 
   get element() {
@@ -48,5 +48,3 @@ export default class Dom {
     return this;
   }
 }
-
-
