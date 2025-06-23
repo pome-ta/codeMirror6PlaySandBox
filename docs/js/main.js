@@ -99,41 +99,40 @@ async function insertFetchDoc(filePath) {
   return await fetchFilePath(filePath);
 }
 
-/* --- window-document */
 
-function createEditorDiv() {
-  const element = document.createElement('div');
-  element.id = 'editor-div';
-  element.style.width = '100%';
-  //element.style.height = '100%';
-
-  return element;
-}
-
-
-const aeditorDiv = Dom.create('div', {
-  setAttrs: {id: 'divid'},
-  addClassList: ['hoge', 'fuga'],
-});
-console.log(aeditorDiv);
 
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
 
-// const editorDiv = createEditorDiv();
-const editorDiv = function () {
-  this.id = 'editor-div';
-  this.style.width = '100%';
-  return this;
-}.call(document.createElement('div'));
 
-//const editor = Editor.create(editorDiv);
+const editorDiv = Dom.create('div', {
+  setAttrs: {id: 'editor-div'},
+  setStyles: {width: '100%'},
+  
+});
+
 const editor = createEditorView(editorDiv);
 
 /* --- accessory */
+/*
+const h1Tag = Dom.create('h1', {
+  setAttrs: {
+    id: 'editor-div',
+    textContent: 'Safari Virtual Keyboard Demo',
+  },
+  setStyles: {fontSize: '1.5rem'},
+  
+});
+*/
+
+
+
+
 const h1Tag = document.createElement('h1');
 h1Tag.style.fontSize = '1.5rem';
 h1Tag.textContent = 'Safari Virtual Keyboard Demo';
+console.log(h1Tag.node)
+
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([h1Tag]);

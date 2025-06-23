@@ -13,6 +13,7 @@ export default class Dom {
     const instance = new this(tag);
     Object.entries(options).forEach(([key, value]) => instance[key](value));
     
+    console.log(instance.element)
     return instance.element;
   }
 
