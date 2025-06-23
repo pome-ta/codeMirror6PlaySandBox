@@ -1,46 +1,50 @@
 import Dom from './utils/dom.js';
-
-
 import createEditorView from './editor/index.js';
-
 import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 const buttonFactory = (buttonIconChar) => {
-  const createFrame = (width, height) => {
-    const element = document.createElement('div');
-    // wip: 最大数問題 調整してサイズ作る？
-    element.style.minWidth = width;
-    element.style.height = height;
-    element.style.display = 'flex';
-    element.style.justifyContent = 'center';
-    element.style.alignItems = 'center';
-    return element;
-  };
 
-  const createIcon = (char) => {
-    const element = document.createElement('span');
-    element.textContent = char;
-    element.style.fontSize = '1.0rem';
-    element.style.color = '#f2f2f7'; // gray6
-    return element;
-  };
+  const createFrame = (width, height) => Dom.create('div', {
+    setStyles: {
+      'min-width': `${width}`,
+      'height': `${height}`,
+      'display': 'flex',
+      'justify-content': 'center',
+      'align-items': 'center',
+    }
+  });
+
 
   const btnW = '2.5rem';
   const btnRadius = '16%';
 
   const createActionButton = (iconChar) => {
-    const button = createFrame('90%', '90%');
-    button.style.borderRadius = btnRadius;
-    button.style.backgroundColor = '#8e8e93'; // light gray
-    button.style.filter = 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))';
+    const button = Dom.create(createFrame('90%', '90%'), {
+      setStyles: {
+        'border-radius': `${btnRadius}`,
+        'background-color': '#8e8e93',// light gray
+        'filter': 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
+      }
+    });
 
-    const icon = createIcon(iconChar);
+
+    const icon = Dom.create('span', {
+      textContent: `${iconChar}`,
+      setStyles: {
+        'font-size': '1.0rem',
+        'color': '#f2f2f7',
+      }
+    });
     button.appendChild(icon);
 
-    const wrap = createFrame(btnW, '100%');
-    wrap.style.cursor = 'pointer';
+    const wrap = Dom.create(createFrame(btnW, '100%'), {
+      setStyles: {
+        'cursor': 'pointer',
+      }
+    });
+
     wrap.appendChild(button);
     return wrap;
   };
@@ -58,8 +62,7 @@ const [
   rightButton,
   selectAllButton,
   redoButton,
-  undoButton,
-  //reIndentButton,
+  undoButton, //reIndentButton,
 ] = ['//', '▭', '←', '↓', '↑', '→', '⎁', '⤻', '⤺'].map((str) => {
   const ele = buttonFactory(str);
   //footerDiv.appendChild(ele);
@@ -90,6 +93,7 @@ const buttons = [
   undoButton,
 ];
 
+
 /* --- load Source */
 async function insertFetchDoc(filePath) {
   const fetchFilePath = async (path) => {
@@ -99,39 +103,21 @@ async function insertFetchDoc(filePath) {
   return await fetchFilePath(filePath);
 }
 
-
-
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
-
 
 const editorDiv = Dom.create('div', {
   setAttrs: {id: 'editor-div'},
   setStyles: {width: '100%'},
-  
 });
-
 const editor = createEditorView(editorDiv);
 
 /* --- accessory */
-/*
+
 const h1Tag = Dom.create('h1', {
-  setAttrs: {
-    id: 'editor-div',
-    textContent: 'Safari Virtual Keyboard Demo',
-  },
+  textContent: 'Safari Virtual Keyboard Demo',
   setStyles: {fontSize: '1.5rem'},
-  
 });
-*/
-
-
-
-
-const h1Tag = document.createElement('h1');
-h1Tag.style.fontSize = '1.5rem';
-h1Tag.textContent = 'Safari Virtual Keyboard Demo';
-console.log(h1Tag.node)
 
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
@@ -139,12 +125,15 @@ accessory.setupHeader([h1Tag]);
 accessory.setupFooter(buttons);
 
 const setLayout = () => {
-  const rootMain = document.createElement('main');
-  rootMain.id = 'rootMain';
-  rootMain.style.display = 'grid';
-  rootMain.style.gridTemplateRows = 'auto 1fr auto';
-  rootMain.style.height = '100%';
-  rootMain.style.overflow = 'auto';
+  const rootMain = Dom.create('div', {
+    setAttrs: {'id': 'rootMain',},
+    setStyles: {
+      'display': 'grid',
+      'grid-template-rows': 'auto 1fr auto',
+      'height': '100%',
+      'overflow': 'auto',
+    },
+  });
 
   rootMain.appendChild(accessory.header);
   rootMain.appendChild(editorDiv);

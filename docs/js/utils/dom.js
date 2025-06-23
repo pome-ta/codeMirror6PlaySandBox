@@ -1,4 +1,5 @@
 export default class Dom {
+
   #element;
 
   constructor(domTag) {
@@ -12,8 +13,7 @@ export default class Dom {
   static create(tag, options) {
     const instance = new this(tag);
     Object.entries(options).forEach(([key, value]) => instance[key](value));
-    
-    console.log(instance.element)
+
     return instance.element;
   }
 
@@ -40,6 +40,11 @@ export default class Dom {
 
   addClassList(nameList) {
     this.#element.classList.add(...nameList);
+    return this;
+  }
+
+  textContent(value) {
+    this.#element.textContent = value;
     return this;
   }
 }

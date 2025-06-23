@@ -64,4 +64,4 @@ class AccessoryWidgets {
   }
 }
 
-export { AccessoryWidgets };
+export {AccessoryWidgets};
