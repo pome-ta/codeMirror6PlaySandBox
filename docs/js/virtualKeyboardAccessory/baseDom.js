@@ -7,6 +7,7 @@ const createBaseDom = (type, idName = null, classNames = []) => {
       display: 'flex',
       'align-items': 'center',
       width: '100%',
+      'box-sizing': 'border-box',
     },
   };
 

@@ -2,15 +2,29 @@ import Dom from './utils/dom.js';
 import createEditorView from './editor/index.js';
 import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 
+import {
+  undo,
+  redo,
+  selectAll,
+  selectLine,
+  indentSelection,
+  cursorLineUp,
+  cursorLineDown,
+  cursorCharLeft,
+  cursorCharRight,
+  toggleComment,
+} from './editor/codemirror/commands.js';
+
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
-const buttonFactory = (buttonIconChar, actionHandle, targetEditor) => {
-  function createFrame(width, height){
+
+const buttonFactory = (buttonIconChar, actionHandle) => {
+  function createFrame(width, height) {
     return Dom.create('div', {
       setStyles: {
         'min-width': `${width}`,
-        'height': `${height}`,
-        'display': 'flex',
+        height: `${height}`,
+        display: 'flex',
         'justify-content': 'center',
         'align-items': 'center',
       },
@@ -40,7 +54,7 @@ const buttonFactory = (buttonIconChar, actionHandle, targetEditor) => {
 
     const wrap = Dom.create(createFrame(btnW, '100%'), {
       setStyles: {
-        'cursor': 'pointer',
+        cursor: 'pointer',
       },
     });
 
@@ -49,10 +63,8 @@ const buttonFactory = (buttonIconChar, actionHandle, targetEditor) => {
   };
 
   const actionButton = createActionButton(buttonIconChar);
-  actionButton.addEventListener('click', () => {
-      console.log(this)
-    })
-  
+  actionButton.addEventListener('click', actionHandle);
+
   return actionButton;
 };
 
@@ -73,12 +85,6 @@ const [
   return ele;
 });
 */
-
-
-
-
-
-
 
 /*
 leftButton.addEventListener('click', () => {
@@ -105,6 +111,7 @@ const buttons = [
   undoButton,
 ];
 */
+
 /* --- load Source */
 async function insertFetchDoc(filePath) {
   const fetchFilePath = async (path) => {
@@ -125,15 +132,18 @@ const editor = createEditorView(editorDiv);
 
 /* --- accessory */
 const buttons = Object.entries({
-  '//': ()=>{console.log('hoge')},
-  '▭':null,
-  '←':null,
+  '//': {
+    targetEditor: editor,
+    handleEvent: function () {
+      toggleComment(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  '▭': null,
+  '←': null,
 }).map(([str, fnc]) => {
-  const ele = buttonFactory(str, fnc, editor);
-  //footerDiv.appendChild(ele);
-  return ele;
+  return buttonFactory(str, fnc, editor);
 });
-
 
 const h1Tag = Dom.create('h1', {
   textContent: 'Safari Virtual Keyboard Demo',
