@@ -223,6 +223,9 @@ const setLayout = () => {
     }
   });
   const details = Dom.create('details', {
+    setAttrs: {
+      'open': 'false',
+    },
     appendChildren: [summary, editorDiv],
 
   });
