@@ -12,7 +12,10 @@ export default class Dom {
 
   static create(tag, options) {
     const instance = new this(tag);
-    Object.entries(options).forEach(([key, value]) => instance[key](value));
+    if (options) {
+      Object.entries(options).forEach(([key, value]) => instance[key](value));
+    }
+    
 
     return instance.element;
   }

@@ -177,8 +177,19 @@ const hideButton = Dom.create('button', {
       targetDiv: editorDiv,
       handleEvent: function (e) {
         //console.log(this.targetDiv);
-        console.log(this);
-        console.log(e.target);
+        //console.log(this);
+        //console.log(e.target);
+        const divStyle = this.targetDiv.style;
+        if (divStyle.display === 'none') {
+          divStyle.display = '';
+          e.target.textContent = '🫥: hideCode';
+          
+        } else {
+          divStyle.display = 'none';
+          e.target.textContent = '😁: showCode';
+        }
+        //const display = this.targetDiv.style.display;
+        //console.log(typeof display);
       },
     }
   }
@@ -202,9 +213,18 @@ const setLayout = () => {
       'overflow': 'auto',
     },
   });
+  
+  
+  const details = Dom.create('details');
+  const summary = Dom.create('summary', {
+    textContent: 'source code',
+  })
+  
+  details.appendChild(summary)
+  details.appendChild(editorDiv)
 
   rootMain.appendChild(accessory.header);
-  rootMain.appendChild(editorDiv);
+  rootMain.appendChild(details);
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(accessory.footer);
   }
