@@ -171,11 +171,23 @@ const hideButton = Dom.create('button', {
     'margin': '0.5rem',
     'height': '2rem',
   },
+  addEventListener: {
+    type: 'click',
+    listener: {
+      targetDiv: editorDiv,
+      handleEvent: function (e) {
+        //console.log(this.targetDiv);
+        console.log(this);
+        console.log(e.target);
+      },
+    }
+  }
 });
+/*
 hideButton.addEventListener('click', (e) => {
   console.log(e)
-});
-
+},undefined);
+*/
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([hideButton]);
 accessory.setupFooter(buttons);
