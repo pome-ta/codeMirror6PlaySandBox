@@ -156,7 +156,7 @@ const buttons = Object.entries({
   },
 
 }).map(([str, fnc]) => {
-  return buttonFactory(str, fnc, editor);
+  return buttonFactory(str, fnc);
 });
 
 const h1Tag = Dom.create('h1', {
@@ -164,8 +164,10 @@ const h1Tag = Dom.create('h1', {
   setStyles: {'font-size': '1.5rem'},
 });
 
+const hideButton = buttonFactory('🫥')
+
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
-accessory.setupHeader([h1Tag]);
+accessory.setupHeader([h1Tag, hideButton]);
 accessory.setupFooter(buttons);
 
 const setLayout = () => {
