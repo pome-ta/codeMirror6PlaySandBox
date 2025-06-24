@@ -164,10 +164,20 @@ const h1Tag = Dom.create('h1', {
   setStyles: {'font-size': '1.5rem'},
 });
 
-const hideButton = buttonFactory('🫥')
+//const hideButton = buttonFactory('🫥')
+const hideButton = Dom.create('button', {
+  textContent: '🫥: hideCode',
+  setStyles: {
+    'margin': '0.5rem',
+    'height': '2rem',
+  },
+});
+hideButton.addEventListener('click', (e) => {
+  console.log(e)
+});
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
-accessory.setupHeader([h1Tag, hideButton]);
+accessory.setupHeader([hideButton]);
 accessory.setupFooter(buttons);
 
 const setLayout = () => {

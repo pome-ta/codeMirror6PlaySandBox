@@ -47,4 +47,8 @@ export default class Dom {
     this.#element.textContent = value;
     return this;
   }
+  addEventListener(type, listener, options) {
+    this.#element.addEventListener(type, listener, options);
+    return this;
+  }
 }
