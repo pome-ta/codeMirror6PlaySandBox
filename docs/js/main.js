@@ -3,16 +3,15 @@ import createEditorView from './editor/index.js';
 import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 
 import {
-  undo,
+  cursorCharLeft,
+  cursorCharRight,
+  cursorLineDown,
+  cursorLineUp,
   redo,
   selectAll,
   selectLine,
-  indentSelection,
-  cursorLineUp,
-  cursorLineDown,
-  cursorCharLeft,
-  cursorCharRight,
   toggleComment,
+  undo,
 } from './editor/codemirror/commands.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
@@ -42,7 +41,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         'filter': 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
       },
     });
-    
+
     const icon = Dom.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
@@ -50,7 +49,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         'color': '#f2f2f7',
       },
     });
-    
+
     button.appendChild(icon);
 
     const wrap = Dom.create(createFrame(btnW, '100%'), {
@@ -68,7 +67,6 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
 
   return actionButton;
 };
-
 
 
 /* --- load Source */
@@ -140,7 +138,7 @@ const buttons = Object.entries({
       this.targetEditor.focus();
     },
   },
-  '⤻' :{
+  '⤻': {
     targetEditor: editor,
     handleEvent: function () {
       redo(this.targetEditor);
@@ -183,7 +181,7 @@ const hideButton = Dom.create('button', {
         if (divStyle.display === 'none') {
           divStyle.display = '';
           e.target.textContent = '🫥: hideCode';
-          
+
         } else {
           divStyle.display = 'none';
           e.target.textContent = '😁: showCode';
@@ -213,15 +211,24 @@ const setLayout = () => {
       'overflow': 'auto',
     },
   });
-  
-  
-  const details = Dom.create('details');
+
+
   const summary = Dom.create('summary', {
     textContent: 'source code',
-  })
-  
-  details.appendChild(summary)
-  details.appendChild(editorDiv)
+    setStyles: {
+      'z-index': '1',
+      'top': '2rem',
+      'position': 'sticky',
+      'padding': '0 1rem',
+    }
+  });
+  const details = Dom.create('details', {
+    appendChildren: [summary, editorDiv],
+
+  });
+
+  // details.appendChild(summary);
+  // details.appendChild(editorDiv);
 
   rootMain.appendChild(accessory.header);
   rootMain.appendChild(details);

@@ -15,7 +15,7 @@ export default class Dom {
     if (options) {
       Object.entries(options).forEach(([key, value]) => instance[key](value));
     }
-    
+
 
     return instance.element;
   }
@@ -50,9 +50,17 @@ export default class Dom {
     this.#element.textContent = value;
     return this;
   }
+
   addEventListener({type, listener, options}) {
     this.#element.addEventListener(type, listener, options);
     //console.log(listener)
+    return this;
+  }
+
+  appendChildren(children) {
+    children.forEach(child => {
+      this.#element.appendChild(child,);
+    });
     return this;
   }
 }
