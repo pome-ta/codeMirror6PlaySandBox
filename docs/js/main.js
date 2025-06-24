@@ -34,14 +34,6 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
   const btnRadius = '16%';
 
   const createActionButton = (iconChar) => {
-    const button = Dom.create(createFrame('90%', '90%'), {
-      setStyles: {
-        'border-radius': `${btnRadius}`,
-        'background-color': '#8e8e93', // light gray
-        'filter': 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
-      },
-    });
-
     const icon = Dom.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
@@ -50,16 +42,21 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
       },
     });
 
-    button.appendChild(icon);
+    const button = Dom.create(createFrame('90%', '90%'), {
+      setStyles: {
+        'border-radius': `${btnRadius}`,
+        'background-color': '#8e8e93', // light gray
+        'filter': 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
+      },
+      appendChildren: [icon,],
+    });
 
-    const wrap = Dom.create(createFrame(btnW, '100%'), {
+     return Dom.create(createFrame(btnW, '100%'), {
       setStyles: {
         'cursor': 'pointer',
       },
+      appendChildren: [button,],
     });
-
-    wrap.appendChild(button);
-    return wrap;
   };
 
   const actionButton = createActionButton(buttonIconChar);
@@ -162,7 +159,7 @@ const h1Tag = Dom.create('h1', {
   setStyles: {'font-size': '1.5rem'},
 });
 
-//const hideButton = buttonFactory('🫥')
+
 const hideButton = Dom.create('button', {
   textContent: '🫥: hideCode',
   setStyles: {
@@ -174,9 +171,6 @@ const hideButton = Dom.create('button', {
     listener: {
       targetDiv: editorDiv,
       handleEvent: function (e) {
-        //console.log(this.targetDiv);
-        //console.log(this);
-        //console.log(e.target);
         const divStyle = this.targetDiv.style;
         if (divStyle.display === 'none') {
           divStyle.display = '';
@@ -186,19 +180,39 @@ const hideButton = Dom.create('button', {
           divStyle.display = 'none';
           e.target.textContent = '😁: showCode';
         }
-        //const display = this.targetDiv.style.display;
-        //console.log(typeof display);
       },
     }
   }
 });
-/*
-hideButton.addEventListener('click', (e) => {
-  console.log(e)
-},undefined);
-*/
+
+
+
+const summary = Dom.create('summary', {
+  //textContent: 'source code',
+  setStyles: {
+    'padding': '0 1rem',
+  }
+});
+const details = Dom.create('details', {
+  setAttrs: {
+    'open': 'false',
+  },
+  addEventListener: {
+    type: 'toggle',
+    listener: {
+      targetSummary: summary,
+      handleEvent: function (e) {
+        console.log(e.target.open);
+        this.targetSummary.textContent = `menu: ${e.target.open ? 'close' : 'open'}`;
+      }
+    }
+    
+  },
+  appendChildren: [summary, hideButton],
+
+});
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
-accessory.setupHeader([hideButton]);
+accessory.setupHeader([details]);
 accessory.setupFooter(buttons);
 
 const setLayout = () => {
@@ -210,32 +224,9 @@ const setLayout = () => {
       'height': '100%',
       'overflow': 'auto',
     },
+    appendChildren: [accessory.header, editorDiv],
   });
 
-
-  const summary = Dom.create('summary', {
-    //textContent: 'source code',
-    setStyles: {
-      'z-index': '1',
-      //'top': '2rem',
-      //'position': 'sticky',
-      'padding': '0 1rem',
-    }
-  });
-  const details = Dom.create('details', {
-    setAttrs: {
-      'open': 'false',
-    },
-    appendChildren: [summary, accessory.header],
-
-  });
-
-  // details.appendChild(summary);
-  // details.appendChild(editorDiv);
-
-  //rootMain.appendChild(accessory.header);
-  rootMain.appendChild(details);
-  rootMain.appendChild(editorDiv);
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(accessory.footer);
   }
