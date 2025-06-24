@@ -214,11 +214,11 @@ const setLayout = () => {
 
 
   const summary = Dom.create('summary', {
-    textContent: 'source code',
+    //textContent: 'source code',
     setStyles: {
       'z-index': '1',
-      'top': '2rem',
-      'position': 'sticky',
+      //'top': '2rem',
+      //'position': 'sticky',
       'padding': '0 1rem',
     }
   });
@@ -226,15 +226,16 @@ const setLayout = () => {
     setAttrs: {
       'open': 'false',
     },
-    appendChildren: [summary, editorDiv],
+    appendChildren: [summary, accessory.header],
 
   });
 
   // details.appendChild(summary);
   // details.appendChild(editorDiv);
 
-  rootMain.appendChild(accessory.header);
+  //rootMain.appendChild(accessory.header);
   rootMain.appendChild(details);
+  rootMain.appendChild(editorDiv);
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(accessory.footer);
   }
