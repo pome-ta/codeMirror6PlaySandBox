@@ -63,4 +63,9 @@ export default class Dom {
     });
     return this;
   }
+  
+  appendParent(parent) {
+    parent.appendChild(this.#element)
+    return this;
+  }
 }

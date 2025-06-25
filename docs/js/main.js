@@ -19,6 +19,7 @@ const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 const footerFactory = () => {
   
+  
 };
 
 
@@ -220,6 +221,22 @@ const details = Dom.create('details', {
   },
   appendChildren: [summary, wrapSummary],
 });
+
+
+
+const footer = Dom.create('footer',{
+  setStyles: {
+      'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
+      //'padding': '0.4rem',
+      'position': 'sticky',
+      'width': '100%',
+      'box-sizing': 'border-box',
+      'bottom': '0',
+    },
+  }
+);
+
+
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([details]);
