@@ -17,6 +17,11 @@ import {
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 
+const footerFactory = () => {
+  
+};
+
+
 const buttonFactory = (buttonIconChar, actionHandle) => {
   function createFrame(width, height) {
     return Dom.create('div', {
@@ -30,19 +35,21 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     });
   }
 
-  const btnW = '2.5rem';
+  const btnW = '2.4rem';
+  const btnH = '1.8rem';
   const btnRadius = '16%';
 
   const createActionButton = (iconChar) => {
     const icon = Dom.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
+        'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
         'color': '#f2f2f7',
       },
     });
 
-    const button = Dom.create(createFrame('90%', '90%'), {
+    const button = Dom.create(createFrame('98%', '98%'), {
       setStyles: {
         'border-radius': `${btnRadius}`,
         'background-color': '#8e8e93', // light gray
@@ -51,7 +58,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
       appendChildren: [icon,],
     });
 
-     return Dom.create(createFrame(btnW, '100%'), {
+     return Dom.create(createFrame(btnW, btnH), {
       setStyles: {
         'cursor': 'pointer',
       },
@@ -170,7 +177,6 @@ const hideButton = Dom.create('button', {
         if (divStyle.display === 'none') {
           divStyle.display = '';
           e.target.textContent = '🫥: hideCode';
-
         } else {
           divStyle.display = 'none';
           e.target.textContent = '😁: showCode';
@@ -182,6 +188,7 @@ const hideButton = Dom.create('button', {
 
 const summary = Dom.create('summary', {
   setStyles: {
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     'padding': '0 1rem',
   }
 });
