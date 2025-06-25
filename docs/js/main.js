@@ -188,9 +188,12 @@ const summary = Dom.create('summary', {
 
 const wrapSummary = Dom.create('div', {
   setStyles: {
-    'padding': '0 1rem',
-  }
+    'display': 'flex',
+    'justify-content': 'space-between',
+  },
+  appendChildren: [Dom.create('div'), hideButton],
 });
+
 
 
 
@@ -208,7 +211,7 @@ const details = Dom.create('details', {
     }
     
   },
-  appendChildren: [summary, hideButton],
+  appendChildren: [summary, wrapSummary],
 });
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
