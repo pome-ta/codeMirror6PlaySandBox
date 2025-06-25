@@ -6,8 +6,10 @@ const createFooter = (idName = null, classNames = []) => {
     setStyles: {
       'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
       'padding': '0.4rem',
+      'display': 'flex',
       // 'justify-content': 'space-around',
       'justify-content': 'space-between',
+      'align-items': 'center',
       'bottom': '0',
     },
   });

@@ -4,8 +4,6 @@ const createBaseDom = (type, idName = null, classNames = []) => {
   const options = {
     setStyles: {
       'position': 'sticky',
-      'display': 'flex',
-      'align-items': 'center',
       'width': '100%',
       'box-sizing': 'border-box',
     },

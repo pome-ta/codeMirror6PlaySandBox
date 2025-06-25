@@ -154,11 +154,6 @@ const buttons = Object.entries({
   return buttonFactory(str, fnc);
 });
 
-const h1Tag = Dom.create('h1', {
-  textContent: 'Safari Virtual Keyboard Demo',
-  setStyles: {'font-size': '1.5rem'},
-});
-
 
 const hideButton = Dom.create('button', {
   textContent: '🫥: hideCode',
@@ -185,14 +180,20 @@ const hideButton = Dom.create('button', {
   }
 });
 
-
-
 const summary = Dom.create('summary', {
-  //textContent: 'source code',
   setStyles: {
     'padding': '0 1rem',
   }
 });
+
+const wrapSummary = Dom.create('div', {
+  setStyles: {
+    'padding': '0 1rem',
+  }
+});
+
+
+
 const details = Dom.create('details', {
   setAttrs: {
     'open': 'false',
@@ -202,15 +203,14 @@ const details = Dom.create('details', {
     listener: {
       targetSummary: summary,
       handleEvent: function (e) {
-        console.log(e.target.open);
         this.targetSummary.textContent = `menu: ${e.target.open ? 'close' : 'open'}`;
       }
     }
     
   },
   appendChildren: [summary, hideButton],
-
 });
+
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 accessory.setupHeader([details]);
 accessory.setupFooter(buttons);
