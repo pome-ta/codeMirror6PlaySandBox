@@ -50,35 +50,34 @@ export default class Dom {
     return this;
   }
 
-  addEventListener({type, listener, options}) {
+  addEventListener({ type, listener, options }) {
     this.#element.addEventListener(type, listener, options);
     return this;
   }
-  
-  /*
-  targetAddEventListener({target, type, listener, options}) {
-    //target.addEventListener(type, listener, options);
-    target = 
+
+  targetAddEventListener({ target, type, listener, options }) {
+    target.addEventListener(type, listener, options);
+
     return this;
   }
-  */
-  
-  targetAddEvent({target, event}) {
-    //target.addEventListener(type, listener, options);
-    target = event;
-    console.log(target)
+
+  targetAddEventListeners({ target, types, listener, options }) {
+    [...types].forEach((type) => {
+      this.targetAddEventListener({ target, type, listener, options });
+    });
+
     return this;
   }
 
   appendChildren(children) {
-    [...children].forEach(child => {
-      this.#element.appendChild(child,);
+    [...children].forEach((child) => {
+      this.#element.appendChild(child);
     });
     return this;
   }
-  
+
   appendParent(parent) {
-    parent.appendChild(this.#element)
+    parent.appendChild(this.#element);
     return this;
   }
 }
