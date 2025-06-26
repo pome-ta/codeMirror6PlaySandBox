@@ -232,7 +232,7 @@ const headerHandleEvent1 = function (e) {
   
 };
 */
-const headerHandleEvent1 = (e) => {
+const headerHandleEvent = (e) => {
   console.log(e);
   const header = document.querySelector('#header');
   const offsetTop = window.visualViewport.offsetTop;
@@ -258,18 +258,28 @@ const header = Dom.create('header', {
     'z-index': '1',
   },
 
-  targetAddEventListeners: {
+  /*
+  targetAddEventListener: {
     target: window.visualViewport,
-    types: ['scroll', 'resize'],
+    types: 'resize',
     listener: {
-      handleEvent: (e) => {
-        console.log(e);
-        const header = document.querySelector('#header');
-        const offsetTop = window.visualViewport.offsetTop;
-        header.style.top = `${offsetTop}px`;
-      },
-    },
-  },
+      handleEvent: headerHandleEvent,
+    }},
+  */
+  
+  targetAddEventListeners: [{
+    target: window.visualViewport,
+    type: 'resize',
+    listener: {
+      handleEvent: headerHandleEvent,
+    }},
+    {
+    target: window.visualViewport,
+    type: 'scroll',
+    listener: {
+      handleEvent: headerHandleEvent,
+    }},],
+    
 
   appendChildren: [details],
 });

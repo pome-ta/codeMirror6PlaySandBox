@@ -60,10 +60,10 @@ export default class Dom {
 
     return this;
   }
-
-  targetAddEventListeners({ target, types, listener, options }) {
-    [...types].forEach((type) => {
-      this.targetAddEventListener({ target, type, listener, options });
+  
+  targetAddEventListeners(args) {
+    [...args].forEach((arg) => {
+      this.targetAddEventListener(arg);
     });
 
     return this;
