@@ -17,10 +17,7 @@ import {
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 
-const footerFactory = () => {
-  
-  
-};
+
 
 
 const buttonFactory = (buttonIconChar, actionHandle) => {
@@ -203,11 +200,10 @@ const wrapSummary = Dom.create('div', {
 });
 
 
-
-
 const details = Dom.create('details', {
   setAttrs: {
     'open': 'false',
+    'id': 'details',
   },
   addEventListener: {
     type: 'toggle',
@@ -215,9 +211,9 @@ const details = Dom.create('details', {
       targetSummary: summary,
       handleEvent: function (e) {
         this.targetSummary.textContent = `menu: ${e.target.open ? 'close' : 'open'}`;
+        
       }
     }
-    
   },
   appendChildren: [summary, wrapSummary],
 });
@@ -236,11 +232,79 @@ const footer = Dom.create('footer',{
   
   }
 );
+/*
+const headerHandleEvent1 = function (e) {
+  console.log(e)
+  const header = document.querySelector('#header')
+  const offsetTop = window.visualViewport.offsetTop;
+  header.style.top = `${offsetTop}px`;
+  
+};
+*/
+const headerHandleEvent1 = (e) => {
+  console.log(e)
+  const header = document.querySelector('#header')
+  const offsetTop = window.visualViewport.offsetTop;
+  header.style.top = `${offsetTop}px`;
+}
+
+
+      
+const headerHandleEvent2 = function (e) {
+  console.log(e)
+  const header = document.querySelector('#header')
+  const offsetTop = window.visualViewport.offsetTop;
+  header.style.top = `${offsetTop}px`;
+  
+};
+      
+      
+const header = Dom.create('header', {
+  setAttrs: {
+    'id': 'header',
+  },
+  setStyles: {
+    'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
+    'position': 'sticky',
+    'width': '100%',
+    'top': '0',
+    'z-index': '1',
+  },
+  
+  targetAddEvent: {
+    target: window.visualViewport.onscroll,
+    event: headerHandleEvent1,
+  },
+  
+  
+  /*
+  targetAddEventListener: {
+    target: window.visualViewport,
+    //type: 'resize',
+    type: 'scroll',
+    listener: {
+      handleEvent: headerHandleEvent2,
+    }
+  },
+  */
+  
+  
+  
+  
+  
+  appendChildren: [details],
+});
+
+/*
+window.visualViewport.addEventListener('resize', headerHandleEvent1);
+window.visualViewport.addEventListener('scroll', headerHandleEvent1);
+*/
+
 
 
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
-accessory.setupHeader([details]);
+//accessory.setupHeader([details]);
 accessory.setupFooter(buttons);
 
 const setLayout = () => {
@@ -252,7 +316,8 @@ const setLayout = () => {
       'height': '100%',
       'overflow': 'auto',
     },
-    appendChildren: [accessory.header, editorDiv],
+    //appendChildren: [accessory.header, editorDiv],
+    appendChildren: [header, editorDiv],
   });
 
   if (IS_TOUCH_DEVICE) {
@@ -270,5 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  accessory.eventHandler(editor);
+  //accessory.eventHandler(editor);
+  console.log(window.visualViewport)
 });

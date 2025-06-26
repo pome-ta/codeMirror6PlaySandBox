@@ -16,7 +16,6 @@ export default class Dom {
       Object.entries(options).forEach(([key, value]) => instance[key](value));
     }
 
-
     return instance.element;
   }
 
@@ -53,12 +52,26 @@ export default class Dom {
 
   addEventListener({type, listener, options}) {
     this.#element.addEventListener(type, listener, options);
-    //console.log(listener)
+    return this;
+  }
+  
+  /*
+  targetAddEventListener({target, type, listener, options}) {
+    //target.addEventListener(type, listener, options);
+    target = 
+    return this;
+  }
+  */
+  
+  targetAddEvent({target, event}) {
+    //target.addEventListener(type, listener, options);
+    target = event;
+    console.log(target)
     return this;
   }
 
   appendChildren(children) {
-    children.forEach(child => {
+    [...children].forEach(child => {
       this.#element.appendChild(child,);
     });
     return this;
