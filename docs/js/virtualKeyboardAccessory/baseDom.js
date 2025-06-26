@@ -3,8 +3,8 @@ import Dom from '../utils/dom.js';
 const createBaseDom = (type, idName = null, classNames = []) => {
   const options = {
     setStyles: {
-      position: 'sticky',
-      width: '100%',
+      'position': 'sticky',
+      'width': '100%',
       'box-sizing': 'border-box',
     },
   };

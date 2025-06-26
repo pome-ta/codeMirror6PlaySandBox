@@ -1,6 +1,6 @@
 import Dom from './utils/dom.js';
 import createEditorView from './editor/index.js';
-import { AccessoryWidgets } from './virtualKeyboardAccessory/index.js';
+import {AccessoryWidgets} from './virtualKeyboardAccessory/index.js';
 
 import {
   cursorCharLeft,
@@ -21,8 +21,8 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     return Dom.create('div', {
       setStyles: {
         'min-width': `${width}`,
-        height: `${height}`,
-        display: 'flex',
+        'height': `${height}`,
+        'display': 'flex',
         'justify-content': 'center',
         'align-items': 'center',
       },
@@ -40,7 +40,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         'font-family':
           'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
-        color: '#f2f2f7',
+        'color': '#f2f2f7',
       },
     });
 
@@ -48,14 +48,14 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
       setStyles: {
         'border-radius': `${btnRadius}`,
         'background-color': '#8e8e93', // light gray
-        filter: 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
+        'filter': 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
       },
       appendChildren: [icon],
     });
 
     return Dom.create(createFrame(btnW, btnH), {
       setStyles: {
-        cursor: 'pointer',
+        'cursor': 'pointer',
       },
       appendChildren: [button],
     });
@@ -80,8 +80,12 @@ async function insertFetchDoc(filePath) {
 const codeFilePath = './js/main.js';
 
 const editorDiv = Dom.create('div', {
-  setAttrs: { id: 'editor-div' },
-  setStyles: { width: '100%' },
+  setAttrs: {
+    'id': 'editor-div',
+  },
+  setStyles: {
+    'width': '100%',
+  },
 });
 const editor = createEditorView(editorDiv);
 
@@ -154,26 +158,28 @@ const buttons = Object.entries({
   return buttonFactory(str, fnc);
 });
 
+const hideButtonHandleEvent = function (e) {
+  const divStyle = this.targetDiv.style;
+  if (divStyle.display === 'none') {
+    divStyle.display = '';
+    e.target.textContent = '🫥: hideCode';
+  } else {
+    divStyle.display = 'none';
+    e.target.textContent = '😁: showCode';
+  }
+};
+
 const hideButton = Dom.create('button', {
   textContent: '🫥: hideCode',
   setStyles: {
-    margin: '0.5rem',
-    height: '2rem',
+    'margin': '0.5rem',
+    'height': '2rem',
   },
   addEventListener: {
     type: 'click',
     listener: {
       targetDiv: editorDiv,
-      handleEvent: function (e) {
-        const divStyle = this.targetDiv.style;
-        if (divStyle.display === 'none') {
-          divStyle.display = '';
-          e.target.textContent = '🫥: hideCode';
-        } else {
-          divStyle.display = 'none';
-          e.target.textContent = '😁: showCode';
-        }
-      },
+      handleEvent: hideButtonHandleEvent,
     },
   },
 });
@@ -182,13 +188,13 @@ const summary = Dom.create('summary', {
   setStyles: {
     'font-family':
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-    padding: '0 1rem',
+    'padding': '0.5rem 1rem',
   },
 });
 
 const wrapSummary = Dom.create('div', {
   setStyles: {
-    display: 'flex',
+    'display': 'flex',
     'justify-content': 'space-between',
   },
   appendChildren: [Dom.create('div'), hideButton],
@@ -196,8 +202,8 @@ const wrapSummary = Dom.create('div', {
 
 const details = Dom.create('details', {
   setAttrs: {
-    open: 'false',
-    id: 'details',
+    'id': 'details',
+    'open': 'false',
   },
   addEventListener: {
     type: 'toggle',
@@ -213,34 +219,8 @@ const details = Dom.create('details', {
   appendChildren: [summary, wrapSummary],
 });
 
-const footer = Dom.create('footer', {
-  setStyles: {
-    'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
-    //'padding': '0.4rem',
-    position: 'sticky',
-    width: '100%',
-    'box-sizing': 'border-box',
-    bottom: '0',
-  },
-});
-/*
-const headerHandleEvent1 = function (e) {
-  console.log(e)
-  const header = document.querySelector('#header')
-  const offsetTop = window.visualViewport.offsetTop;
-  header.style.top = `${offsetTop}px`;
-  
-};
-*/
-const headerHandleEvent = (e) => {
-  console.log(e);
-  const header = document.querySelector('#header');
-  const offsetTop = window.visualViewport.offsetTop;
-  header.style.top = `${offsetTop}px`;
-};
 
-const headerHandleEvent2 = function (e) {
-  console.log(e);
+const headerHandleEvent = function () {
   const header = document.querySelector('#header');
   const offsetTop = window.visualViewport.offsetTop;
   header.style.top = `${offsetTop}px`;
@@ -248,61 +228,106 @@ const headerHandleEvent2 = function (e) {
 
 const header = Dom.create('header', {
   setAttrs: {
-    id: 'header',
+    'id': 'header',
   },
   setStyles: {
     'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
-    position: 'sticky',
-    width: '100%',
-    top: '0',
+    'position': 'sticky',
+    'width': '100%',
+    'top': '0',
     'z-index': '1',
   },
-
-  /*
-  targetAddEventListener: {
-    target: window.visualViewport,
-    types: 'resize',
-    listener: {
-      handleEvent: headerHandleEvent,
-    }},
-  */
-  
-  targetAddEventListeners: [{
-    target: window.visualViewport,
-    type: 'resize',
-    listener: {
-      handleEvent: headerHandleEvent,
-    }},
+  targetAddEventListeners: [
     {
-    target: window.visualViewport,
-    type: 'scroll',
-    listener: {
-      handleEvent: headerHandleEvent,
-    }},],
-    
-
+      target: window.visualViewport,
+      type: 'resize',
+      listener: {
+        handleEvent: headerHandleEvent,
+      },
+    },
+    {
+      target: window.visualViewport,
+      type: 'scroll',
+      listener: {
+        handleEvent: headerHandleEvent,
+      },
+    },
+  ],
   appendChildren: [details],
+});
+
+
+const footerHandleEvent = function () {
+  const footer = document.querySelector('#footer');
+  if (!this.targetEditor.hasFocus) {
+    footer.style.display = 'none';
+    return;
+  }
+  footer.style.display = 'flex';
+  const offsetTop = window.visualViewport.offsetTop;
+  const offsetBottom =
+    window.innerHeight -
+    window.visualViewport.height +
+    offsetTop -
+    window.visualViewport.pageTop;
+  footer.style.bottom = `${offsetBottom}px`;
+};
+const footer = Dom.create('footer', {
+  setAttrs: {
+    'id': 'footer',
+  },
+  setStyles: {
+    'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
+    // 'padding': '0.4rem',
+    'position': 'sticky',
+    'width': '100%',
+    'box-sizing': 'border-box',
+    'bottom': '0',
+    'display': 'flex',
+    // 'justify-content': 'space-around',
+    'justify-content': 'space-between',
+  },
+  targetAddEventListeners: [
+    {
+      target: window.visualViewport,
+      type: 'resize',
+      listener: {
+        targetDiv: editorDiv,
+        handleEvent: footerHandleEvent,
+      },
+    },
+    {
+      target: window.visualViewport,
+      type: 'scroll',
+      listener: {
+        targetDiv: editorDiv,
+        handleEvent: footerHandleEvent,
+      },
+    },
+  ],
+  appendChildren: [...buttons],
 });
 
 const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 //accessory.setupHeader([details]);
-accessory.setupFooter(buttons);
+// accessory.setupFooter(buttons);
 
 const setLayout = () => {
   const rootMain = Dom.create('div', {
-    setAttrs: { id: 'rootMain' },
+    setAttrs: {id: 'rootMain'},
     setStyles: {
-      display: 'grid',
+      'display': 'grid',
       'grid-template-rows': 'auto 1fr auto',
-      height: '100%',
-      overflow: 'auto',
+      'height': '100%',
+      'overflow': 'auto',
     },
     //appendChildren: [accessory.header, editorDiv],
-    appendChildren: [header, editorDiv],
+    appendChildren: [header, editorDiv,],
   });
 
+  rootMain.appendChild(footer);
   if (IS_TOUCH_DEVICE) {
-    rootMain.appendChild(accessory.footer);
+    rootMain.appendChild(footer);
   }
   document.body.appendChild(rootMain);
 };
@@ -312,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: { from: editor.state?.doc.length, insert: loadedSource },
+      changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
   });
 });

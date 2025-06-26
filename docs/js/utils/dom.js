@@ -12,9 +12,9 @@ export default class Dom {
 
   static create(tag, options) {
     const instance = new this(tag);
-    if (options) {
-      Object.entries(options).forEach(([key, value]) => instance[key](value));
-    }
+    options
+      ? Object.entries(options).forEach(([key, value]) => instance[key](value))
+      : null;
 
     return instance.element;
   }
@@ -50,21 +50,19 @@ export default class Dom {
     return this;
   }
 
-  addEventListener({ type, listener, options }) {
+  addEventListener({type, listener, options}) {
     this.#element.addEventListener(type, listener, options);
     return this;
   }
 
-  targetAddEventListener({ target, type, listener, options }) {
+  targetAddEventListener({target, type, listener, options}) {
     target.addEventListener(type, listener, options);
 
     return this;
   }
-  
+
   targetAddEventListeners(args) {
-    [...args].forEach((arg) => {
-      this.targetAddEventListener(arg);
-    });
+    [...args].forEach((arg) => this.targetAddEventListener(arg));
 
     return this;
   }
