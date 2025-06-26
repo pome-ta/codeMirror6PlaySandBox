@@ -233,6 +233,14 @@ const footer = Dom.create('footer',{
       'box-sizing': 'border-box',
       'bottom': '0',
     },
+    listener: {
+      targetEditor: editor,
+      handleEvent: function (e) {
+        e.target.style.display = this.targetEditor.hasFocus ? 'flex' : 'none';
+        
+        
+      }
+    }
   }
 );
 
