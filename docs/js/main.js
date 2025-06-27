@@ -274,6 +274,15 @@ const buttonsWrap = Dom.create('div', {
 });
 
 
+let caret, headLine, endLine;
+let startX = 0;
+let endX = 0;
+
+
+
+
+
+
 const caretMoveArea = Dom.create('div', {
   setStyles: {
     'background-color': 'green',
@@ -281,7 +290,43 @@ const caretMoveArea = Dom.create('div', {
     'height': '100%',
     'border-radius': '8%',
     //'padding': '1rem',
-  }
+  },
+  addEventListeners: [
+    /*
+    {
+      type: 'touchstart',
+      listener: {
+        targetEditor: editor,
+        handleEvent: function(e) {
+          //console.log(`touchstart: ${e}`)
+          console.log(this.targetEditor)
+          
+        },
+      },
+    },
+    */
+    {
+      type: 'touchmove',
+      listener: {
+        targetEditor: editor,
+        handleEvent: function(e) {
+          e.preventDefault(); // xxx: 変化用確認
+          console.log(`touchmove: ${e}`)
+        },
+      },
+    },
+    /*
+    {
+      type: 'touchend',
+      listener: {
+        targetEditor: editor,
+        handleEvent: function(e) {
+          console.log(`touchend: ${e}`)
+        },
+      },
+    },
+    */
+  ],
 });
 
 const caretWrap = Dom.create('div', {

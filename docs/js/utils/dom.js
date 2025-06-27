@@ -54,6 +54,12 @@ export default class Dom {
     this.#element.addEventListener(type, listener, options);
     return this;
   }
+  
+  addEventListeners(args) {
+    [...args].forEach((arg) => this.addEventListener(arg));
+
+    return this;
+  }
 
   targetAddEventListener({target, type, listener, options}) {
     target.addEventListener(type, listener, options);
