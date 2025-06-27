@@ -307,11 +307,15 @@ const caretMoveArea = Dom.create('div', {
           })
           */
           const touches = e.changedTouches;
+          /*
           touches[0].changedTouches.forEach((t) => {
             console.log(t);
           });
+          */
+          const endXx = event.touches ? event.touches[0].pageX : event.pageX;
 
-          console.log(`touchmove: ${touches[0]}`);
+          console.log(`touchmove: ${touches.length}`);
+          console.log(`endXx: ${endXx}`);
         },
       },
     },
