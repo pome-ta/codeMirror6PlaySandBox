@@ -281,40 +281,42 @@ const caretMoveArea = Dom.create('div', {
     //'padding': '1rem',
   },
   addEventListeners: [
-    /*
+    
     {
       type: 'touchstart',
       listener: {
         targetEditor: editor,
         handleEvent: function(e) {
-          //console.log(`touchstart: ${e}`)
-          console.log(this.targetEditor)
+          //e.preventDefault(); // xxx: 変化用確認
+          startX = e.changedTouches[0].clientX;
           
         },
       },
     },
-    */
+    
     {
       type: 'touchmove',
       listener: {
         targetEditor: editor,
         handleEvent: function (e) {
-          e.preventDefault(); // xxx: 変化用確認
+          //e.preventDefault(); // xxx: 変化用確認
           console.log('--e');
           /*
           e.changedTouches.forEach((t) => {
             console.log(t)
           })
           */
-          const touches = e.changedTouches;
+          const changedTouches = e.changedTouches;
           /*
           touches[0].changedTouches.forEach((t) => {
             console.log(t);
           });
           */
-          const endXx = event.touches ? event.touches[0].pageX : event.pageX;
+          const endXx = e.touches[0].clientX;
+          console.log(`startX: ${startX}`);
 
-          console.log(`touchmove: ${touches.length}`);
+          console.log(`touchmove: ${changedTouches[0].clientX}`);
+          console.log(`${changedTouches.length}`);
           console.log(`endXx: ${endXx}`);
         },
       },
