@@ -257,13 +257,57 @@ const header = Dom.create('header', {
 });
 
 
+
+
+const buttonsWrap = Dom.create('div', {
+  setStyles: {
+    'background-color': 'maroon',
+    'width': '100%',
+    'box-sizing': 'border-box',
+    'padding': '0.1rem 0.4rem',
+    'display': 'flex',
+    // 'justify-content': 'space-around',
+    'justify-content': 'space-between',
+  },
+  
+  appendChildren: [...buttons],
+});
+
+
+const caretMoveArea = Dom.create('div', {
+  setStyles: {
+    'background-color': 'green',
+    'width': '100%',
+    'height': '100%',
+    'border-radius': '8%',
+    //'padding': '1rem',
+  }
+});
+
+const caretWrap = Dom.create('div', {
+  setStyles: {
+    'background-color': 'navy',
+    'width': '100%',
+    'height': '2rem',
+    'box-sizing': 'border-box',
+    'padding': '0.2rem',
+    //'margin': '1rem',
+
+  },
+  appendChildren: [caretMoveArea],
+});
+
+
+
 const footerHandleEvent = function () {
   const footer = document.querySelector('#footer');
   if (!this.targetEditor.hasFocus) {
     footer.style.display = 'none';
     return;
   }
-  footer.style.display = 'flex';
+  footer.style.display = '';
+  
+  //footer.style.display = this.targetEditor.hasFocus ?  'flex': 'none';
   const offsetTop = window.visualViewport.offsetTop;
   const offsetBottom =
     window.innerHeight -
@@ -272,27 +316,25 @@ const footerHandleEvent = function () {
     window.visualViewport.pageTop;
   footer.style.bottom = `${offsetBottom}px`;
 };
+
 const footer = Dom.create('footer', {
   setAttrs: {
     'id': 'footer',
   },
   setStyles: {
     'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
-    // 'padding': '0.4rem',
     'position': 'sticky',
     'width': '100%',
     'box-sizing': 'border-box',
     'bottom': '0',
-    'display': 'flex',
-    // 'justify-content': 'space-around',
-    'justify-content': 'space-between',
+    //'display': 'none',
   },
   targetAddEventListeners: [
     {
       target: window.visualViewport,
       type: 'resize',
       listener: {
-        targetDiv: editorDiv,
+        targetEditor: editor,
         handleEvent: footerHandleEvent,
       },
     },
@@ -300,15 +342,15 @@ const footer = Dom.create('footer', {
       target: window.visualViewport,
       type: 'scroll',
       listener: {
-        targetDiv: editorDiv,
+        targetEditor: editor,
         handleEvent: footerHandleEvent,
       },
     },
   ],
-  appendChildren: [...buttons],
+  appendChildren: [buttonsWrap, caretWrap],
 });
 
-const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
+//const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
 //accessory.setupHeader([details]);
 // accessory.setupFooter(buttons);
 
@@ -325,7 +367,7 @@ const setLayout = () => {
     appendChildren: [header, editorDiv,],
   });
 
-  rootMain.appendChild(footer);
+  //rootMain.appendChild(footer);
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(footer);
   }
@@ -340,4 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
   });
+  
+  
 });
