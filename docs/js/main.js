@@ -311,7 +311,18 @@ const caretMoveArea = Dom.create('div', {
         targetEditor: editor,
         handleEvent: function(e) {
           e.preventDefault(); // xxx: 変化用確認
-          console.log(`touchmove: ${e}`)
+          console.log('--e')
+          /*
+          e.changedTouches.forEach((t) => {
+            console.log(t)
+          })
+          */
+          const touches = e.changedTouches;
+          touches[0].changedTouches.forEach((t) => {
+            console.log(t)
+          })
+          
+          console.log(`touchmove: ${touches[0]}`)
         },
       },
     },
