@@ -21,16 +21,19 @@ export default class Dom {
 
   setAttr(name, val) {
     this.#element.setAttribute(name, val);
+
     return this;
   }
 
   setAttrs(attrs) {
     Object.entries(attrs).forEach(([key, value]) => this.setAttr(key, value));
+
     return this;
   }
 
   setStyle(prop, val) {
     this.#element.style.setProperty(prop, val);
+
     return this;
   }
 
@@ -42,26 +45,29 @@ export default class Dom {
 
   addClassList(nameList) {
     this.#element.classList.add(...nameList);
+
     return this;
   }
 
   textContent(value) {
     this.#element.textContent = value;
+
     return this;
   }
 
-  addEventListener({type, listener, options}) {
+  addEventListener({ type, listener, options }) {
     this.#element.addEventListener(type, listener, options);
+
     return this;
   }
-  
+
   addEventListeners(args) {
     [...args].forEach((arg) => this.addEventListener(arg));
 
     return this;
   }
 
-  targetAddEventListener({target, type, listener, options}) {
+  targetAddEventListener({ target, type, listener, options }) {
     target.addEventListener(type, listener, options);
 
     return this;
@@ -74,14 +80,14 @@ export default class Dom {
   }
 
   appendChildren(children) {
-    [...children].forEach((child) => {
-      this.#element.appendChild(child);
-    });
+    [...children].forEach((child) => this.#element.appendChild(child));
+
     return this;
   }
 
   appendParent(parent) {
     parent.appendChild(this.#element);
+
     return this;
   }
 }
