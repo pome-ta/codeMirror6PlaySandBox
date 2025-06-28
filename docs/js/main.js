@@ -306,17 +306,17 @@ const caretMoveArea = Dom.create('div', {
             console.log(t)
           })
           */
-          const changedTouches = e.changedTouches;
+          //const changedTouches = e.changedTouches;
           /*
           touches[0].changedTouches.forEach((t) => {
             console.log(t);
           });
           */
-          const endXx = e.touches[0].clientX;
+          const endXx = e.changedTouches[0].clientX;
           console.log(`startX: ${startX}`);
 
-          console.log(`touchmove: ${changedTouches[0].clientX}`);
-          console.log(`${changedTouches.length}`);
+          //console.log(`touchmove: ${changedTouches[0].clientX}`);
+          //console.log(`${changedTouches.length}`);
           console.log(`endXx: ${endXx}`);
         },
       },
