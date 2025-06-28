@@ -287,9 +287,15 @@ const caretMoveArea = Dom.create('div', {
       listener: {
         targetEditor: editor,
         handleEvent: function(e) {
-          //e.preventDefault(); // xxx: 変化用確認
+          //e.preventDefault(); // xxx: 変化要確認
+          if (!this.targetEditor.hasFocus) {
+            return
+          }
+          const selectionMain = this.targetEditor.state.selection.main;
+          caret = selectionMain.anchor;
+          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
           startX = e.changedTouches[0].clientX;
-          
         },
       },
     },
@@ -299,25 +305,14 @@ const caretMoveArea = Dom.create('div', {
       listener: {
         targetEditor: editor,
         handleEvent: function (e) {
-          //e.preventDefault(); // xxx: 変化用確認
-          console.log('--e');
-          /*
-          e.changedTouches.forEach((t) => {
-            console.log(t)
-          })
-          */
-          //const changedTouches = e.changedTouches;
-          /*
-          touches[0].changedTouches.forEach((t) => {
-            console.log(t);
-          });
-          */
-          const endXx = e.changedTouches[0].clientX;
-          console.log(`startX: ${startX}`);
-
-          //console.log(`touchmove: ${changedTouches[0].clientX}`);
-          //console.log(`${changedTouches.length}`);
-          console.log(`endXx: ${endXx}`);
+          //e.preventDefault(); // xxx: 変化要確認
+          if (!this.targetEditor.hasFocus) {
+            return
+          }
+          
+          const moveX = e.changedTouches[0].clientX;
+          
+          //startX = endX;
         },
       },
     },
@@ -431,3 +426,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
