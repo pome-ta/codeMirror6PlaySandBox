@@ -231,7 +231,9 @@ const header = Dom.create('header', {
     id: 'header',
   },
   setStyles: {
-    'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
+    // 'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
+    'background-color': `var(--accessory-color-scheme)`,
+
     position: 'sticky',
     width: '100%',
     top: '0',
@@ -286,6 +288,11 @@ l: 56585C 87
 86,88,92
 
 
+210
+213
+222
+
+https://developer.apple.com/design/human-interface-guidelines/virtual-keyboards
 
  */
 
@@ -405,7 +412,7 @@ const footer = Dom.create('footer', {
   },
   setStyles: {
     //'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
-    'background-color': `rgba(56, 56, 56, 0.75)`,
+    'background-color': `var(--accessory-color-scheme)`,
     position: 'sticky',
     width: '100%',
     'box-sizing': 'border-box',
@@ -430,6 +437,72 @@ const footer = Dom.create('footer', {
       },
     },
   ],
+  // addEventListeners: [
+  //
+  //   {
+  //     type: 'touchstart',
+  //     listener: {
+  //       targetEditor: editor,
+  //       handleEvent: function (e) {
+  //         //e.preventDefault(); // xxx: 変化要確認
+  //         if (!this.targetEditor.hasFocus) {
+  //           return;
+  //         }
+  //
+  //         const selectionMain = this.targetEditor.state.selection.main;
+  //         caret = selectionMain.anchor;
+  //         headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
+  //         endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
+  //
+  //         swipeAreaWidth = document.querySelector('#footer').clientWidth;
+  //         stepValue = swipeAreaWidth / divStep;
+  //         startX = e.changedTouches[0].clientX;
+  //
+  //
+  //       },
+  //     },
+  //   },
+  //
+  //   {
+  //     type: 'touchmove',
+  //     listener: {
+  //       targetEditor: editor,
+  //       handleEvent: function (e) {
+  //         e.preventDefault(); // xxx: 変化要確認
+  //         if (!this.targetEditor.hasFocus) {
+  //           return;
+  //         }
+  //
+  //         const swipeX = e.changedTouches[0].clientX;
+  //
+  //         const moveDistance = swipeX - startX;
+  //         const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
+  //
+  //         if (caret === moveCache) {
+  //           return;
+  //         }
+  //
+  //         const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
+  //
+  //         this.targetEditor.dispatch({
+  //           selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
+  //         });
+  //         this.targetEditor.focus();
+  //       },
+  //     },
+  //   },
+  //   /*
+  //   {
+  //     type: 'touchend',
+  //     listener: {
+  //       targetEditor: editor,
+  //       handleEvent: function(e) {
+  //         console.log(`touchend: ${e}`)
+  //       },
+  //     },
+  //   },
+  //   */
+  // ],
   appendChildren: [buttonsWrap, caretWrap],
 });
 

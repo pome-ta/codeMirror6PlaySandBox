@@ -4,7 +4,15 @@
 :root {
   color-scheme: light dark;
   --backGround-color-scheme: light-dark(#f2f2f7, #1c1c1e);
+  /*--accessory-color-scheme: light-dark(color-mix(in srgb, #555555 90%), color-mix(in srgb, #383838 75%, var(--backGround-color-scheme)));*/
+  /*--accessory-color-scheme: light-dark(color-mix(in srgb, rgba(56, 56, 56, 0.75), var(--backGround-color-scheme)), color-mix(in srgb, rgba(85, 85, 85, 0.9), color-mix(in srgb, rgba(86, 88, 92, 0.87), #939393)));*/
+  --accessory-color-scheme: light-dark(
+      color-mix(in srgb, rgba(85, 85, 85, 0.9), color-mix(in srgb, rgba(86, 88, 92, 0.87), #939393)),
+      color-mix(in srgb, rgba(56, 56, 56, 0.75), var(--backGround-color-scheme))
+  );
+
 }
+
 
 html {
   height: 100%;
