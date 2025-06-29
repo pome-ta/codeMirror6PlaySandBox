@@ -214,6 +214,7 @@ const details = Dom.create('details', {
         this.targetSummary.textContent = `menu: ${
           e.target.open ? 'close' : 'open'
         }`;
+        
       },
     },
   },
@@ -263,7 +264,7 @@ const buttonsWrap = Dom.create('div', {
     //'background-color': 'maroon',
     width: '100%',
     'box-sizing': 'border-box',
-    padding: '0.1rem 0.4rem',
+    padding: '0.4rem',
     display: 'flex',
     // 'justify-content': 'space-around',
     'justify-content': 'space-between',
@@ -494,7 +495,8 @@ const footer = Dom.create('footer', {
     },
     */
   ],
-  appendChildren: [buttonsWrap, caretWrap],
+  //appendChildren: [buttonsWrap, caretWrap],
+  appendChildren: [buttonsWrap],
 });
 
 //const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
