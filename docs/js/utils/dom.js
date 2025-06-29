@@ -55,7 +55,7 @@ export default class Dom {
     return this;
   }
 
-  addEventListener({ type, listener, options }) {
+  addEventListener({type, listener, options}) {
     this.#element.addEventListener(type, listener, options);
 
     return this;
@@ -67,7 +67,7 @@ export default class Dom {
     return this;
   }
 
-  targetAddEventListener({ target, type, listener, options }) {
+  targetAddEventListener({target, type, listener, options}) {
     target.addEventListener(type, listener, options);
 
     return this;

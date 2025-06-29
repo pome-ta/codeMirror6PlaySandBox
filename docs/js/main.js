@@ -277,7 +277,7 @@ const caretSwipeArea = Dom.create('div', {
   setAttrs: {
     id: 'swipeArea',
   },
-  
+
   setStyles: {
     'background-color': 'green',
     width: '100%',
@@ -286,36 +286,36 @@ const caretSwipeArea = Dom.create('div', {
     //'padding': '1rem',
   },
   addEventListeners: [
-    
+
     {
       type: 'touchstart',
       listener: {
         targetEditor: editor,
-        handleEvent: function(e) {
+        handleEvent: function (e) {
           //e.preventDefault(); // xxx: 変化要確認
-          
+
           swipeAreaWidth = document.querySelector('#swipeArea').clientWidth;
           startX = e.changedTouches[0].clientX;
-          
-          console.log('---')
-          console.log(swipeAreaWidth)
-          console.log(startX)
-          
-          
+
+          console.log('---');
+          console.log(swipeAreaWidth);
+          console.log(startX);
+
+
           if (!this.targetEditor.hasFocus) {
-            return
+            return;
           }
-          
+
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
           headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
           endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
-          
-          
+
+
         },
       },
     },
-    
+
     {
       type: 'touchmove',
       listener: {
@@ -323,11 +323,13 @@ const caretSwipeArea = Dom.create('div', {
         handleEvent: function (e) {
           //e.preventDefault(); // xxx: 変化要確認
           if (!this.targetEditor.hasFocus) {
-            return
+            return;
           }
-          
+
+          const stepValue = Math.round(swipeAreaWidth / 10);
+
           const swipeX = e.changedTouches[0].clientX;
-          
+
           //startX = endX;
         },
       },
@@ -415,7 +417,7 @@ const footer = Dom.create('footer', {
 
 const setLayout = () => {
   const rootMain = Dom.create('div', {
-    setAttrs: { id: 'rootMain' },
+    setAttrs: {id: 'rootMain'},
     setStyles: {
       display: 'grid',
       'grid-template-rows': 'auto 1fr auto',
@@ -438,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: { from: editor.state?.doc.length, insert: loadedSource },
+      changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
   });
 });
