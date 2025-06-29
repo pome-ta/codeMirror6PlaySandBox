@@ -279,7 +279,12 @@ let startX = 0;
 /*
 
 d: 383838 75
+56
+0.21
+
 l: 56585C 87
+86,88,92
+
 
 
  */
@@ -399,7 +404,8 @@ const footer = Dom.create('footer', {
     id: 'footer',
   },
   setStyles: {
-    'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
+    //'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
+    'background-color': `rgba(56, 56, 56, 0.75)`,
     position: 'sticky',
     width: '100%',
     'box-sizing': 'border-box',
