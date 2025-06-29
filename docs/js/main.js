@@ -276,6 +276,14 @@ let swipeAreaWidth, stepValue;
 let startX = 0;
 
 
+/*
+
+d: 383838 75
+l: 56585C 87
+
+
+ */
+
 const caretSwipeArea = Dom.create('div', {
   setAttrs: {
     id: 'swipeArea',
@@ -304,7 +312,7 @@ const caretSwipeArea = Dom.create('div', {
           caret = selectionMain.anchor;
           headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
           endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
-          
+
           swipeAreaWidth = document.querySelector('#swipeArea').clientWidth;
           stepValue = swipeAreaWidth / divStep;
           startX = e.changedTouches[0].clientX;
@@ -325,16 +333,16 @@ const caretSwipeArea = Dom.create('div', {
           }
 
           const swipeX = e.changedTouches[0].clientX;
-          
+
           const moveDistance = swipeX - startX;
           const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
-          
+
           if (caret === moveCache) {
             return;
           }
-          
+
           const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
-          
+
           this.targetEditor.dispatch({
             selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
           });
