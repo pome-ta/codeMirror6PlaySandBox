@@ -1,6 +1,8 @@
 import Dom from './utils/dom.js';
 import createEditorView from './editor/index.js';
 
+import {EditorSelection} from './editor/codemirror/state.js';
+
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -256,7 +258,7 @@ const header = Dom.create('header', {
 
 const buttonsWrap = Dom.create('div', {
   setStyles: {
-    'background-color': 'maroon',
+    //'background-color': 'maroon',
     width: '100%',
     'box-sizing': 'border-box',
     padding: '0.1rem 0.4rem',
@@ -269,7 +271,8 @@ const buttonsWrap = Dom.create('div', {
 });
 
 let caret, headLine, endLine;
-let swipeAreaWidth;
+const divStep = 16;
+let swipeAreaWidth, stepValue;
 let startX = 0;
 
 
@@ -279,7 +282,7 @@ const caretSwipeArea = Dom.create('div', {
   },
 
   setStyles: {
-    'background-color': 'green',
+    //'background-color': 'green',
     width: '100%',
     height: '100%',
     'border-radius': '8%',
@@ -293,15 +296,6 @@ const caretSwipeArea = Dom.create('div', {
         targetEditor: editor,
         handleEvent: function (e) {
           //e.preventDefault(); // xxx: 変化要確認
-
-          swipeAreaWidth = document.querySelector('#swipeArea').clientWidth;
-          startX = e.changedTouches[0].clientX;
-
-          console.log('---');
-          console.log(swipeAreaWidth);
-          console.log(startX);
-
-
           if (!this.targetEditor.hasFocus) {
             return;
           }
@@ -310,6 +304,10 @@ const caretSwipeArea = Dom.create('div', {
           caret = selectionMain.anchor;
           headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
           endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
+          
+          swipeAreaWidth = document.querySelector('#swipeArea').clientWidth;
+          stepValue = swipeAreaWidth / divStep;
+          startX = e.changedTouches[0].clientX;
 
 
         },
@@ -321,16 +319,26 @@ const caretSwipeArea = Dom.create('div', {
       listener: {
         targetEditor: editor,
         handleEvent: function (e) {
-          //e.preventDefault(); // xxx: 変化要確認
+          e.preventDefault(); // xxx: 変化要確認
           if (!this.targetEditor.hasFocus) {
             return;
           }
 
-          const stepValue = Math.round(swipeAreaWidth / 10);
-
           const swipeX = e.changedTouches[0].clientX;
-
-          //startX = endX;
+          
+          const moveDistance = swipeX - startX;
+          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
+          
+          if (caret === moveCache) {
+            return;
+          }
+          
+          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
+          
+          this.targetEditor.dispatch({
+            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
+          });
+          this.targetEditor.focus();
         },
       },
     },
@@ -350,7 +358,7 @@ const caretSwipeArea = Dom.create('div', {
 
 const caretWrap = Dom.create('div', {
   setStyles: {
-    'background-color': 'navy',
+    //'background-color': 'navy',
     width: '100%',
     height: '2rem',
     'box-sizing': 'border-box',
@@ -388,7 +396,7 @@ const footer = Dom.create('footer', {
     width: '100%',
     'box-sizing': 'border-box',
     bottom: '0',
-    //'display': 'none',
+    'display': 'none',
   },
   targetAddEventListeners: [
     {
@@ -424,7 +432,6 @@ const setLayout = () => {
       height: '100%',
       overflow: 'auto',
     },
-    //appendChildren: [accessory.header, editorDiv],
     appendChildren: [header, editorDiv],
   });
 
