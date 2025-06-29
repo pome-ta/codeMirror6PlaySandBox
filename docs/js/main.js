@@ -269,10 +269,15 @@ const buttonsWrap = Dom.create('div', {
 });
 
 let caret, headLine, endLine;
+let swipeAreaWidth;
 let startX = 0;
-let endX = 0;
 
-const caretMoveArea = Dom.create('div', {
+
+const caretSwipeArea = Dom.create('div', {
+  setAttrs: {
+    id: 'swipeArea',
+  },
+  
   setStyles: {
     'background-color': 'green',
     width: '100%',
@@ -288,14 +293,25 @@ const caretMoveArea = Dom.create('div', {
         targetEditor: editor,
         handleEvent: function(e) {
           //e.preventDefault(); // xxx: 変化要確認
+          
+          swipeAreaWidth = document.querySelector('#swipeArea').clientWidth;
+          startX = e.changedTouches[0].clientX;
+          
+          console.log('---')
+          console.log(swipeAreaWidth)
+          console.log(startX)
+          
+          
           if (!this.targetEditor.hasFocus) {
             return
           }
+          
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
           headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
           endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
-          startX = e.changedTouches[0].clientX;
+          
+          
         },
       },
     },
@@ -310,7 +326,7 @@ const caretMoveArea = Dom.create('div', {
             return
           }
           
-          const moveX = e.changedTouches[0].clientX;
+          const swipeX = e.changedTouches[0].clientX;
           
           //startX = endX;
         },
@@ -339,7 +355,7 @@ const caretWrap = Dom.create('div', {
     padding: '0.2rem',
     //'margin': '1rem',
   },
-  appendChildren: [caretMoveArea],
+  appendChildren: [caretSwipeArea],
 });
 
 const footerHandleEvent = function () {
