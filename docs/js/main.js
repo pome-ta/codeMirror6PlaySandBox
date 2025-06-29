@@ -308,6 +308,7 @@ const caretSwipeArea = Dom.create('div', {
     'border-radius': '8%',
     //'padding': '1rem',
   },
+  /*
   addEventListeners: [
 
     {
@@ -362,18 +363,8 @@ const caretSwipeArea = Dom.create('div', {
         },
       },
     },
-    /*
-    {
-      type: 'touchend',
-      listener: {
-        targetEditor: editor,
-        handleEvent: function(e) {
-          console.log(`touchend: ${e}`)
-        },
-      },
-    },
-    */
   ],
+  */
 });
 
 const caretWrap = Dom.create('div', {
@@ -437,72 +428,72 @@ const footer = Dom.create('footer', {
       },
     },
   ],
-  // addEventListeners: [
-  //
-  //   {
-  //     type: 'touchstart',
-  //     listener: {
-  //       targetEditor: editor,
-  //       handleEvent: function (e) {
-  //         //e.preventDefault(); // xxx: 変化要確認
-  //         if (!this.targetEditor.hasFocus) {
-  //           return;
-  //         }
-  //
-  //         const selectionMain = this.targetEditor.state.selection.main;
-  //         caret = selectionMain.anchor;
-  //         headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
-  //         endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
-  //
-  //         swipeAreaWidth = document.querySelector('#footer').clientWidth;
-  //         stepValue = swipeAreaWidth / divStep;
-  //         startX = e.changedTouches[0].clientX;
-  //
-  //
-  //       },
-  //     },
-  //   },
-  //
-  //   {
-  //     type: 'touchmove',
-  //     listener: {
-  //       targetEditor: editor,
-  //       handleEvent: function (e) {
-  //         e.preventDefault(); // xxx: 変化要確認
-  //         if (!this.targetEditor.hasFocus) {
-  //           return;
-  //         }
-  //
-  //         const swipeX = e.changedTouches[0].clientX;
-  //
-  //         const moveDistance = swipeX - startX;
-  //         const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
-  //
-  //         if (caret === moveCache) {
-  //           return;
-  //         }
-  //
-  //         const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
-  //
-  //         this.targetEditor.dispatch({
-  //           selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
-  //         });
-  //         this.targetEditor.focus();
-  //       },
-  //     },
-  //   },
-  //   /*
-  //   {
-  //     type: 'touchend',
-  //     listener: {
-  //       targetEditor: editor,
-  //       handleEvent: function(e) {
-  //         console.log(`touchend: ${e}`)
-  //       },
-  //     },
-  //   },
-  //   */
-  // ],
+  addEventListeners: [
+  
+    {
+      type: 'touchstart',
+      listener: {
+        targetEditor: editor,
+        handleEvent: function (e) {
+          //e.preventDefault(); // xxx: 変化要確認
+          if (!this.targetEditor.hasFocus) {
+            return;
+          }
+  
+          const selectionMain = this.targetEditor.state.selection.main;
+          caret = selectionMain.anchor;
+          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
+  
+          swipeAreaWidth = document.querySelector('#footer').clientWidth;
+          stepValue = swipeAreaWidth / divStep;
+          startX = e.changedTouches[0].clientX;
+  
+  
+        },
+      },
+    },
+  
+    {
+      type: 'touchmove',
+      listener: {
+        targetEditor: editor,
+        handleEvent: function (e) {
+          e.preventDefault(); // xxx: 変化要確認
+          if (!this.targetEditor.hasFocus) {
+            return;
+          }
+  
+          const swipeX = e.changedTouches[0].clientX;
+  
+          const moveDistance = swipeX - startX;
+          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
+  
+          if (caret === moveCache) {
+            return;
+          }
+  
+          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
+  
+          this.targetEditor.dispatch({
+            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
+          });
+          this.targetEditor.focus();
+        },
+      },
+    },
+    /*
+    {
+      type: 'touchend',
+      listener: {
+        targetEditor: editor,
+        handleEvent: function(e) {
+          console.log(`touchend: ${e}`)
+        },
+      },
+    },
+    */
+  ],
   appendChildren: [buttonsWrap, caretWrap],
 });
 
@@ -532,7 +523,7 @@ const setLayout = () => {
 document.addEventListener('DOMContentLoaded', () => {
   setLayout();
   insertFetchDoc(codeFilePath).then((loadedSource) => {
-    // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
+    // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
       changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
