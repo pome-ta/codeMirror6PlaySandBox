@@ -17,6 +17,33 @@ import {
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
+/* --- load Source */
+async function insertFetchDoc(filePath) {
+  const fetchFilePath = async (path) => {
+    const res = await fetch(path);
+    return await res.text();
+  };
+  return await fetchFilePath(filePath);
+}
+
+
+// const codeFilePath = './js/editor/index.js';
+const codeFilePath = './js/main.js';
+
+const editorDiv = Dom.create('div', {
+  setAttrs: {
+    id: 'editor-div',
+  },
+  setStyles: {
+    width: '100%',
+  },
+});
+const editor = createEditorView(editorDiv);
+
+
+
+/* --- accessory */
+
 const buttonFactory = (buttonIconChar, actionHandle) => {
   function createFrame(width, height) {
     return Dom.create('div', {
@@ -68,29 +95,10 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
   return actionButton;
 };
 
-/* --- load Source */
-async function insertFetchDoc(filePath) {
-  const fetchFilePath = async (path) => {
-    const res = await fetch(path);
-    return await res.text();
-  };
-  return await fetchFilePath(filePath);
-}
 
-// const codeFilePath = './js/editor/index.js';
-const codeFilePath = './js/main.js';
 
-const editorDiv = Dom.create('div', {
-  setAttrs: {
-    id: 'editor-div',
-  },
-  setStyles: {
-    width: '100%',
-  },
-});
-const editor = createEditorView(editorDiv);
 
-/* --- accessory */
+
 const buttons = Object.entries({
   '//': {
     targetEditor: editor,
@@ -297,88 +305,6 @@ https://developer.apple.com/design/human-interface-guidelines/virtual-keyboards
 
  */
 
-const caretSwipeArea = Dom.create('div', {
-  setAttrs: {
-    id: 'swipeArea',
-  },
-
-  setStyles: {
-    //'background-color': 'green',
-    width: '100%',
-    height: '100%',
-    'border-radius': '8%',
-    //'padding': '1rem',
-  },
-  /*
-  addEventListeners: [
-
-    {
-      type: 'touchstart',
-      listener: {
-        targetEditor: editor,
-        handleEvent: function (e) {
-          //e.preventDefault(); // xxx: 変化要確認
-          if (!this.targetEditor.hasFocus) {
-            return;
-          }
-
-          const selectionMain = this.targetEditor.state.selection.main;
-          caret = selectionMain.anchor;
-          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
-          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
-
-          swipeAreaWidth = document.querySelector('#swipeArea').clientWidth;
-          stepValue = swipeAreaWidth / divStep;
-          startX = e.changedTouches[0].clientX;
-
-
-        },
-      },
-    },
-
-    {
-      type: 'touchmove',
-      listener: {
-        targetEditor: editor,
-        handleEvent: function (e) {
-          e.preventDefault(); // xxx: 変化要確認
-          if (!this.targetEditor.hasFocus) {
-            return;
-          }
-
-          const swipeX = e.changedTouches[0].clientX;
-
-          const moveDistance = swipeX - startX;
-          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
-
-          if (caret === moveCache) {
-            return;
-          }
-
-          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
-
-          this.targetEditor.dispatch({
-            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
-          });
-          this.targetEditor.focus();
-        },
-      },
-    },
-  ],
-  */
-});
-
-const caretWrap = Dom.create('div', {
-  setStyles: {
-    //'background-color': 'navy',
-    width: '100%',
-    height: '2rem',
-    'box-sizing': 'border-box',
-    padding: '0.2rem',
-    //'margin': '1rem',
-  },
-  appendChildren: [caretSwipeArea],
-});
 
 const footerHandleEvent = function () {
   const footer = document.querySelector('#footer');
