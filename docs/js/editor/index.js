@@ -66,14 +66,19 @@ const initTheme = EditorView.theme({
     fontFamily:
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
   },
+  /*
   '.cm-line': {
-    padding: 0,
+    padding: '1px',
   },
+  */
+  
   '&.cm-editor': {
     '&.cm-focused': {
       outline: '0px dotted #21212100',
     },
-  }, // `highlightWhitespace` 調整
+  },
+  
+  // `highlightWhitespace` 調整
   '.cm-highlightSpace': {
     backgroundImage:
       'radial-gradient(circle at 50% 55%, #ababab 4%, transparent 24%)',
@@ -89,11 +94,17 @@ const initializeSetup = [
   highlightActiveLineGutter(),
   highlightActiveLine(),
   highlightWhitespace(),
-  dropCursor(),
+  //dropCursor(),
+  /*
   autocompletion({
-    activateOnTypingDelay: 1000,
-    updateSyncTime: 1000,
+    activateOnTypingDelay: 5,  // 100
+    closeOnBlur: false,  // true
+    maxRenderedOptions: 5,  // 100
+    interactionDelay: 75,  // 75
+    updateSyncTime: 10000,  // 100
   }),
+  */
+  autocompletion(),
   closeBrackets(),
   bracketMatching(),
   EditorView.lineWrapping, // 改行

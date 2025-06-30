@@ -14,6 +14,7 @@ import {
   toggleComment,
   undo,
 } from './editor/codemirror/commands.js';
+import {startCompletion} from './editor/codemirror/autocomplete.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
@@ -107,6 +108,15 @@ const buttons = Object.entries({
       this.targetEditor.focus();
     },
   },
+  /*
+  'a': {
+    targetEditor: editor,
+    handleEvent: function () {
+      startCompletion(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  */
   '▭': {
     targetEditor: editor,
     handleEvent: function () {

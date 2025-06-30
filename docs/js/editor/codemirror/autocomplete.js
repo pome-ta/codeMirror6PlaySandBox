@@ -5,4 +5,5 @@ export const {
   autocompletion,
   closeBracketsKeymap,
   completionKeymap,
+  startCompletion,
 } = autocomplete;
