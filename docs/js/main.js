@@ -456,5 +456,6 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
   });
+  console.log(editor)
 });
 

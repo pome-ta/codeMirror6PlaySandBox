@@ -90,7 +90,10 @@ const initializeSetup = [
   highlightActiveLine(),
   highlightWhitespace(),
   dropCursor(),
-  autocompletion(),
+  autocompletion({
+    activateOnTypingDelay: 1000,
+    updateSyncTime: 1000,
+  }),
   closeBrackets(),
   bracketMatching(),
   EditorView.lineWrapping, // 改行
@@ -99,6 +102,8 @@ const initializeSetup = [
   oneDark,
   initTheme,
 ];
+
+
 
 /*
 class Editor {
