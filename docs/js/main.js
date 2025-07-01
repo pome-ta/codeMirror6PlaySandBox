@@ -68,12 +68,17 @@ const hideButton = Dom.create('button', {
   },
 });
 
+
+const summaryTextContent = (bool) => `📝 Editor: ${bool ? 'close' : 'open'}`;
+const initDetailsOpen = false;
+
 const summary = Dom.create('summary', {
   setStyles: {
     'font-family':
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     padding: '0.5rem 1rem',
   },
+  textContent: summaryTextContent(!initDetailsOpen),
 });
 
 const wrapSummary = Dom.create('div', {
@@ -81,23 +86,31 @@ const wrapSummary = Dom.create('div', {
     display: 'flex',
     'justify-content': 'space-between',
   },
-  appendChildren: [Dom.create('div'), hideButton],
+  //appendChildren: [Dom.create('div'), hideButton],
 });
+
+
+
 
 const details = Dom.create('details', {
   setAttrs: {
     id: 'details',
-    open: 'false',
+    //open: `${initDetailsOpen}`,
   },
   addEventListener: {
     type: 'toggle',
     listener: {
       targetSummary: summary,
+      targetDiv: editorDiv,
       handleEvent: function (e) {
-        this.targetSummary.textContent = `menu: ${
+        this.targetSummary.textContent = summaryTextContent(e.target.open);
+        console.log(e.target.open)
+        /*
+        `menu: ${
           e.target.open ? 'close' : 'open'
         }`;
-        
+        */
+        this.targetDiv.style.display = e.target.open ? '' : 'none';
       },
     },
   },
