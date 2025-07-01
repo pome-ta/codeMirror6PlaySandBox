@@ -1,7 +1,6 @@
 import {minimalSetup} from './codemirror/codemirror.js';
 import {Compartment, EditorState} from './codemirror/state.js';
 import {
-  dropCursor,
   EditorView,
   highlightActiveLine,
   highlightActiveLineGutter,
