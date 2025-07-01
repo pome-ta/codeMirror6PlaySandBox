@@ -16,6 +16,7 @@ export default class Dom {
       ? Object.entries(options).forEach(([key, value]) => instance[key](value))
       : null;
 
+    //console.log(instance)
     return instance.element;
   }
 

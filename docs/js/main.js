@@ -78,7 +78,7 @@ const summary = Dom.create('summary', {
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     padding: '0.5rem 1rem',
   },
-  textContent: summaryTextContent(!initDetailsOpen),
+  textContent: summaryTextContent(initDetailsOpen),
 });
 
 const wrapSummary = Dom.create('div', {

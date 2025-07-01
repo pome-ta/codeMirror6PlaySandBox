@@ -65,11 +65,11 @@ const initTheme = EditorView.theme({
     fontFamily:
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
   },
-  /*
+  
   '.cm-line': {
-    padding: '1px',
+    padding: '0 0.5px',
   },
-  */
+  
   
   '&.cm-editor': {
     '&.cm-focused': {
