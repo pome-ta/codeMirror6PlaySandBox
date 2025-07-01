@@ -272,7 +272,6 @@ const buttons = Object.entries({
 
 const buttonsWrap = Dom.create('div', {
   setStyles: {
-    //'background-color': 'maroon',
     width: '100%',
     'box-sizing': 'border-box',
     padding: '0.4rem',
@@ -378,8 +377,6 @@ const footer = Dom.create('footer', {
           swipeAreaWidth = document.querySelector('#footer').clientWidth;
           stepValue = swipeAreaWidth / divStep;
           startX = e.changedTouches[0].clientX;
-  
-  
         },
       },
     },
@@ -412,25 +409,9 @@ const footer = Dom.create('footer', {
         },
       },
     },
-    /*
-    {
-      type: 'touchend',
-      listener: {
-        targetEditor: editor,
-        handleEvent: function(e) {
-          console.log(`touchend: ${e}`)
-        },
-      },
-    },
-    */
   ],
-  //appendChildren: [buttonsWrap, caretWrap],
   appendChildren: [buttonsWrap],
 });
-
-//const accessory = new AccessoryWidgets(IS_TOUCH_DEVICE);
-//accessory.setupHeader([details]);
-// accessory.setupFooter(buttons);
 
 const setLayout = () => {
   const rootMain = Dom.create('div', {
@@ -459,6 +440,5 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
   });
-  console.log(editor)
 });
 
