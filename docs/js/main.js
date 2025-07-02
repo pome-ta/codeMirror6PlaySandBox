@@ -162,7 +162,7 @@ const header = Dom.create('header', {
   appendChildren: [details],
 });
 
-console.log(header.style.backgroundBlendMode)
+console.log(header.style)
 
 
 const buttonFactory = (buttonIconChar, actionHandle) => {
@@ -189,15 +189,22 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         'font-family':
           'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
-        color: '#f2f2f7',
+        //color: '#f2f2f7',
+        color: `var(--accessory-button-color-normal)`,
       },
     });
 
     const button = Dom.create(createFrame('98%', '98%'), {
       setStyles: {
-        'border-radius': `${btnRadius}`,
-        'background-color': '#8e8e93', // light gray
-        filter: 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
+        //'background-color': '#8e8e93', // light gray
+        'background': `var(--accessory-button-backGround-normal)`,
+        //'background-blend-mode': `var(--accessory-button-background-blend-mode-normal)`,
+        
+        
+        'mix-blend-mode': `var(--accessory-button-background-blend-mode-normal)`,
+        //filter: 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
+        'box-shadow': `var(--accessory-button-box-shadow)`,
+        'border-radius': `var(--accessory-button-border-radius)`,
       },
       appendChildren: [icon],
     });
