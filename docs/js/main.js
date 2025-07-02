@@ -16,6 +16,7 @@ import {
 
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
+//const isDarkMode = 
 
 /* --- load Source */
 async function insertFetchDoc(filePath) {
@@ -42,6 +43,7 @@ const editor = createEditorView(editorDiv);
 
 
 /* --- accessory */
+/*
 const hideButtonHandleEvent = function (e) {
   const divStyle = this.targetDiv.style;
   if (divStyle.display === 'none') {
@@ -67,7 +69,7 @@ const hideButton = Dom.create('button', {
     },
   },
 });
-
+*/
 
 const summaryTextContent = (bool) => `📝 Editor: ${bool ? 'close' : 'open'}`;
 const initDetailsOpen = false;
@@ -123,14 +125,18 @@ const headerHandleEvent = function () {
   header.style.top = `${offsetTop}px`;
 };
 
+
+/* --- accessory-header */
 const header = Dom.create('header', {
   setAttrs: {
     id: 'header',
   },
   setStyles: {
     // 'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
-    'background-color': `var(--accessory-backGround-color-scheme)`,
-    //'mix-blend-mode': 'luminosity',
+    'background': `var(--accessory-backGround-color-scheme)`,
+    'background-blend-mode': `var(--accessory-backGround-background-blend-mode)`,
+    'backdrop-filter': `var(--accessory-backGround-backdrop-filter)`,
+    
 
     position: 'sticky',
     width: '100%',
@@ -156,7 +162,7 @@ const header = Dom.create('header', {
   appendChildren: [details],
 });
 
-
+console.log(header.style.backgroundBlendMode)
 
 
 const buttonFactory = (buttonIconChar, actionHandle) => {
@@ -339,13 +345,16 @@ const footerHandleEvent = function () {
   footer.style.bottom = `${offsetBottom}px`;
 };
 
+/* --- accessory-footer */
 const footer = Dom.create('footer', {
   setAttrs: {
     id: 'footer',
   },
   setStyles: {
     //'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
-    'background-color': `var(--accessory-backGround-color-scheme)`,
+    'background': `var(--accessory-backGround-color-scheme)`,
+    'background-blend-mode': `var(--accessory-backGround-background-blend-mode)`,
+    'backdrop-filter': `var(--accessory-backGround-backdrop-filter)`,
     position: 'sticky',
     width: '100%',
     'box-sizing': 'border-box',
