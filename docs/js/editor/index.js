@@ -1,5 +1,5 @@
-import {minimalSetup} from './codemirror/codemirror.js';
-import {Compartment, EditorState} from './codemirror/state.js';
+import { minimalSetup } from './codemirror/codemirror.js';
+import { Compartment, EditorState } from './codemirror/state.js';
 import {
   EditorView,
   highlightActiveLine,
@@ -7,11 +7,11 @@ import {
   highlightWhitespace,
   lineNumbers,
 } from './codemirror/view.js';
-import {autocompletion, closeBrackets} from './codemirror/autocomplete.js';
-import {bracketMatching} from './codemirror/language.js';
+import { autocompletion, closeBrackets } from './codemirror/autocomplete.js';
+import { bracketMatching } from './codemirror/language.js';
 
-import {javascript} from './codemirror/lang-javascript.js';
-import {oneDark} from './codemirror/theme-one-dark.js';
+import { javascript } from './codemirror/lang-javascript.js';
+import { oneDark } from './codemirror/theme-one-dark.js';
 
 /* ref: `basicSetup` の宣言内容
 const basicSetup = (() => [
@@ -65,18 +65,17 @@ const initTheme = EditorView.theme({
     fontFamily:
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
   },
-  
+
   '.cm-line': {
     padding: '0 0.5px',
   },
-  
-  
+
   '&.cm-editor': {
     '&.cm-focused': {
       outline: '0px dotted #21212100',
     },
   },
-  
+
   // `highlightWhitespace` 調整
   '.cm-highlightSpace': {
     backgroundImage:
@@ -112,8 +111,6 @@ const initializeSetup = [
   oneDark,
   initTheme,
 ];
-
-
 
 /*
 class Editor {

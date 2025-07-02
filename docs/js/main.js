@@ -14,9 +14,8 @@ import {
   undo,
 } from './editor/codemirror/commands.js';
 
-
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
-//const isDarkMode = 
+
 
 /* --- load Source */
 async function insertFetchDoc(filePath) {
@@ -26,7 +25,6 @@ async function insertFetchDoc(filePath) {
   };
   return await fetchFilePath(filePath);
 }
-
 
 // const codeFilePath = './js/editor/index.js';
 const codeFilePath = './js/main.js';
@@ -40,7 +38,6 @@ const editorDiv = Dom.create('div', {
   },
 });
 const editor = createEditorView(editorDiv);
-
 
 /* --- accessory */
 /*
@@ -91,9 +88,6 @@ const wrapSummary = Dom.create('div', {
   //appendChildren: [Dom.create('div'), hideButton],
 });
 
-
-
-
 const details = Dom.create('details', {
   setAttrs: {
     id: 'details',
@@ -106,7 +100,7 @@ const details = Dom.create('details', {
       targetDiv: editorDiv,
       handleEvent: function (e) {
         this.targetSummary.textContent = summaryTextContent(e.target.open);
-        console.log(e.target.open)
+        console.log(e.target.open);
         /*
         `menu: ${
           e.target.open ? 'close' : 'open'
@@ -125,7 +119,6 @@ const headerHandleEvent = function () {
   header.style.top = `${offsetTop}px`;
 };
 
-
 /* --- accessory-header */
 const header = Dom.create('header', {
   setAttrs: {
@@ -133,11 +126,9 @@ const header = Dom.create('header', {
   },
   setStyles: {
     // 'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
-    'background': `var(--accessory-backGround-color-scheme)`,
+    background: `var(--accessory-backGround-color-scheme)`,
     'background-blend-mode': `var(--accessory-backGround-background-blend-mode)`,
     'backdrop-filter': `var(--accessory-backGround-backdrop-filter)`,
-    
-
     position: 'sticky',
     width: '100%',
     top: '0',
@@ -162,8 +153,6 @@ const header = Dom.create('header', {
   appendChildren: [details],
 });
 
-console.log(header.style)
-
 
 const buttonFactory = (buttonIconChar, actionHandle) => {
   function createFrame(width, height) {
@@ -180,7 +169,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
 
   const btnW = '2.4rem';
   const btnH = '1.8rem';
-  const btnRadius = '16%';
+  // const btnRadius = '16%';
 
   const createActionButton = (iconChar) => {
     const icon = Dom.create('span', {
@@ -197,12 +186,8 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     const button = Dom.create(createFrame('98%', '98%'), {
       setStyles: {
         //'background-color': '#8e8e93', // light gray
-        'background': `var(--accessory-button-backGround-normal)`,
-        //'background-blend-mode': `var(--accessory-button-background-blend-mode-normal)`,
-        
-        
+        background: `var(--accessory-button-backGround-normal)`,
         'mix-blend-mode': `var(--accessory-button-background-blend-mode-normal)`,
-        //filter: 'drop-shadow(2px 2px 2px rgba(28, 28, 30, 0.9))',
         'box-shadow': `var(--accessory-button-box-shadow)`,
         'border-radius': `var(--accessory-button-border-radius)`,
       },
@@ -222,10 +207,6 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
 
   return actionButton;
 };
-
-
-
-
 
 const buttons = Object.entries({
   '//': {
@@ -295,14 +276,12 @@ const buttons = Object.entries({
   return buttonFactory(str, fnc);
 });
 
-
 const buttonsWrap = Dom.create('div', {
   setStyles: {
     width: '100%',
     'box-sizing': 'border-box',
     padding: '0.4rem',
     display: 'flex',
-    // 'justify-content': 'space-around',
     'justify-content': 'space-between',
   },
 
@@ -313,25 +292,6 @@ let caret, headLine, endLine;
 const divStep = 16;
 let swipeAreaWidth, stepValue;
 let startX = 0;
-
-
-/*
-
-d: 383838 75
-56
-0.21
-
-l: 56585C 87
-86,88,92
-
-
-210
-213
-222
-
-https://developer.apple.com/design/human-interface-guidelines/virtual-keyboards
-
- */
 
 
 const footerHandleEvent = function () {
@@ -358,15 +318,14 @@ const footer = Dom.create('footer', {
     id: 'footer',
   },
   setStyles: {
-    //'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
-    'background': `var(--accessory-backGround-color-scheme)`,
+    background: `var(--accessory-backGround-color-scheme)`,
     'background-blend-mode': `var(--accessory-backGround-background-blend-mode)`,
     'backdrop-filter': `var(--accessory-backGround-backdrop-filter)`,
     position: 'sticky',
     width: '100%',
     'box-sizing': 'border-box',
     bottom: '0',
-    'display': 'none',
+    display: 'none',
   },
   targetAddEventListeners: [
     {
@@ -387,7 +346,6 @@ const footer = Dom.create('footer', {
     },
   ],
   addEventListeners: [
-  
     {
       type: 'touchstart',
       listener: {
@@ -397,19 +355,25 @@ const footer = Dom.create('footer', {
           if (!this.targetEditor.hasFocus) {
             return;
           }
-  
+
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
-          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
-          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
-  
+          headLine = this.targetEditor.moveToLineBoundary(
+            selectionMain,
+            0
+          ).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(
+            selectionMain,
+            1
+          ).anchor;
+
           swipeAreaWidth = document.querySelector('#footer').clientWidth;
           stepValue = swipeAreaWidth / divStep;
           startX = e.changedTouches[0].clientX;
         },
       },
     },
-  
+
     {
       type: 'touchmove',
       listener: {
@@ -419,20 +383,30 @@ const footer = Dom.create('footer', {
           if (!this.targetEditor.hasFocus) {
             return;
           }
-  
+
           const swipeX = e.changedTouches[0].clientX;
-  
+
           const moveDistance = swipeX - startX;
-          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
-  
+          const moveCache =
+            Math.abs(moveDistance) < stepValue
+              ? caret
+              : caret + Math.round(moveDistance / stepValue);
+
           if (caret === moveCache) {
             return;
           }
-  
-          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
-  
+
+          const moveValue =
+            moveCache < headLine
+              ? headLine
+              : moveCache >= endLine
+                ? endLine
+                : moveCache;
+
           this.targetEditor.dispatch({
-            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
+            selection: EditorSelection.create([
+              EditorSelection.cursor(moveValue),
+            ]),
           });
           this.targetEditor.focus();
         },
@@ -454,7 +428,7 @@ const setLayout = () => {
     appendChildren: [header, editorDiv],
   });
 
-  //rootMain.appendChild(footer);
+
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(footer);
   }
@@ -470,4 +444,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
-
