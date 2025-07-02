@@ -163,6 +163,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         display: 'flex',
         'justify-content': 'center',
         'align-items': 'center',
+        //background: 'rgba(255, 0,0,0.5)',
       },
     });
   }
@@ -180,6 +181,10 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
           'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
         //color: '#f2f2f7',
+        'font-style': 'normal',
+        'font-weight': '400',
+        //font-size: 25px;
+        'line-height': '28px',
         color: `var(--accessory-button-color-normal)`,
       },
     });
@@ -189,6 +194,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         //'background-color': '#8e8e93', // light gray
         background: `var(--accessory-button-backGround-normal)`,
         'mix-blend-mode': `var(--accessory-button-background-blend-mode-normal)`,
+        
         'box-shadow': `var(--accessory-button-box-shadow)`,
         'border-radius': `var(--accessory-button-border-radius)`,
       },
