@@ -167,8 +167,9 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     });
   }
 
-  const btnW = '2.4rem';
-  const btnH = '1.8rem';
+  const num = 2.4;
+  const btnW = `${num}rem`;
+  const btnH = `${num * 0.8}rem`;
   // const btnRadius = '16%';
 
   const createActionButton = (iconChar) => {
