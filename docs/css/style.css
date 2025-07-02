@@ -33,7 +33,11 @@
     --accessory-backGround-background-blend-mode: normal;
     --accessory-backGround-backdrop-filter: blur(50px);
     
+    /*
     --accessory-button-backGround-normal: linear-gradient(0deg, #262626, #262626), rgba(153, 153, 153, 0.15);
+    */
+    --accessory-button-backGround-normal: linear-gradient(0deg, rgba(38, 38, 38, 0.1), rgba(38, 38, 38, 0.1)), rgba(153, 153, 153, 0.2);
+    
     /*
     --accessory-button-background-blend-mode-normal: plus-lighter, normal;
     */
