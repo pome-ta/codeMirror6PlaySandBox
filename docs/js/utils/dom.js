@@ -1,13 +1,20 @@
 export default class Dom {
   #element;
+  #buildEvent;
 
   constructor(domTag) {
     this.#element =
       typeof domTag === 'string' ? document.createElement(domTag) : domTag;
+    //this.#buildEvent = new Event('build', {bubbles: true});
+    this.#buildEvent = new CustomEvent('build', {detail: this.#element});
+    
   }
 
   get element() {
     return this.#element;
+  }
+  get buildEvent() {
+    return this.#buildEvent;
   }
 
   static create(tag, options) {
@@ -17,6 +24,7 @@ export default class Dom {
       : null;
 
     //console.log(instance)
+    instance.element.dispatchEvent(instance.buildEvent);
     return instance.element;
   }
 

@@ -88,28 +88,47 @@ const wrapSummary = Dom.create('div', {
   //appendChildren: [Dom.create('div'), hideButton],
 });
 
+
+const detailsControl = (isDetailsOpen, summaryElement, divElement) => {
+  summaryElement.textContent = summaryTextContent(isDetailsOpen);
+  divElement.style.display = isDetailsOpen ? '' : 'none';
+}
+
 const details = Dom.create('details', {
   setAttrs: {
     id: 'details',
     //open: `${initDetailsOpen}`,
   },
-  addEventListener: {
-    type: 'toggle',
-    listener: {
-      targetSummary: summary,
-      targetDiv: editorDiv,
-      handleEvent: function (e) {
-        this.targetSummary.textContent = summaryTextContent(e.target.open);
-        console.log(e.target.open);
-        /*
-        `menu: ${
-          e.target.open ? 'close' : 'open'
-        }`;
-        */
-        this.targetDiv.style.display = e.target.open ? '' : 'none';
+  addEventListeners: [
+    {
+      type: 'toggle',
+      listener: {
+        targetSummary: summary,
+        targetDiv: editorDiv,
+        handleEvent: function (e) {
+          /*
+          this.targetSummary.textContent = summaryTextContent(e.target.open);
+          this.targetDiv.style.display = e.target.open ? '' : 'none';
+          */
+          detailsControl(e.target.open, this.targetSummary, this.targetDiv);
+        },
       },
     },
-  },
+    {
+      type: 'build',
+      listener: {
+        targetSummary: summary,
+        targetDiv: editorDiv,
+        handleEvent: function (e) {
+          /*
+          this.targetSummary.textContent = summaryTextContent(e.detail.open);
+          this.targetDiv.style.display = e.detail.open ? '' : 'none';
+          */
+          detailsControl(e.detail.open, this.targetSummary, this.targetDiv);
+        },
+      },
+    },
+  ],
   appendChildren: [summary, wrapSummary],
 });
 
@@ -158,7 +177,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
   function createFrame(width, height) {
     return Dom.create('div', {
       setStyles: {
-        'min-width': `${width}`,
+        'width': `${width}`,
         height: `${height}`,
         display: 'flex',
         'justify-content': 'center',
@@ -189,7 +208,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
       },
     });
 
-    const button = Dom.create(createFrame('98%', '98%'), {
+    const button = Dom.create(createFrame('88%', '98%'), {
       setStyles: {
         //'background-color': '#8e8e93', // light gray
         background: `var(--accessory-button-backGround-normal)`,
@@ -227,6 +246,13 @@ const buttons = Object.entries({
     targetEditor: editor,
     handleEvent: function () {
       selectLine(this.targetEditor);
+      this.targetEditor.focus();
+    },
+  },
+  'a': {
+    targetEditor: editor,
+    handleEvent: function () {
+      cursorCharLeft(this.targetEditor);
       this.targetEditor.focus();
     },
   },
@@ -287,7 +313,7 @@ const buttonsWrap = Dom.create('div', {
   setStyles: {
     width: '100%',
     'box-sizing': 'border-box',
-    padding: '0.4rem',
+    padding: '0.6rem 1rem',
     display: 'flex',
     'justify-content': 'space-between',
   },
