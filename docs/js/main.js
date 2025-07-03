@@ -35,6 +35,7 @@ const editorDiv = Dom.create('div', {
   },
   setStyles: {
     width: '100%',
+    //'box-sizing': 'border-box',
   },
 });
 const editor = createEditorView(editorDiv);
@@ -85,7 +86,6 @@ const wrapSummary = Dom.create('div', {
     display: 'flex',
     'justify-content': 'space-between',
   },
-  //appendChildren: [Dom.create('div'), hideButton],
 });
 
 
@@ -97,7 +97,7 @@ const detailsControl = (isDetailsOpen, summaryElement, divElement) => {
 const details = Dom.create('details', {
   setAttrs: {
     id: 'details',
-    //open: `${initDetailsOpen}`,
+    open: `${initDetailsOpen}`,
   },
   addEventListeners: [
     {
@@ -106,10 +106,6 @@ const details = Dom.create('details', {
         targetSummary: summary,
         targetDiv: editorDiv,
         handleEvent: function (e) {
-          /*
-          this.targetSummary.textContent = summaryTextContent(e.target.open);
-          this.targetDiv.style.display = e.target.open ? '' : 'none';
-          */
           detailsControl(e.target.open, this.targetSummary, this.targetDiv);
         },
       },
@@ -120,10 +116,6 @@ const details = Dom.create('details', {
         targetSummary: summary,
         targetDiv: editorDiv,
         handleEvent: function (e) {
-          /*
-          this.targetSummary.textContent = summaryTextContent(e.detail.open);
-          this.targetDiv.style.display = e.detail.open ? '' : 'none';
-          */
           detailsControl(e.detail.open, this.targetSummary, this.targetDiv);
         },
       },
@@ -144,7 +136,6 @@ const header = Dom.create('header', {
     id: 'header',
   },
   setStyles: {
-    // 'background-color': `var(--backGround-color-scheme, light-dark(#f2f2f7, #1c1c1e))`,
     background: `var(--accessory-backGround-color-scheme)`,
     'background-blend-mode': `var(--accessory-backGround-background-blend-mode)`,
     'backdrop-filter': `var(--accessory-backGround-backdrop-filter)`,
@@ -177,17 +168,17 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
   function createFrame(width, height) {
     return Dom.create('div', {
       setStyles: {
-        'width': `${width}`,
+        'min-width': `${width}`,
         height: `${height}`,
         display: 'flex',
         'justify-content': 'center',
         'align-items': 'center',
-        //background: 'rgba(255, 0,0,0.5)',
+        //background: 'rgba(255, 0, 0, 0.5)',
       },
     });
   }
 
-  const num = 2.4;
+  const num = 2.5;
   const btnW = `${num}rem`;
   const btnH = `${num * 0.8}rem`;
   // const btnRadius = '16%';
@@ -199,10 +190,8 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         'font-family':
           'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
-        //color: '#f2f2f7',
         'font-style': 'normal',
         'font-weight': '400',
-        //font-size: 25px;
         'line-height': '28px',
         color: `var(--accessory-button-color-normal)`,
       },
@@ -213,7 +202,6 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
         //'background-color': '#8e8e93', // light gray
         background: `var(--accessory-button-backGround-normal)`,
         'mix-blend-mode': `var(--accessory-button-background-blend-mode-normal)`,
-        
         'box-shadow': `var(--accessory-button-box-shadow)`,
         'border-radius': `var(--accessory-button-border-radius)`,
       },
@@ -234,6 +222,8 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
   return actionButton;
 };
 
+
+// wip: 最大数問題
 const buttons = Object.entries({
   '//': {
     targetEditor: editor,
@@ -246,13 +236,6 @@ const buttons = Object.entries({
     targetEditor: editor,
     handleEvent: function () {
       selectLine(this.targetEditor);
-      this.targetEditor.focus();
-    },
-  },
-  'a': {
-    targetEditor: editor,
-    handleEvent: function () {
-      cursorCharLeft(this.targetEditor);
       this.targetEditor.focus();
     },
   },
@@ -335,7 +318,7 @@ const footerHandleEvent = function () {
   }
   footer.style.display = '';
 
-  //footer.style.display = this.targetEditor.hasFocus ?  'flex': 'none';
+
   const offsetTop = window.visualViewport.offsetTop;
   const offsetBottom =
     window.innerHeight -
@@ -356,7 +339,6 @@ const footer = Dom.create('footer', {
     'backdrop-filter': `var(--accessory-backGround-backdrop-filter)`,
     position: 'sticky',
     width: '100%',
-    'box-sizing': 'border-box',
     bottom: '0',
     display: 'none',
   },
@@ -457,6 +439,7 @@ const setLayout = () => {
       'grid-template-rows': 'auto 1fr auto',
       height: '100%',
       overflow: 'auto',
+
     },
     appendChildren: [header, editorDiv],
   });
