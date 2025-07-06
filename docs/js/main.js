@@ -46,7 +46,7 @@ const editor = createEditorView(editorDiv);
 
 
 const callButton = Dom.create('button', {
-  textContent: '更新',
+  textContent: '🔄',
 });
 
 
