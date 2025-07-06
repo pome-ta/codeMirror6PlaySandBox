@@ -70,8 +70,10 @@ const hideButton = Dom.create('button', {
 });
 */
 
-const callButton = Dom.create('button')
-console.log(callButton)
+const callButton = Dom.create('button', {
+  textContent: '更新',
+});
+
 
 const summaryTextContent = (bool) => `📝 Editor: ${bool ? 'close' : 'open'}`;
 const initDetailsOpen = false;
@@ -80,6 +82,7 @@ const summary = Dom.create('summary', {
   setStyles: {
     'font-family':
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
   textContent: summaryTextContent(initDetailsOpen),
@@ -134,6 +137,7 @@ const headerControlWrap = Dom.create('div', {
     display: 'grid',
     'grid-template-columns': '1fr 1fr',
   },
+  appendChildren: [callButton, details],
 });
 
 const headerHandleEvent = function () {
@@ -172,7 +176,7 @@ const header = Dom.create('header', {
       },
     },
   ],
-  appendChildren: [details],
+  appendChildren: [headerControlWrap],
 });
 
 
