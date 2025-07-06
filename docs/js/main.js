@@ -42,47 +42,22 @@ const editorDiv = Dom.create('div', {
 const editor = createEditorView(editorDiv);
 
 /* --- accessory */
-/*
-const hideButtonHandleEvent = function (e) {
-  const divStyle = this.targetDiv.style;
-  if (divStyle.display === 'none') {
-    divStyle.display = '';
-    e.target.textContent = '🫥: hideCode';
-  } else {
-    divStyle.display = 'none';
-    e.target.textContent = '😁: showCode';
-  }
-};
 
-const hideButton = Dom.create('button', {
-  textContent: '🫥: hideCode',
-  setStyles: {
-    margin: '0.5rem',
-    height: '2rem',
-  },
-  addEventListener: {
-    type: 'click',
-    listener: {
-      targetDiv: editorDiv,
-      handleEvent: hideButtonHandleEvent,
-    },
-  },
-});
-*/
+
 
 const callButton = Dom.create('button', {
   textContent: '更新',
 });
 
 
-const summaryTextContent = (bool) => `📝 Editor: ${bool ? 'close' : 'open'}`;
+const summaryTextContent = (bool) => `📝 Code: ${bool ? 'hide' : 'show'}`;
 const initDetailsOpen = false;
 
 const summary = Dom.create('summary', {
   setStyles: {
     'font-family':
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-    'font-size': '0.8rem',
+    //'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
   textContent: summaryTextContent(initDetailsOpen),
@@ -135,7 +110,7 @@ const details = Dom.create('details', {
 const headerControlWrap = Dom.create('div', {
   setStyles: {
     display: 'grid',
-    'grid-template-columns': '1fr 1fr',
+    'grid-template-columns': 'auto 1fr',
   },
   appendChildren: [callButton, details],
 });
