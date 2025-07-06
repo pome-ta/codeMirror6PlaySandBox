@@ -70,6 +70,9 @@ const hideButton = Dom.create('button', {
 });
 */
 
+const callButton = Dom.create('button')
+console.log(callButton)
+
 const summaryTextContent = (bool) => `📝 Editor: ${bool ? 'close' : 'open'}`;
 const initDetailsOpen = false;
 
@@ -123,6 +126,14 @@ const details = Dom.create('details', {
     },
   ],
   appendChildren: [summary, wrapSummary],
+});
+
+
+const headerControlWrap = Dom.create('div', {
+  setStyles: {
+    display: 'grid',
+    'grid-template-columns': '1fr 1fr',
+  },
 });
 
 const headerHandleEvent = function () {
