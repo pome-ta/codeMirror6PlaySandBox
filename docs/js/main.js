@@ -38,6 +38,7 @@ const editorDiv = Dom.create('div', {
     //'box-sizing': 'border-box',
   },
 });
+
 const editor = createEditorView(editorDiv);
 
 /* --- accessory */
