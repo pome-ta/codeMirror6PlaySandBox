@@ -11,11 +11,24 @@
       content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
   />
 
-  <script type="module">
-    import eruda from 'https://cdn.skypack.dev/eruda';
-
-    eruda.init();
+  <script type="importmap">
+    {
+      "imports": {
+        "p5/": "https://esm.sh/p5@1.11.8/",
+        "eruda": "https://esm.sh/eruda"
+      }
+    }
   </script>
+
+<!--  <script type="module">-->
+<!--    import eruda from 'eruda';-->
+
+<!--    eruda.init();-->
+
+<!--    const timeStr = new Date().toLocaleTimeString();-->
+<!--    const outLog = 'p5Canvas: ' + timeStr;-->
+<!--    console.log(outLog);-->
+<!--  </script>-->
 
   <link rel="stylesheet" href="./css/style.css"/>
   <script type="module" src="./js/main.js"></script>
