@@ -1,4 +1,5 @@
 import ctypes
+
 from pathlib import Path
 from typing import Union
 
@@ -47,9 +48,7 @@ WKContentView = ObjCClass('WKContentView')  # todo: 型確認用
 NSNotificationCenter = ObjCClass('NSNotificationCenter')
 
 # xxx: iPad(mac) 挙動対策
-UIDevice = ObjCClass('UIDevice')
-
-IS_PHONE = True if UIDevice.currentDevice.model == 'iPhone' else False
+IS_PHONE = True if ObjCClass('UIDevice').currentDevice.model == 'iPhone' else False
 
 
 class WebViewController(UIViewController):
@@ -494,18 +493,17 @@ if __name__ == '__main__':
 
   index_path = Path('./docs/index.html')
   #save_path = Path('./docs/js/editor/index.js')
-  save_path = Path('./docs/js/main.js')
+  #save_path = Path('./docs/js/main.js')
 
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
   _title = NSStringFromClass(WebViewController)
   main_vc.navigationItem.title = _title
 
-  main_vc.setSavePathObject_(save_path)
+  #main_vc.setSavePathObject_(save_path)
 
   presentation_style = UIModalPresentationStyle.fullScreen
   #presentation_style = UIModalPresentationStyle.pageSheet
 
   app = App(main_vc, presentation_style)
   app.present()
-
-
+  
