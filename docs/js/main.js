@@ -1,8 +1,7 @@
-import { basicSetup, EditorView } from 'codemirror';
+import { EditorView } from '@codemirror/view';
 
 const view = new EditorView({
   doc: 'hoge',
-  extensions: [basicSetup],
   parent: document.body,
 });
 console.log(view);
