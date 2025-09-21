@@ -1,5 +1,5 @@
-import { EditorView } from '@codemirror/view';
 import {EditorState} from '@codemirror/state';
+import { EditorView,highlightWhitespace } from '@codemirror/view';
 import {javascript} from '@codemirror/lang-javascript';
 import {oneDark} from '@codemirror/theme-one-dark';
 
@@ -17,8 +17,6 @@ const extensions = [
   lineNumbers(),
 ];
 
-😉
-
 const state =EditorState.create({
     doc: 'hoge1loO0',
     extensions: extensions,
@@ -31,12 +29,36 @@ const view = new EditorView({
 console.log(basicSetup);`
 // --- docs/
 
+
+const customTheme = EditorView.theme(
+  {
+    '&': {
+        fontSize: '0.72rem', //fontSize: '1rem',
+    },
+    '.cm-scroller': {
+      fontFamily:
+        'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    },
+    // `highlightWhitespace` 調整
+    '.cm-highlightSpace': {
+      backgroundImage:
+        'radial-gradient(circle at 50% 55%, #ababab 4%, transparent 24%)',
+      opacity: 0.2,
+    },
+
+      
+  },
+  {dark: false},
+);
+
 const extensions = [
   basicSetup,
   EditorView.lineWrapping,
   //EditorState.readOnly.of(true),
   EditorView.editable.of(false),
+  highlightWhitespace(),
   javascript(),
+  customTheme,
   oneDark,
 ];
 
