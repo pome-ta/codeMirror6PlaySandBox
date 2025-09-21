@@ -1,5 +1,5 @@
 import {EditorState} from '@codemirror/state';
-import { EditorView,highlightWhitespace } from '@codemirror/view';
+import {EditorView, highlightWhitespace} from '@codemirror/view';
 import {javascript} from '@codemirror/lang-javascript';
 import {oneDark} from '@codemirror/theme-one-dark';
 
@@ -48,13 +48,13 @@ const customTheme = EditorView.theme(
 
       
   },
-  {dark: false},
+  {dark: false},  // wip: ？
 );
 
 const extensions = [
   basicSetup,
   EditorView.lineWrapping,
-  //EditorState.readOnly.of(true),
+  EditorState.readOnly.of(true),
   EditorView.editable.of(false),
   highlightWhitespace(),
   javascript(),
