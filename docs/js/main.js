@@ -6,68 +6,57 @@ import {javascript} from '@codemirror/lang-javascript';
 import {basicSetup} from 'codemirror';
 
 
+const dummyCodePath = './dummyCode.js'
 
+const getSource = async (path) => {
+  const res = await fetch(path);
+  const text = await res.text();
+  return text;
+};
 
-// --- docs
-const docs = `import { EditorView, lineNumbers } from '@codemirror/view';
-import {Compartment, EditorState, StateEffect, StateField,} from '@codemirror/state';
-import {javascript} from "@codemirror/lang-javascript";
-import { basicSetup} from "codemirror";
-
-
-const extensions = [
-  basicSetup,
-  javascript(),
-];
-
-const state =EditorState.create({
-  doc: 'hoge1loO0',
-  extensions: extensions,
-});
-
-const view = new EditorView({
-  state: state,
-  parent: document.body,
-});
-console.log(basicSetup);`
-// --- docs/
-
-const customTheme = EditorView.theme(
-  {
-    '&': {
-      fontFamily: 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-      fontSize: '0.72rem',
+const createEditor = (parent=null) => {
+  const customTheme = EditorView.theme(
+    {
+      '&': {
+        fontFamily: 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+        fontSize: '0.72rem',
+      },
     },
-  },
-  {
-    dark: false,
-  },
-);
+    {
+      dark: false,
+    },
+  );
+  
+  const extensions = [
+    basicSetup,
+    customTheme,
+    javascript(),
+  ];
+  
+  const state = EditorState.create({
+    extensions: extensions,
+  });
+  
+  const view = new EditorView({
+    state: state,
+    parent: parent ? parent : document.body,
+  });
+  
+  return view;
+};
 
+const editor = createEditor();
 
-
-
-const extensions = [
-  basicSetup,
-  customTheme,
-  javascript(),
-];
-
-const state = EditorState.create({
-  extensions: extensions,
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOMContentLoaded');
+  getSource(dummyCodePath).then((res) => {
+    editor.dispatch({
+      changes: {
+        from: 0,
+        to: editor.state.doc.length,
+        insert: res,
+      },
+    });
+  });
 });
-
-const view = new EditorView({
-  state: state,
-  parent: document.body,
-});
-
-view.dispatch({
-  changes: {
-    from: 0,
-    to: view.state.doc.length,
-    insert: docs,
-  },
-});
-
 
