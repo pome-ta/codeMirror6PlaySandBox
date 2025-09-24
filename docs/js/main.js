@@ -6,7 +6,7 @@ import {
   highlightActiveLineGutter,
   highlightWhitespace,
   lineNumbers,
-} from '@codemirror/view';
+} from '@codemirror/view@6.38.0';
 
 import {autocompletion, closeBrackets} from '@codemirror/autocomplete';
 import {bracketMatching} from '@codemirror/language';
