@@ -2,7 +2,7 @@ import {EditorState,} from '@codemirror/state';
 import {EditorView,} from '@codemirror/view';
 
 import {javascript} from '@codemirror/lang-javascript';
-import {minimalSetup} from 'codemirror';
+//import {minimalSetup} from 'codemirror';
 import {basicSetup} from 'codemirror';
 
 
@@ -28,8 +28,8 @@ const createEditor = (parent=null) => {
   );
   
   const extensions = [
-    //basicSetup,
-    minimalSetup,
+    basicSetup,
+    //minimalSetup,
     customTheme,
     javascript(),
   ];
