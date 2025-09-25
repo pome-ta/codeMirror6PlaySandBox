@@ -1,7 +1,12 @@
 import {EditorState,} from '@codemirror/state';
 import {EditorView,} from '@codemirror/view';
 
-import {javascript} from '@codemirror/lang-javascript';
+import {LSPClient, languageServerExtensions} from '@codemirror/lsp-client';
+import {typescriptLanguage} from '@codemirror/lang-javascript';
+
+
+
+
 //import {minimalSetup} from 'codemirror';
 import {basicSetup} from 'codemirror';
 
@@ -13,6 +18,28 @@ const getSource = async (path) => {
   const text = await res.text();
   return text;
 };
+
+/*
+function simpleWebSocketTransport(uri) {
+  let handlers = [];
+  let sock = new WebSocket(uri);
+  sock.onmessage = e => { for (let h of handlers) h(e.data.toString()) }
+  return new Promise(resolve => {
+    sock.onopen = () => resolve({
+      send(message) { sock.send(message) },
+      subscribe((value) => void) { handlers.push(handler) },
+      unsubscribe(handler: (value: string) => void) { handlers = handlers.filter(h => h != handler) }
+    })
+  })
+}
+*/
+
+let transport = await simpleWebSocketTransport("ws://host:port")
+let client = new LSPClient({extensions: languageServerExtensions()}).connect(transport)
+
+
+
+
 
 const createEditor = (parent=null) => {
   const customTheme = EditorView.theme(
@@ -31,7 +58,7 @@ const createEditor = (parent=null) => {
     basicSetup,
     //minimalSetup,
     customTheme,
-    javascript(),
+    typescriptLanguage,
   ];
   
   const state = EditorState.create({
