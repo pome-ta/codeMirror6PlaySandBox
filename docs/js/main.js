@@ -16,13 +16,15 @@ const getSource = async (path) => {
   const text = await res.text();
   return text;
 };
-
+/*
 
 function simpleWebSocketTransport(uri) {
   let handlers = [];
   let sock = new WebSocket(uri);
   sock.onmessage = e => {
-    for (let h of handlers) h(e.data.toString());
+    for (let h of handlers) {
+      h(e.data.toString());
+    }
   };
   return new Promise(resolve => {
     sock.onopen = () => resolve({
@@ -42,7 +44,7 @@ function simpleWebSocketTransport(uri) {
 
 let transport = await simpleWebSocketTransport('ws://host:port');
 let client = new LSPClient({extensions: languageServerExtensions()}).connect(transport);
-
+*/
 
 const createEditor = (parent = null) => {
   const customTheme = EditorView.theme(
@@ -81,6 +83,7 @@ const editor = createEditor();
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOMContentLoaded');
+  console.log(window.location);
   getSource(dummyCodePath).then((res) => {
     editor.dispatch({
       changes: {
