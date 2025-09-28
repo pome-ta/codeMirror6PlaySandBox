@@ -1,5 +1,5 @@
 import {EditorState,} from '@codemirror/state';
-import {EditorView,} from '@codemirror/view';
+import {EditorView} from '@codemirror/view';
 
 import {languageServerExtensions, LSPClient} from '@codemirror/lsp-client';
 import {typescriptLanguage} from '@codemirror/lang-javascript';
@@ -16,8 +16,9 @@ const getSource = async (path) => {
   const text = await res.text();
   return text;
 };
-/*
 
+
+/*
 function simpleWebSocketTransport(uri) {
   let handlers = [];
   let sock = new WebSocket(uri);
@@ -74,7 +75,6 @@ const createEditor = (parent = null) => {
     state: state,
     parent: parent ? parent : document.body,
   });
-
   return view;
 };
 
