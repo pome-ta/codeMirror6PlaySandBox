@@ -8,6 +8,17 @@ import {typescriptLanguage} from '@codemirror/lang-javascript';
 //import {minimalSetup} from 'codemirror';
 import {basicSetup} from 'codemirror';
 
+import {
+  createDefaultMapFromCDN,
+  createSystem,
+  createVirtualTypeScriptEnvironment,
+} from '@typescript/vfs';
+import ts from 'typescript';
+
+
+//const defaultMap = await createDefaultMapFromCDN({ target: ts.ScriptTarget.ES2022 }, ts.version, /* includeLibs */ true, ts);
+//console.log(defaultMap)
+
 
 const dummyCodePath = './dummyCode.js';
 
@@ -18,34 +29,6 @@ const getSource = async (path) => {
 };
 
 
-/*
-function simpleWebSocketTransport(uri) {
-  let handlers = [];
-  let sock = new WebSocket(uri);
-  sock.onmessage = e => {
-    for (let h of handlers) {
-      h(e.data.toString());
-    }
-  };
-  return new Promise(resolve => {
-    sock.onopen = () => resolve({
-      send: (message) => {
-        sock.send(message);
-      },
-      subscribe: (handler) => {
-        handlers.push(handler);
-      },
-      unsubscribe: (handler) => {
-        handlers = handlers.filter(h => h != handler);
-      }
-    });
-  });
-}
-
-
-let transport = await simpleWebSocketTransport('ws://host:port');
-let client = new LSPClient({extensions: languageServerExtensions()}).connect(transport);
-*/
 
 const createEditor = (parent = null) => {
   const customTheme = EditorView.theme(
@@ -55,14 +38,11 @@ const createEditor = (parent = null) => {
         fontSize: '0.72rem',
       },
     },
-    {
-      dark: false,
-    },
+    { dark: false, },
   );
 
   const extensions = [
     basicSetup,
-    //minimalSetup,
     customTheme,
     typescriptLanguage,
   ];
@@ -83,7 +63,6 @@ const editor = createEditor();
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOMContentLoaded');
-  console.log(window.location);
   getSource(dummyCodePath).then((res) => {
     editor.dispatch({
       changes: {
