@@ -3,7 +3,7 @@ import {
   createSystem,
   createVirtualTypeScriptEnvironment,
 } from '@typescript/vfs';
-import ts from 'typescrip';
+import ts from 'typescript';
 
 // Worker provides a small JSON-RPC-like LSP subset:
 // - requests: { jsonrpc:"2.0", id?, method, params }
