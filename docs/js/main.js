@@ -19,7 +19,16 @@ import ts from 'typescript';
 //const defaultMap = await createDefaultMapFromCDN({ target: ts.ScriptTarget.ES2022 }, ts.version, /* includeLibs */ true, ts);
 //console.log(defaultMap)
 
+const vfsInit = async ()=> {
+  const defaultMap = await createDefaultMapFromCDN({ target: ts.ScriptTarget.ES2022 }, ts.version, /* includeLibs */ true, ts);
+  const system = createSystem(defaultMap);
+  const env = createVirtualTypeScriptEnvironment(system, [], ts, { allowJs: true });
+  //console.log(ts.ScriptTarget.ES2022)
+  console.log(env)
 
+}
+
+vfsInit()
 const dummyCodePath = './dummyCode.js';
 
 const getSource = async (path) => {
