@@ -23,7 +23,7 @@ const vfsInit = async ()=> {
   const defaultMap = await createDefaultMapFromCDN({ target: ts.ScriptTarget.ES2022 }, ts.version, /* includeLibs */ true, ts);
   const system = createSystem(defaultMap);
   const env = createVirtualTypeScriptEnvironment(system, [], ts, { allowJs: true });
-  //console.log(ts.ScriptTarget.ES2022)
+  console.log(ts.ScriptTarget)
   console.log(env)
 
 }
